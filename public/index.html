@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GeoSignal</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <h1>GeoSignal</h1>
+      <span class="tagline">Geopolitical Intelligence Feed</span>
+    </div>
+    <button id="refresh-btn" class="refresh-btn">Refresh</button>
+  </header>
+
+  <div class="filters">
+    <div class="filter-group">
+      <label for="region-select">Region</label>
+      <select id="region-select">
+        <option value="Global">Global</option>
+        <option value="Middle East">Middle East</option>
+        <option value="South & Southeast Asia">South & Southeast Asia</option>
+        <option value="Europe">Europe</option>
+        <option value="Africa">Africa</option>
+        <option value="Latin America">Latin America</option>
+        <option value="East Asia">East Asia</option>
+        <option value="North America">North America</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Sector</label>
+      <div class="pill-group" id="sector-pills">
+        <button class="pill active" data-value="Geopolitics">Geopolitics</button>
+        <button class="pill active" data-value="Economy & Trade">Economy & Trade</button>
+        <button class="pill active" data-value="Technology & AI">Technology & AI</button>
+        <button class="pill active" data-value="Climate & Energy">Climate & Energy</button>
+        <button class="pill active" data-value="Defence & Security">Defence & Security</button>
+        <button class="pill active" data-value="Society & Culture">Society & Culture</button>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <label>Source Type</label>
+      <div class="pill-group" id="source-pills">
+        <button class="pill active" data-value="Mainstream news">Mainstream news</button>
+        <button class="pill active" data-value="Think tanks & academic">Think tanks & academic</button>
+        <button class="pill active" data-value="Independent journalism">Independent journalism</button>
+      </div>
+    </div>
+  </div>
+
+  <main id="feed">
+    <div class="loading-feed">Loading stories&hellip;</div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
