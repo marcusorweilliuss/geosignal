@@ -11,117 +11,172 @@ app.use(express.static('public'));
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-// Region queries — kept short to stay under NewsAPI 500-char limit
+// Region queries — focused keywords for each region
 const regionQueries = {
-  'Global': '',
-  'Middle East': 'Middle East OR Israel OR Iran OR Saudi Arabia OR Syria OR Iraq',
-  'South Asia': 'India OR Pakistan OR Bangladesh OR Sri Lanka OR Nepal',
-  'Southeast Asia': 'Indonesia OR Philippines OR Vietnam OR Thailand OR Myanmar OR Malaysia',
-  'Europe': 'Europe OR EU OR Germany OR France OR UK OR NATO OR Ukraine',
-  'Africa': 'Africa OR Nigeria OR Kenya OR South Africa OR Ethiopia OR Egypt',
-  'Latin America': 'Brazil OR Mexico OR Argentina OR Colombia OR Chile OR Venezuela',
-  'East Asia': 'China OR Japan OR South Korea OR Taiwan OR North Korea',
-  'North America': 'United States OR Canada',
-  'Central Asia & Caucasus': 'Kazakhstan OR Uzbekistan OR Georgia OR Armenia OR Azerbaijan',
-  'Oceania': 'Australia OR New Zealand OR Pacific Islands'
+  'Global': 'world OR global OR international',
+  'Middle East': 'Middle East OR Israel OR Iran OR Saudi Arabia OR Syria OR Iraq OR Lebanon OR Yemen',
+  'South Asia': 'India OR Pakistan OR Bangladesh OR Sri Lanka OR Nepal OR Afghanistan',
+  'Southeast Asia': 'Indonesia OR Philippines OR Vietnam OR Thailand OR Myanmar OR Malaysia OR Singapore OR Cambodia',
+  'Europe': 'Europe OR EU OR Germany OR France OR UK OR Ukraine OR NATO OR Poland OR Italy OR Spain',
+  'Africa': 'Africa OR Nigeria OR Kenya OR South Africa OR Ethiopia OR Egypt OR Congo OR Morocco',
+  'Latin America': 'Brazil OR Mexico OR Argentina OR Colombia OR Chile OR Venezuela OR Peru',
+  'East Asia': 'China OR Japan OR South Korea OR Taiwan OR North Korea OR Hong Kong',
+  'North America': 'United States OR Canada OR Congress OR White House',
+  'Central Asia & Caucasus': 'Kazakhstan OR Uzbekistan OR Georgia OR Armenia OR Azerbaijan OR Kyrgyzstan',
+  'Oceania': 'Australia OR New Zealand OR Pacific Islands OR Fiji'
 };
 
-// Sector keywords — kept concise for query limits
+// Sector keywords — each kept short to stay well under 500-char limit
 const sectorKeywords = {
-  'Geopolitics': 'geopolitics OR diplomacy OR sanctions OR foreign policy OR conflict',
-  'Economy & Trade': 'economy OR trade OR tariffs OR GDP OR markets OR inflation',
-  'Technology & AI': 'technology OR AI OR cyber OR semiconductor',
-  'Climate & Energy': 'climate OR energy OR renewable OR emissions OR oil',
-  'Defence & Security': 'defense OR military OR security OR weapons OR intelligence',
-  'Society & Culture': 'migration OR human rights OR protests OR election OR democracy',
-  'Space & Frontier': 'space OR satellite OR rocket OR NASA OR launch',
-  'Health & Biotech': 'health OR pandemic OR biotech OR pharmaceutical OR vaccine'
+  'Geopolitics': 'geopolitics OR diplomacy OR sanctions OR foreign policy OR conflict OR treaty',
+  'Economy & Trade': 'economy OR trade OR tariffs OR GDP OR markets OR inflation OR recession',
+  'Technology & AI': 'technology OR AI OR cyber OR semiconductor OR quantum',
+  'Climate & Energy': 'climate OR energy OR renewable OR emissions OR oil OR carbon',
+  'Defence & Security': 'defense OR military OR security OR weapons OR intelligence OR terrorism',
+  'Society & Culture': 'migration OR human rights OR protests OR election OR democracy OR refugees',
+  'Space & Frontier': 'space OR satellite OR rocket OR NASA OR launch OR orbital',
+  'Health & Biotech': 'health OR pandemic OR biotech OR pharmaceutical OR vaccine OR disease'
 };
 
-// Source types — mainstream expanded to 20+ outlets
+// Regional sources — diverse outlets for each region (used when fetching by region)
+const regionalSources = {
+  'Middle East': 'aljazeera.com,timesofisrael.com,arabnews.com,middleeasteye.net,dailysabah.com',
+  'South Asia': 'hindustantimes.com,ndtv.com,dawn.com,thehindu.com,bdnews24.com,economictimes.indiatimes.com',
+  'Southeast Asia': 'straitstimes.com,bangkokpost.com,rappler.com,channelnewsasia.com,thejakartapost.com,vnexpress.net',
+  'Europe': 'bbc.co.uk,theguardian.com,dw.com,france24.com,politico.eu,reuters.com',
+  'Africa': 'allafrica.com,nation.africa,mg.co.za,premiumtimesng.com,dailymaverick.co.za,theafricareport.com',
+  'Latin America': 'reuters.com,bbc.co.uk,batimes.com.ar,braziljournal.com,mexiconewsdaily.com',
+  'East Asia': 'scmp.com,japantimes.co.jp,koreaherald.com,nikkei.com,globaltimes.cn,taipeitimes.com',
+  'North America': 'nytimes.com,washingtonpost.com,cnn.com,politico.com,thehill.com,axios.com,cbc.ca',
+  'Central Asia & Caucasus': 'eurasianet.org,thediplomat.com,reuters.com,rferl.org',
+  'Oceania': 'abc.net.au,rnz.co.nz,theguardian.com,smh.com.au,stuff.co.nz',
+  'Global': 'reuters.com,bbc.co.uk,aljazeera.com,apnews.com,bloomberg.com,ft.com,nytimes.com'
+};
+
+// Source type domains (for the source type filter — mainstream/think tank/independent)
 const sourceTypeDomains = {
   'Mainstream news': [
     'reuters.com', 'bbc.co.uk', 'nytimes.com', 'theguardian.com', 'aljazeera.com',
     'apnews.com', 'washingtonpost.com', 'cnn.com', 'bloomberg.com', 'ft.com',
     'economist.com', 'politico.com', 'france24.com', 'dw.com', 'scmp.com',
     'abc.net.au', 'nbcnews.com', 'axios.com', 'thehill.com', 'japantimes.co.jp',
-    'hindustantimes.com', 'straitstimes.com', 'timesofisrael.com'
+    'hindustantimes.com', 'straitstimes.com', 'timesofisrael.com', 'ndtv.com',
+    'channelnewsasia.com', 'koreaherald.com', 'dawn.com', 'bangkokpost.com',
+    'arabnews.com', 'rappler.com', 'dailysabah.com', 'thejakartapost.com',
+    'taipeitimes.com', 'nikkei.com', 'cbc.ca', 'smh.com.au'
   ].join(','),
   'Think tanks & academic': [
     'foreignaffairs.com', 'brookings.edu', 'cfr.org', 'chathamhouse.org',
     'carnegieendowment.org', 'rand.org', 'csis.org', 'iiss.org',
-    'stimson.org', 'crisisgroup.org', 'lowyinstitute.org'
+    'stimson.org', 'crisisgroup.org', 'lowyinstitute.org', 'eurasianet.org'
   ].join(','),
   'Independent journalism': [
     'theintercept.com', 'propublica.org', 'bellingcat.com', 'rest-of-world.org',
-    'globalvoices.org', 'thediplomatcom', 'mondediplo.com', 'newlinesmag.com',
-    'warontherocks.com', 'devex.com'
+    'globalvoices.org', 'thediplomat.com', 'mondediplo.com', 'newlinesmag.com',
+    'warontherocks.com', 'devex.com', 'middleeasteye.net', 'dailymaverick.co.za',
+    'theafricareport.com', 'rferl.org'
   ].join(',')
 };
 
+// Fetch news — makes multiple smaller API calls per sector group for broader coverage
 app.get('/api/news', async (req, res) => {
   try {
     const { region, sectors, sourceTypes } = req.query;
 
-    // Build query from region and sectors — stay under 500 chars
-    const regionQ = regionQueries[region] || '';
+    const regionQ = regionQueries[region] || regionQueries['Global'];
     const sectorList = sectors ? sectors.split(',') : Object.keys(sectorKeywords);
 
-    // Pick top 3 sector keyword groups max to keep query short
-    const activeSectors = sectorList.slice(0, 3);
-    const sectorQ = activeSectors
-      .map(s => sectorKeywords[s])
-      .filter(Boolean)
-      .join(' OR ');
-
-    let query = [regionQ, sectorQ].filter(Boolean).join(' AND ');
-
-    // Hard cap at 490 chars to stay under NewsAPI limit
-    if (query.length > 490) {
-      query = query.substring(0, 490);
-      // Trim to last complete OR term
-      const lastOR = query.lastIndexOf(' OR ');
-      if (lastOR > 0) query = query.substring(0, lastOR);
-    }
-
-    if (!query) query = 'world news geopolitics';
-
-    // Build domains from source types
+    // Build domains from source types (optional filter)
     const typeList = sourceTypes ? sourceTypes.split(',') : Object.keys(sourceTypeDomains);
-    const domains = typeList
+    const sourceTypeDomainStr = typeList
       .map(t => sourceTypeDomains[t])
       .filter(Boolean)
       .join(',');
 
-    // Calculate date range — last 7 days for freshness
+    // Get regional sources for this region
+    const regSources = regionalSources[region] || regionalSources['Global'];
+
+    // Combine source-type domains with regional sources (deduplicated)
+    const allDomains = new Set([
+      ...sourceTypeDomainStr.split(',').filter(Boolean),
+      ...regSources.split(',').filter(Boolean)
+    ]);
+    const domainStr = Array.from(allDomains).join(',');
+
+    // Calculate date range — last 7 days
     const fromDate = new Date();
     fromDate.setDate(fromDate.getDate() - 7);
     const fromStr = fromDate.toISOString().split('T')[0];
 
-    // Fetch from NewsAPI — request more articles for richer feed
-    const params = new URLSearchParams({
-      q: query,
-      language: 'en',
-      sortBy: 'publishedAt',
-      pageSize: '30',
-      from: fromStr,
-      apiKey: process.env.NEWSAPI_KEY
+    // Strategy: make 2 parallel API calls for better coverage
+    // Call 1: region + first half of sectors (with domains)
+    // Call 2: region + second half of sectors (without domains — wider net)
+    const midpoint = Math.ceil(sectorList.length / 2);
+    const batch1 = sectorList.slice(0, midpoint);
+    const batch2 = sectorList.slice(midpoint);
+
+    const buildQuery = (rq, sectorBatch) => {
+      const sq = sectorBatch
+        .map(s => sectorKeywords[s])
+        .filter(Boolean)
+        .join(' OR ');
+      let q = sq ? `(${rq}) AND (${sq})` : rq;
+      // Hard cap at 490 chars
+      if (q.length > 490) {
+        q = q.substring(0, 490);
+        const lastOR = q.lastIndexOf(' OR ');
+        if (lastOR > 0) q = q.substring(0, lastOR);
+      }
+      return q;
+    };
+
+    const query1 = buildQuery(regionQ, batch1);
+    const query2 = batch2.length > 0 ? buildQuery(regionQ, batch2) : null;
+
+    const makeCall = async (query, useDomains) => {
+      const params = new URLSearchParams({
+        q: query,
+        language: 'en',
+        sortBy: 'publishedAt',
+        pageSize: '20',
+        from: fromStr,
+        apiKey: process.env.NEWSAPI_KEY
+      });
+      if (useDomains && domainStr) {
+        params.set('domains', domainStr);
+      }
+      const response = await fetch(`https://newsapi.org/v2/everything?${params}`);
+      const data = await response.json();
+      if (data.status !== 'ok') {
+        console.error('NewsAPI error:', data);
+        return [];
+      }
+      return data.articles || [];
+    };
+
+    // Parallel calls: one with domains (targeted), one without (broad)
+    const calls = [makeCall(query1, true)];
+    if (query2) {
+      calls.push(makeCall(query2, false));
+    }
+
+    const results = await Promise.all(calls);
+    const allArticles = results.flat();
+
+    // Deduplicate by title
+    const seen = new Set();
+    const unique = allArticles.filter(a => {
+      const key = a.title?.toLowerCase().trim();
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
     });
 
-    if (domains) {
-      params.set('domains', domains);
-    }
+    // Sort by publish date (newest first)
+    unique.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
 
-    const response = await fetch(`https://newsapi.org/v2/everything?${params}`);
-    const data = await response.json();
-
-    if (data.status !== 'ok') {
-      console.error('NewsAPI error:', data);
-      return res.status(502).json({ error: 'Failed to fetch news', detail: data.message });
-    }
-
-    // Map articles to our card format
-    const articles = (data.articles || []).map(article => ({
+    // Map to card format
+    const articles = unique.slice(0, 30).map(article => ({
       title: article.title,
       source: article.source?.name || 'Unknown',
       publishedAt: article.publishedAt,
@@ -146,7 +201,6 @@ app.post('/api/tldr', async (req, res) => {
       return res.json({ summaries: [] });
     }
 
-    // Build a single prompt for batch TL;DR generation
     const articleList = articles.map((a, i) =>
       `[${i}] "${a.title}" — ${a.description || 'No description'}`
     ).join('\n');
@@ -167,8 +221,6 @@ Do not include any other text, markdown, or formatting. Just the JSON array.`;
     });
 
     const raw = chatCompletion.choices[0]?.message?.content || '[]';
-
-    // Extract JSON array from the response
     let summaries;
     try {
       const jsonMatch = raw.match(/\[[\s\S]*\]/);
@@ -184,6 +236,7 @@ Do not include any other text, markdown, or formatting. Just the JSON array.`;
   }
 });
 
+// Intelligence briefing for a single article
 app.post('/api/briefing', async (req, res) => {
   try {
     const { title, source, description, content } = req.body;
@@ -221,6 +274,64 @@ WHY THIS MATTERS:
   } catch (err) {
     console.error('Briefing generation error:', err);
     res.status(500).json({ error: 'Failed to generate briefing' });
+  }
+});
+
+// Personalized impact analysis for a single article based on user profile
+app.post('/api/impact', async (req, res) => {
+  try {
+    const { title, source, description, content, profile } = req.body;
+
+    if (!profile || !profile.role) {
+      return res.status(400).json({ error: 'Profile required' });
+    }
+
+    const profileDesc = [
+      profile.role && `Role: ${profile.role}`,
+      profile.industry && `Industry: ${profile.industry}`,
+      profile.location && `Based in: ${profile.location}`,
+      profile.focus && `Focus areas: ${profile.focus}`
+    ].filter(Boolean).join(' | ');
+
+    const prompt = `You are an expert analyst providing personalized intelligence briefings. A professional is reading a news article. Based on their profile, explain how this news could impact them specifically.
+
+READER PROFILE:
+${profileDesc}
+
+ARTICLE:
+Headline: ${title}
+Source: ${source}
+Description: ${description}
+Content: ${content}
+
+Provide a concise, personalized impact analysis in EXACTLY this format. Use plain text, no markdown:
+
+RELEVANCE:
+[One word: HIGH, MEDIUM, or LOW]
+
+IMPACT SUMMARY:
+[2-3 sentences explaining specifically how this development could affect someone in their role, industry, and location. Be concrete and actionable, not generic.]
+
+WHAT TO WATCH:
+[1-2 specific things they should monitor or actions they might consider based on their profile]`;
+
+    const chatCompletion = await groq.chat.completions.create({
+      messages: [{ role: 'user', content: prompt }],
+      model: 'llama-3.3-70b-versatile',
+      temperature: 0.4,
+      max_tokens: 400
+    });
+
+    const impact = chatCompletion.choices[0]?.message?.content || 'Unable to generate impact analysis.';
+
+    // Extract relevance level
+    const relevanceMatch = impact.match(/RELEVANCE:\s*(HIGH|MEDIUM|LOW)/i);
+    const relevance = relevanceMatch ? relevanceMatch[1].toUpperCase() : 'MEDIUM';
+
+    res.json({ impact, relevance });
+  } catch (err) {
+    console.error('Impact analysis error:', err);
+    res.status(500).json({ error: 'Failed to generate impact analysis' });
   }
 });
 

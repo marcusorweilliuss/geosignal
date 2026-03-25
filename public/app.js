@@ -6,7 +6,96 @@ const refreshBtn = document.getElementById('refresh-btn');
 const feedCount = document.getElementById('feed-count');
 const feedTimestamp = document.getElementById('feed-timestamp');
 
-// Toggle pill active state
+// Profile elements
+const profileBtn = document.getElementById('profile-btn');
+const profileBtnText = document.getElementById('profile-btn-text');
+const profileModal = document.getElementById('profile-modal');
+const modalClose = document.getElementById('modal-close');
+const profileSave = document.getElementById('profile-save');
+const profileClear = document.getElementById('profile-clear');
+
+// ── Profile Management ──────────────────────────────────────────
+
+function getProfile() {
+  try {
+    const saved = localStorage.getItem('geosignal-profile');
+    return saved ? JSON.parse(saved) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveProfile(profile) {
+  localStorage.setItem('geosignal-profile', JSON.stringify(profile));
+  updateProfileButton();
+}
+
+function clearProfile() {
+  localStorage.removeItem('geosignal-profile');
+  updateProfileButton();
+}
+
+function updateProfileButton() {
+  const profile = getProfile();
+  if (profile && profile.role) {
+    profileBtnText.textContent = profile.role;
+    profileBtn.classList.add('has-profile');
+    profileBtn.title = `${profile.role} · ${profile.industry || 'General'} · ${profile.location || 'Global'}`;
+  } else {
+    profileBtnText.textContent = 'Set Profile';
+    profileBtn.classList.remove('has-profile');
+    profileBtn.title = 'Set up your profile for personalized impact analysis';
+  }
+}
+
+function openModal() {
+  const profile = getProfile();
+  document.getElementById('profile-role').value = profile?.role || '';
+  document.getElementById('profile-industry').value = profile?.industry || '';
+  document.getElementById('profile-location').value = profile?.location || '';
+  document.getElementById('profile-focus').value = profile?.focus || '';
+  profileModal.classList.add('visible');
+}
+
+function closeModal() {
+  profileModal.classList.remove('visible');
+}
+
+profileBtn.addEventListener('click', openModal);
+modalClose.addEventListener('click', closeModal);
+profileModal.addEventListener('click', (e) => {
+  if (e.target === profileModal) closeModal();
+});
+
+profileSave.addEventListener('click', () => {
+  const role = document.getElementById('profile-role').value;
+  const industry = document.getElementById('profile-industry').value;
+  const location = document.getElementById('profile-location').value;
+  const focus = document.getElementById('profile-focus').value;
+
+  if (!role) {
+    document.getElementById('profile-role').focus();
+    return;
+  }
+
+  saveProfile({ role, industry, location, focus });
+  closeModal();
+});
+
+profileClear.addEventListener('click', () => {
+  clearProfile();
+  document.getElementById('profile-role').value = '';
+  document.getElementById('profile-industry').value = '';
+  document.getElementById('profile-location').value = '';
+  document.getElementById('profile-focus').value = '';
+  closeModal();
+});
+
+// Init profile button on load
+updateProfileButton();
+
+// ── Pills & Filters ─────────────────────────────────────────────
+
 function initPills(container) {
   container.querySelectorAll('.pill').forEach(pill => {
     pill.addEventListener('click', () => {
@@ -18,13 +107,13 @@ function initPills(container) {
 initPills(sectorPills);
 initPills(sourcePills);
 
-// Get active pill values from a container
 function getActivePills(container) {
   return Array.from(container.querySelectorAll('.pill.active'))
     .map(p => p.dataset.value);
 }
 
-// Format relative time
+// ── Utilities ───────────────────────────────────────────────────
+
 function timeAgo(dateStr) {
   const now = new Date();
   const then = new Date(dateStr);
@@ -38,7 +127,6 @@ function timeAgo(dateStr) {
   return days + 'd ago';
 }
 
-// Format current timestamp
 function formatTimestamp() {
   const now = new Date();
   return now.toLocaleTimeString('en-US', {
@@ -49,11 +137,23 @@ function formatTimestamp() {
   }) + ' UTC';
 }
 
-// Store articles globally for TL;DR updates
+function escapeHtml(str) {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// ── Store ───────────────────────────────────────────────────────
+
 let currentArticles = [];
 let tldrElements = [];
 
-// Fetch stories from backend
+// ── Fetch Stories ───────────────────────────────────────────────
+
 async function fetchStories() {
   const region = regionSelect.value;
   const sectors = getActivePills(sectorPills);
@@ -98,8 +198,6 @@ async function fetchStories() {
     feedTimestamp.textContent = 'Updated ' + formatTimestamp();
 
     renderFeed(data.articles);
-
-    // Fire off TL;DR generation in background
     generateTldrs(data.articles);
   } catch (err) {
     console.error('Fetch error:', err);
@@ -107,7 +205,8 @@ async function fetchStories() {
   }
 }
 
-// Generate TL;DR summaries via batch API
+// ── TL;DR Generation ────────────────────────────────────────────
+
 async function generateTldrs(articles) {
   try {
     const res = await fetch('/api/tldr', {
@@ -135,11 +234,128 @@ async function generateTldrs(articles) {
     }
   } catch (err) {
     console.error('TL;DR generation error:', err);
-    // Fail silently — descriptions are already shown as fallback
   }
 }
 
-// Render story cards
+// ── Impact Analysis ─────────────────────────────────────────────
+
+async function fetchImpact(article, container) {
+  const profile = getProfile();
+
+  if (!profile || !profile.role) {
+    container.innerHTML =
+      '<div class="no-profile-hint">' +
+        '<span>Set up your profile to see how this story impacts you personally.</span>' +
+        '<button onclick="document.getElementById(\'profile-btn\').click()">Set Profile</button>' +
+      '</div>';
+    return;
+  }
+
+  container.innerHTML =
+    '<div class="impact-section">' +
+      '<div class="impact-header">' +
+        '<span class="impact-title">Personalized Impact</span>' +
+      '</div>' +
+      '<div class="impact-loading">' +
+        '<div class="spinner"></div>' +
+        '<span>Analyzing impact for your profile&hellip;</span>' +
+      '</div>' +
+    '</div>';
+
+  try {
+    const res = await fetch('/api/impact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: article.title,
+        source: article.source,
+        description: article.description,
+        content: article.content,
+        profile
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.impact) {
+      container.innerHTML =
+        '<div class="impact-section">' +
+          '<div class="briefing-error">Could not generate impact analysis.</div>' +
+        '</div>';
+      return;
+    }
+
+    const relevance = (data.relevance || 'MEDIUM').toLowerCase();
+    const sections = parseImpact(data.impact);
+
+    let html =
+      '<div class="impact-section">' +
+        '<div class="impact-header">' +
+          '<span class="impact-title">How This Impacts You</span>' +
+          '<span class="impact-badge ' + relevance + '">' + data.relevance + ' Relevance</span>' +
+        '</div>' +
+        '<div class="impact-body">';
+
+    sections.forEach(section => {
+      html +=
+        '<div class="briefing-section">' +
+          '<div class="briefing-label">' + escapeHtml(section.label) + '</div>' +
+          '<div class="briefing-text">' + escapeHtml(section.text) + '</div>' +
+        '</div>';
+    });
+
+    html += '</div></div>';
+    container.innerHTML = html;
+  } catch (err) {
+    console.error('Impact analysis error:', err);
+    container.innerHTML =
+      '<div class="impact-section">' +
+        '<div class="briefing-error">Failed to generate impact analysis.</div>' +
+      '</div>';
+  }
+}
+
+function parseImpact(text) {
+  const labels = ['RELEVANCE', 'IMPACT SUMMARY', 'WHAT TO WATCH'];
+  const sections = [];
+
+  for (let i = 0; i < labels.length; i++) {
+    // Skip RELEVANCE — it's extracted separately
+    if (labels[i] === 'RELEVANCE') continue;
+
+    const label = labels[i];
+    const nextLabel = labels[i + 1];
+
+    const pattern = new RegExp(label + '[:\\s]*', 'i');
+    const match = text.match(pattern);
+    if (!match) continue;
+
+    const startIdx = match.index + match[0].length;
+    let endIdx = text.length;
+
+    if (nextLabel) {
+      const nextPattern = new RegExp(nextLabel + '[:\\s]*', 'i');
+      const nextMatch = text.match(nextPattern);
+      if (nextMatch) endIdx = nextMatch.index;
+    }
+
+    const sectionText = text.substring(startIdx, endIdx).trim();
+    if (sectionText) {
+      sections.push({ label, text: sectionText });
+    }
+  }
+
+  if (sections.length === 0) {
+    // Fallback: strip the RELEVANCE line and show the rest
+    const cleaned = text.replace(/RELEVANCE:\s*(HIGH|MEDIUM|LOW)\s*/i, '').trim();
+    if (cleaned) sections.push({ label: 'IMPACT SUMMARY', text: cleaned });
+  }
+
+  return sections;
+}
+
+// ── Render Feed ─────────────────────────────────────────────────
+
 function renderFeed(articles) {
   feed.innerHTML = '';
   tldrElements = [];
@@ -148,7 +364,6 @@ function renderFeed(articles) {
     const card = document.createElement('div');
     card.className = 'card';
 
-    // Build card HTML
     const tldrFallback = article.description
       ? escapeHtml(article.description)
       : 'Generating summary&hellip;';
@@ -168,7 +383,6 @@ function renderFeed(articles) {
         '<div>' + tldrFallback + '</div>' +
       '</div>';
 
-    // Store reference to TL;DR element
     const tldrEl = card.querySelector('.card-tldr');
     tldrElements.push(tldrEl);
 
@@ -176,10 +390,9 @@ function renderFeed(articles) {
     let briefingEl = null;
 
     card.addEventListener('click', async (e) => {
-      // Don't trigger on link clicks
       if (e.target.closest('.card-link')) return;
+      if (e.target.closest('.no-profile-hint button')) return;
 
-      // Collapse if already expanded
       if (expanded) {
         if (briefingEl) {
           briefingEl.remove();
@@ -191,66 +404,79 @@ function renderFeed(articles) {
 
       expanded = true;
 
-      // Create briefing container with loading state
       briefingEl = document.createElement('div');
       briefingEl.className = 'briefing';
-      briefingEl.innerHTML =
+
+      // Two sections: intelligence briefing + impact analysis
+      const briefingContent = document.createElement('div');
+      briefingContent.innerHTML =
         '<div class="briefing-loading">' +
           '<div class="spinner"></div>' +
           '<span>Generating intelligence briefing&hellip;</span>' +
         '</div>';
+
+      const impactContent = document.createElement('div');
+
+      briefingEl.appendChild(briefingContent);
+      briefingEl.appendChild(impactContent);
       card.appendChild(briefingEl);
 
-      try {
-        const res = await fetch('/api/briefing', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title: article.title,
-            source: article.source,
-            description: article.description,
-            content: article.content
-          })
-        });
+      // Fire both requests in parallel
+      const briefingPromise = fetchBriefing(article, briefingContent);
+      const impactPromise = fetchImpact(article, impactContent);
 
-        const data = await res.json();
-
-        if (!res.ok || !data.briefing) {
-          briefingEl.innerHTML = '<div class="briefing-error">Could not generate briefing.</div>';
-          return;
-        }
-
-        // Parse the briefing into sections
-        const sections = parseBriefing(data.briefing);
-        let html = '<div class="briefing-content">';
-
-        sections.forEach(section => {
-          html +=
-            '<div class="briefing-section">' +
-              '<div class="briefing-label">' + escapeHtml(section.label) + '</div>' +
-              '<div class="briefing-text">' + escapeHtml(section.text) + '</div>' +
-            '</div>';
-        });
-
-        if (article.url) {
-          html += '<a class="card-link" href="' + escapeHtml(article.url) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">Read original source &rarr;</a>';
-        }
-
-        html += '</div>';
-        briefingEl.innerHTML = html;
-      } catch (err) {
-        console.error('Briefing error:', err);
-        if (briefingEl) {
-          briefingEl.innerHTML = '<div class="briefing-error">Failed to generate briefing.</div>';
-        }
-      }
+      await Promise.all([briefingPromise, impactPromise]);
     });
 
     feed.appendChild(card);
   });
 }
 
-// Parse structured briefing text into labelled sections
+// ── Briefing Fetch ──────────────────────────────────────────────
+
+async function fetchBriefing(article, container) {
+  try {
+    const res = await fetch('/api/briefing', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: article.title,
+        source: article.source,
+        description: article.description,
+        content: article.content
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.briefing) {
+      container.innerHTML = '<div class="briefing-error">Could not generate briefing.</div>';
+      return;
+    }
+
+    const sections = parseBriefing(data.briefing);
+    let html = '<div class="briefing-content">';
+
+    sections.forEach(section => {
+      html +=
+        '<div class="briefing-section">' +
+          '<div class="briefing-label">' + escapeHtml(section.label) + '</div>' +
+          '<div class="briefing-text">' + escapeHtml(section.text) + '</div>' +
+        '</div>';
+    });
+
+    if (article.url) {
+      html += '<a class="card-link" href="' + escapeHtml(article.url) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">Read original source &rarr;</a>';
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
+  } catch (err) {
+    console.error('Briefing error:', err);
+    container.innerHTML = '<div class="briefing-error">Failed to generate briefing.</div>';
+  }
+}
+
 function parseBriefing(text) {
   const labels = ['WHAT HAPPENED', 'WHAT LED TO THIS', 'WHAT EXPERTS ARE SAYING', 'WHY THIS MATTERS'];
   const sections = [];
@@ -269,14 +495,12 @@ function parseBriefing(text) {
     if (nextLabel) {
       const nextPattern = new RegExp(nextLabel + '[:\\s]*', 'i');
       const nextMatch = text.match(nextPattern);
-      if (nextMatch) {
-        endIdx = nextMatch.index;
-      }
+      if (nextMatch) endIdx = nextMatch.index;
     }
 
     const sectionText = text.substring(startIdx, endIdx).trim();
     if (sectionText) {
-      sections.push({ label: label, text: sectionText });
+      sections.push({ label, text: sectionText });
     }
   }
 
@@ -287,18 +511,8 @@ function parseBriefing(text) {
   return sections;
 }
 
-// Escape HTML to prevent XSS
-function escapeHtml(str) {
-  if (!str) return '';
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
+// ── Event Listeners ─────────────────────────────────────────────
 
-// Event listeners
 refreshBtn.addEventListener('click', fetchStories);
 regionSelect.addEventListener('change', fetchStories);
 

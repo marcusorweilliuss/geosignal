@@ -30,6 +30,13 @@
         <span class="tagline">Global Intelligence Feed</span>
       </div>
       <div class="header-right">
+        <button id="profile-btn" class="profile-btn" title="Set up your profile for personalized impact analysis">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="7" cy="5" r="2.5"/>
+            <path d="M2.5 12.5c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4"/>
+          </svg>
+          <span id="profile-btn-text">Set Profile</span>
+        </button>
         <div class="live-indicator">
           <span class="live-dot"></span>
           <span class="live-text">LIVE</span>
@@ -101,6 +108,76 @@
     <footer>
       <span>GeoSignal &mdash; Intelligence at the speed of now</span>
     </footer>
+  </div>
+
+  <!-- Profile Setup Modal -->
+  <div class="modal-overlay" id="profile-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Your Profile</h2>
+        <p class="modal-subtitle">Personalize your intelligence feed. GeoSignal will analyze how each story impacts you specifically.</p>
+        <button class="modal-close" id="modal-close">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="profile-role">What's your role?</label>
+          <select id="profile-role">
+            <option value="">Select your role...</option>
+            <option value="Analyst">Analyst</option>
+            <option value="Entrepreneur">Entrepreneur / Founder</option>
+            <option value="Investor">Investor / VC / PE</option>
+            <option value="Executive">Executive / C-Suite</option>
+            <option value="VP">VP / Director</option>
+            <option value="Consultant">Consultant / Advisor</option>
+            <option value="Journalist">Journalist / Reporter</option>
+            <option value="Researcher">Researcher / Academic</option>
+            <option value="Policy Maker">Policy Maker / Government</option>
+            <option value="Engineer">Engineer / Developer</option>
+            <option value="Student">Student</option>
+            <option value="Personal">Personal Use</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="profile-industry">Industry / Sector</label>
+          <select id="profile-industry">
+            <option value="">Select your industry...</option>
+            <option value="Finance & Banking">Finance & Banking</option>
+            <option value="Oil & Gas / Energy">Oil & Gas / Energy</option>
+            <option value="Technology">Technology</option>
+            <option value="Healthcare & Pharma">Healthcare & Pharma</option>
+            <option value="Defense & Aerospace">Defense & Aerospace</option>
+            <option value="Real Estate">Real Estate</option>
+            <option value="Agriculture & Food">Agriculture & Food</option>
+            <option value="Manufacturing">Manufacturing</option>
+            <option value="Logistics & Supply Chain">Logistics & Supply Chain</option>
+            <option value="Media & Communications">Media & Communications</option>
+            <option value="Government & Public Sector">Government & Public Sector</option>
+            <option value="Education">Education</option>
+            <option value="Consulting">Consulting</option>
+            <option value="Legal">Legal</option>
+            <option value="Retail & Consumer">Retail & Consumer</option>
+            <option value="General / Multiple">General / Multiple</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="profile-location">Where are you based?</label>
+          <input type="text" id="profile-location" placeholder="e.g., Singapore, New York, London..." />
+        </div>
+
+        <div class="form-group">
+          <label for="profile-focus">What do you focus on? <span class="optional">(optional)</span></label>
+          <input type="text" id="profile-focus" placeholder="e.g., emerging markets, supply chain risk, ESG..." />
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" id="profile-clear">Clear Profile</button>
+        <button class="btn-primary" id="profile-save">Save Profile</button>
+      </div>
+    </div>
   </div>
 
   <script src="app.js"></script>
