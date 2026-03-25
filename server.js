@@ -12,7 +12,28 @@ app.use(express.static('public'));
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
 
-// Region queries — focused keywords for each region
+// ── API Key Rotation ────────────────────────────────────────────
+// NewsAPI keys rotate automatically; when one hits rate limit, we switch
+const newsApiKeys = [
+  process.env.NEWSAPI_KEY_1,
+  process.env.NEWSAPI_KEY_2
+].filter(Boolean);
+
+let currentNewsApiIndex = 0;
+
+function getNewsApiKey() {
+  return newsApiKeys[currentNewsApiIndex % newsApiKeys.length];
+}
+
+function rotateNewsApiKey() {
+  currentNewsApiIndex = (currentNewsApiIndex + 1) % newsApiKeys.length;
+  console.log(`Rotated to NewsAPI key #${currentNewsApiIndex + 1}`);
+}
+
+const gnewsApiKey = process.env.GNEWS_API_KEY;
+
+// ── Region & Sector Config ──────────────────────────────────────
+
 const regionQueries = {
   'Global': 'world OR global OR international',
   'Middle East': 'Middle East OR Israel OR Iran OR Saudi Arabia OR Syria OR Iraq OR Lebanon OR Yemen',
@@ -27,7 +48,21 @@ const regionQueries = {
   'Oceania': 'Australia OR New Zealand OR Pacific Islands OR Fiji'
 };
 
-// Sector keywords — each kept short to stay well under 500-char limit
+// GNews uses simpler queries (max 200 chars for free tier)
+const regionQueriesGNews = {
+  'Global': 'world international',
+  'Middle East': 'Middle East Israel Iran Saudi Arabia',
+  'South Asia': 'India Pakistan Bangladesh Sri Lanka',
+  'Southeast Asia': 'Indonesia Philippines Vietnam Thailand Myanmar Malaysia Singapore',
+  'Europe': 'Europe EU Germany France UK Ukraine NATO',
+  'Africa': 'Africa Nigeria Kenya South Africa Ethiopia Egypt',
+  'Latin America': 'Brazil Mexico Argentina Colombia Venezuela',
+  'East Asia': 'China Japan South Korea Taiwan North Korea',
+  'North America': 'United States Canada',
+  'Central Asia & Caucasus': 'Kazakhstan Uzbekistan Georgia Armenia Azerbaijan',
+  'Oceania': 'Australia New Zealand Pacific'
+};
+
 const sectorKeywords = {
   'Geopolitics': 'geopolitics OR diplomacy OR sanctions OR foreign policy OR conflict OR treaty',
   'Economy & Trade': 'economy OR trade OR tariffs OR GDP OR markets OR inflation OR recession',
@@ -39,7 +74,17 @@ const sectorKeywords = {
   'Health & Biotech': 'health OR pandemic OR biotech OR pharmaceutical OR vaccine OR disease'
 };
 
-// Regional sources — diverse outlets for each region (used when fetching by region)
+const sectorKeywordsGNews = {
+  'Geopolitics': 'geopolitics diplomacy sanctions',
+  'Economy & Trade': 'economy trade tariffs markets',
+  'Technology & AI': 'technology AI cyber semiconductor',
+  'Climate & Energy': 'climate energy renewable oil',
+  'Defence & Security': 'defense military security weapons',
+  'Society & Culture': 'migration human rights election',
+  'Space & Frontier': 'space satellite rocket NASA',
+  'Health & Biotech': 'health pandemic biotech vaccine'
+};
+
 const regionalSources = {
   'Middle East': 'aljazeera.com,timesofisrael.com,arabnews.com,middleeasteye.net,dailysabah.com',
   'South Asia': 'hindustantimes.com,ndtv.com,dawn.com,thehindu.com,bdnews24.com,economictimes.indiatimes.com',
@@ -54,7 +99,6 @@ const regionalSources = {
   'Global': 'reuters.com,bbc.co.uk,aljazeera.com,apnews.com,bloomberg.com,ft.com,nytimes.com'
 };
 
-// Source type domains (for the source type filter — mainstream/think tank/independent)
 const sourceTypeDomains = {
   'Mainstream news': [
     'reuters.com', 'bbc.co.uk', 'nytimes.com', 'theguardian.com', 'aljazeera.com',
@@ -79,7 +123,104 @@ const sourceTypeDomains = {
   ].join(',')
 };
 
-// Fetch news — makes multiple smaller API calls per sector group for broader coverage
+// ── NewsAPI Fetch (with key rotation) ───────────────────────────
+
+async function fetchFromNewsAPI(query, domains, fromStr) {
+  // Try each key until one works
+  for (let attempt = 0; attempt < newsApiKeys.length; attempt++) {
+    const apiKey = getNewsApiKey();
+    const params = new URLSearchParams({
+      q: query,
+      language: 'en',
+      sortBy: 'publishedAt',
+      pageSize: '30',
+      from: fromStr,
+      apiKey
+    });
+    if (domains) {
+      params.set('domains', domains);
+    }
+
+    const response = await fetch(`https://newsapi.org/v2/everything?${params}`);
+    const data = await response.json();
+
+    if (data.status === 'ok') {
+      return data.articles || [];
+    }
+
+    // Rate limited — rotate to next key and retry
+    if (data.code === 'rateLimited') {
+      console.log(`NewsAPI key #${currentNewsApiIndex + 1} rate limited, rotating...`);
+      rotateNewsApiKey();
+      continue;
+    }
+
+    // Other error — log and return empty
+    console.error('NewsAPI error:', data);
+    return [];
+  }
+
+  // All NewsAPI keys exhausted
+  console.log('All NewsAPI keys rate limited');
+  return null; // Signal to fall back to GNews
+}
+
+// ── GNews Fetch (fallback) ──────────────────────────────────────
+
+async function fetchFromGNews(region, sectorList) {
+  if (!gnewsApiKey) return [];
+
+  const regionQ = regionQueriesGNews[region] || regionQueriesGNews['Global'];
+
+  // GNews has a 200-char query limit, so keep it short
+  // Pick top 2 sectors only
+  const topSectors = sectorList.slice(0, 2);
+  const sectorQ = topSectors
+    .map(s => sectorKeywordsGNews[s])
+    .filter(Boolean)
+    .join(' ');
+
+  let query = `${regionQ} ${sectorQ}`.trim();
+  if (query.length > 200) {
+    query = query.substring(0, 200).trim();
+  }
+
+  const params = new URLSearchParams({
+    q: query,
+    lang: 'en',
+    max: '10',
+    apikey: gnewsApiKey
+  });
+
+  try {
+    const response = await fetch(`https://gnews.io/api/v4/search?${params}`);
+    const data = await response.json();
+
+    if (data.articles && data.articles.length > 0) {
+      console.log(`GNews returned ${data.articles.length} articles`);
+      // Map GNews format to match NewsAPI format
+      return data.articles.map(a => ({
+        title: a.title,
+        source: { name: a.source?.name || 'Unknown' },
+        publishedAt: a.publishedAt,
+        description: a.description || '',
+        content: a.content || a.description || '',
+        url: a.url
+      }));
+    }
+
+    if (data.errors) {
+      console.error('GNews error:', data.errors);
+    }
+    return [];
+  } catch (err) {
+    console.error('GNews fetch error:', err.message);
+    return [];
+  }
+}
+
+// ── Main News Endpoint ──────────────────────────────────────────
+
 app.get('/api/news', async (req, res) => {
   try {
     const { region, sectors, sourceTypes } = req.query;
@@ -87,31 +228,26 @@ app.get('/api/news', async (req, res) => {
     const regionQ = regionQueries[region] || regionQueries['Global'];
     const sectorList = sectors ? sectors.split(',') : Object.keys(sectorKeywords);
 
-    // Build domains from source types (optional filter)
+    // Build domains from source types
     const typeList = sourceTypes ? sourceTypes.split(',') : Object.keys(sourceTypeDomains);
     const sourceTypeDomainStr = typeList
       .map(t => sourceTypeDomains[t])
       .filter(Boolean)
       .join(',');
 
-    // Get regional sources for this region
     const regSources = regionalSources[region] || regionalSources['Global'];
-
-    // Combine source-type domains with regional sources (deduplicated)
     const allDomains = new Set([
       ...sourceTypeDomainStr.split(',').filter(Boolean),
       ...regSources.split(',').filter(Boolean)
     ]);
     const domainStr = Array.from(allDomains).join(',');
 
-    // Calculate date range — last 7 days
+    // Date range — last 7 days
     const fromDate = new Date();
     fromDate.setDate(fromDate.getDate() - 7);
     const fromStr = fromDate.toISOString().split('T')[0];
 
-    // Strategy: make 2 parallel API calls for better coverage
-    // Call 1: region + first half of sectors (with domains)
-    // Call 2: region + second half of sectors (without domains — wider net)
+    // Build queries for 2 batches
     const midpoint = Math.ceil(sectorList.length / 2);
     const batch1 = sectorList.slice(0, midpoint);
     const batch2 = sectorList.slice(midpoint);
@@ -122,7 +258,6 @@ app.get('/api/news', async (req, res) => {
         .filter(Boolean)
         .join(' OR ');
       let q = sq ? `(${rq}) AND (${sq})` : rq;
-      // Hard cap at 490 chars
       if (q.length > 490) {
         q = q.substring(0, 490);
         const lastOR = q.lastIndexOf(' OR ');
@@ -134,41 +269,31 @@ app.get('/api/news', async (req, res) => {
     const query1 = buildQuery(regionQ, batch1);
     const query2 = batch2.length > 0 ? buildQuery(regionQ, batch2) : null;
 
-    const makeCall = async (query, useDomains) => {
-      const params = new URLSearchParams({
-        q: query,
-        language: 'en',
-        sortBy: 'publishedAt',
-        pageSize: '20',
-        from: fromStr,
-        apiKey: process.env.NEWSAPI_KEY
-      });
-      if (useDomains && domainStr) {
-        params.set('domains', domainStr);
-      }
-      const response = await fetch(`https://newsapi.org/v2/everything?${params}`);
-      const data = await response.json();
-      if (data.status !== 'ok') {
-        console.error('NewsAPI error:', data);
-        return [];
-      }
-      return data.articles || [];
-    };
+    // Try NewsAPI first (with key rotation)
+    const newsApiResults1 = await fetchFromNewsAPI(query1, domainStr, fromStr);
+    const newsApiResults2 = query2 ? await fetchFromNewsAPI(query2, null, fromStr) : [];
 
-    // Parallel calls: one with domains (targeted), one without (broad)
-    const calls = [makeCall(query1, true)];
-    if (query2) {
-      calls.push(makeCall(query2, false));
+    let allArticles = [];
+
+    if (newsApiResults1 === null && newsApiResults2 === null) {
+      // All NewsAPI keys exhausted — fall back entirely to GNews
+      console.log('Falling back to GNews...');
+      allArticles = await fetchFromGNews(region, sectorList);
+    } else {
+      // Combine NewsAPI results
+      if (newsApiResults1) allArticles.push(...newsApiResults1);
+      if (newsApiResults2) allArticles.push(...newsApiResults2);
+
+      // Also fetch from GNews for supplementary coverage
+      const gnewsArticles = await fetchFromGNews(region, sectorList);
+      allArticles.push(...gnewsArticles);
     }
 
-    const results = await Promise.all(calls);
-    const allArticles = results.flat();
-
-    // Deduplicate by title
+    // Deduplicate by title (case-insensitive)
     const seen = new Set();
     const unique = allArticles.filter(a => {
       const key = a.title?.toLowerCase().trim();
-      if (!key || seen.has(key)) return false;
+      if (!key || key === '[removed]' || seen.has(key)) return false;
       seen.add(key);
       return true;
     });
@@ -194,7 +319,8 @@ app.get('/api/news', async (req, res) => {
   }
 });
 
-// Generate TL;DR summaries for a batch of articles
+// ── TL;DR Summaries ─────────────────────────────────────────────
+
 app.post('/api/tldr', async (req, res) => {
   try {
     const { articles } = req.body;
@@ -237,7 +363,8 @@ Do not include any other text, markdown, or formatting. Just the JSON array.`;
   }
 });
 
-// Intelligence briefing for a single article
+// ── Intelligence Briefing ───────────────────────────────────────
+
 app.post('/api/briefing', async (req, res) => {
   try {
     const { title, source, description, content } = req.body;
@@ -278,7 +405,8 @@ WHY THIS MATTERS:
   }
 });
 
-// Personalized impact analysis for a single article based on user profile
+// ── Personalized Impact Analysis ────────────────────────────────
+
 app.post('/api/impact', async (req, res) => {
   try {
     const { title, source, description, content, profile } = req.body;
@@ -324,8 +452,6 @@ WHAT TO WATCH:
     });
 
     const impact = chatCompletion.choices[0]?.message?.content || 'Unable to generate impact analysis.';
-
-    // Extract relevance level
     const relevanceMatch = impact.match(/RELEVANCE:\s*(HIGH|MEDIUM|LOW)/i);
     const relevance = relevanceMatch ? relevanceMatch[1].toUpperCase() : 'MEDIUM';
 
@@ -338,4 +464,6 @@ WHAT TO WATCH:
 
 app.listen(PORT, () => {
   console.log(`GeoSignal running at http://localhost:${PORT}`);
+  console.log(`NewsAPI keys loaded: ${newsApiKeys.length}`);
+  console.log(`GNews fallback: ${gnewsApiKey ? 'enabled' : 'disabled'}`);
 });
