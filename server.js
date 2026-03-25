@@ -9,32 +9,54 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static('public'));
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+const GROQ_FALLBACK_MODEL = process.env.GROQ_FALLBACK_MODEL || 'llama-3.1-8b-instant';
 
-// ── Groq with retry ─────────────────────────────────────────────
-// Retries once after a 2-second pause on failure (rate limits, timeouts)
+// ── Groq with retry + model fallback + key rotation ─────────────
+// Try primary model → fallback model → second API key → fallback on second key
+const groqApiKeys = [
+  process.env.GROQ_API_KEY,
+  process.env.GROQ_API_KEY_2
+].filter(Boolean);
+
+let currentGroqIndex = 0;
+const groqClients = groqApiKeys.map(key => new Groq({ apiKey: key }));
+
 async function groqChat(messages, options = {}) {
+  const models = [GROQ_MODEL, GROQ_FALLBACK_MODEL];
   const config = {
     messages,
-    model: GROQ_MODEL,
     temperature: options.temperature || 0.3,
     max_tokens: options.max_tokens || 600
   };
 
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      const result = await groq.chat.completions.create(config);
-      return result;
-    } catch (err) {
-      if (attempt === 0) {
-        console.log(`Groq attempt 1 failed (${err.status || err.message}), retrying in 2s...`);
-        await new Promise(r => setTimeout(r, 2000));
-      } else {
-        throw err;
+  // Try each Groq key
+  for (let keyAttempt = 0; keyAttempt < groqClients.length; keyAttempt++) {
+    const clientIdx = (currentGroqIndex + keyAttempt) % groqClients.length;
+    const client = groqClients[clientIdx];
+
+    // Try each model (primary then fallback)
+    for (const model of models) {
+      try {
+        const result = await client.chat.completions.create({ ...config, model });
+        return result;
+      } catch (err) {
+        if (err.status === 429) {
+          console.log(`Groq key #${clientIdx + 1} rate limited on ${model}, trying next...`);
+          continue;
+        }
+        // Non-rate-limit error — try next model
+        console.log(`Groq error on ${model}: ${err.message}`);
+        continue;
       }
     }
+
+    // Both models failed on this key — rotate to next key
+    console.log(`All models exhausted on Groq key #${clientIdx + 1}, rotating...`);
   }
+
+  // All keys and models exhausted
+  throw new Error('All Groq API keys and models are rate limited. Try again later.');
 }
 
 // ── API Key Rotation ────────────────────────────────────────────
@@ -555,4 +577,5 @@ app.listen(PORT, () => {
   console.log(`GeoSignal running at http://localhost:${PORT}`);
   console.log(`NewsAPI keys loaded: ${newsApiKeys.length}`);
   console.log(`GNews fallback: ${gnewsApiKey ? 'enabled' : 'disabled'}`);
+  console.log(`Groq keys loaded: ${groqClients.length} (models: ${GROQ_MODEL}, ${GROQ_FALLBACK_MODEL})`);
 });
