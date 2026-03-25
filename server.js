@@ -11,31 +11,31 @@ app.use(express.static('public'));
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-// Region queries — South Asia and Southeast Asia are now separate
+// Region queries — kept short to stay under NewsAPI 500-char limit
 const regionQueries = {
   'Global': '',
-  'Middle East': 'Middle East OR Israel OR Iran OR Saudi Arabia OR Syria OR Iraq OR Lebanon OR Yemen OR UAE OR Qatar OR Jordan OR Kuwait OR Bahrain OR Oman',
-  'South Asia': 'India OR Pakistan OR Bangladesh OR Sri Lanka OR Nepal OR Afghanistan OR Maldives OR Bhutan',
-  'Southeast Asia': 'Indonesia OR Philippines OR Vietnam OR Thailand OR Myanmar OR Malaysia OR Singapore OR Cambodia OR Laos',
-  'Europe': 'Europe OR EU OR Germany OR France OR UK OR NATO OR Poland OR Ukraine OR Italy OR Spain OR Netherlands OR Sweden OR Norway',
-  'Africa': 'Africa OR Nigeria OR Kenya OR South Africa OR Ethiopia OR Congo OR Egypt OR Morocco OR Ghana OR Tanzania OR Sudan OR Somalia OR Mozambique',
-  'Latin America': 'Latin America OR Brazil OR Mexico OR Argentina OR Colombia OR Chile OR Peru OR Venezuela OR Ecuador OR Cuba',
-  'East Asia': 'China OR Japan OR South Korea OR Taiwan OR North Korea OR Mongolia OR Hong Kong',
-  'North America': 'United States OR Canada OR US policy OR Congress OR White House',
-  'Central Asia & Caucasus': 'Kazakhstan OR Uzbekistan OR Georgia OR Armenia OR Azerbaijan OR Turkmenistan OR Kyrgyzstan OR Tajikistan',
-  'Oceania': 'Australia OR New Zealand OR Pacific Islands OR Fiji OR Papua New Guinea'
+  'Middle East': 'Middle East OR Israel OR Iran OR Saudi Arabia OR Syria OR Iraq',
+  'South Asia': 'India OR Pakistan OR Bangladesh OR Sri Lanka OR Nepal',
+  'Southeast Asia': 'Indonesia OR Philippines OR Vietnam OR Thailand OR Myanmar OR Malaysia',
+  'Europe': 'Europe OR EU OR Germany OR France OR UK OR NATO OR Ukraine',
+  'Africa': 'Africa OR Nigeria OR Kenya OR South Africa OR Ethiopia OR Egypt',
+  'Latin America': 'Brazil OR Mexico OR Argentina OR Colombia OR Chile OR Venezuela',
+  'East Asia': 'China OR Japan OR South Korea OR Taiwan OR North Korea',
+  'North America': 'United States OR Canada',
+  'Central Asia & Caucasus': 'Kazakhstan OR Uzbekistan OR Georgia OR Armenia OR Azerbaijan',
+  'Oceania': 'Australia OR New Zealand OR Pacific Islands'
 };
 
-// Sector keywords — expanded for better coverage
+// Sector keywords — kept concise for query limits
 const sectorKeywords = {
-  'Geopolitics': 'geopolitics OR diplomacy OR sanctions OR foreign policy OR conflict OR treaty OR alliance OR territorial OR sovereignty',
-  'Economy & Trade': 'economy OR trade OR tariffs OR GDP OR markets OR inflation OR recession OR supply chain OR central bank OR currency',
-  'Technology & AI': 'technology OR artificial intelligence OR AI OR cyber OR semiconductor OR quantum computing OR tech regulation OR surveillance OR data privacy',
-  'Climate & Energy': 'climate OR energy OR renewable OR emissions OR oil OR carbon OR solar OR wind power OR nuclear energy OR sustainability OR drought OR flooding',
-  'Defence & Security': 'defence OR defense OR military OR security OR weapons OR intelligence OR NATO OR missile OR nuclear OR terrorism OR arms deal',
-  'Society & Culture': 'society OR culture OR migration OR human rights OR protests OR demographics OR election OR democracy OR refugees OR public health',
-  'Space & Frontier': 'space OR satellite OR rocket OR NASA OR ESA OR orbital OR Mars OR Moon OR asteroid OR launch',
-  'Health & Biotech': 'health OR pandemic OR biotech OR pharmaceutical OR WHO OR vaccine OR disease OR medical OR genomics'
+  'Geopolitics': 'geopolitics OR diplomacy OR sanctions OR foreign policy OR conflict',
+  'Economy & Trade': 'economy OR trade OR tariffs OR GDP OR markets OR inflation',
+  'Technology & AI': 'technology OR AI OR cyber OR semiconductor',
+  'Climate & Energy': 'climate OR energy OR renewable OR emissions OR oil',
+  'Defence & Security': 'defense OR military OR security OR weapons OR intelligence',
+  'Society & Culture': 'migration OR human rights OR protests OR election OR democracy',
+  'Space & Frontier': 'space OR satellite OR rocket OR NASA OR launch',
+  'Health & Biotech': 'health OR pandemic OR biotech OR pharmaceutical OR vaccine'
 };
 
 // Source types — mainstream expanded to 20+ outlets
@@ -63,15 +63,27 @@ app.get('/api/news', async (req, res) => {
   try {
     const { region, sectors, sourceTypes } = req.query;
 
-    // Build query from region and sectors
+    // Build query from region and sectors — stay under 500 chars
     const regionQ = regionQueries[region] || '';
     const sectorList = sectors ? sectors.split(',') : Object.keys(sectorKeywords);
-    const sectorQ = sectorList
+
+    // Pick top 3 sector keyword groups max to keep query short
+    const activeSectors = sectorList.slice(0, 3);
+    const sectorQ = activeSectors
       .map(s => sectorKeywords[s])
       .filter(Boolean)
       .join(' OR ');
 
     let query = [regionQ, sectorQ].filter(Boolean).join(' AND ');
+
+    // Hard cap at 490 chars to stay under NewsAPI limit
+    if (query.length > 490) {
+      query = query.substring(0, 490);
+      // Trim to last complete OR term
+      const lastOR = query.lastIndexOf(' OR ');
+      if (lastOR > 0) query = query.substring(0, lastOR);
+    }
+
     if (!query) query = 'world news geopolitics';
 
     // Build domains from source types
@@ -149,7 +161,7 @@ Do not include any other text, markdown, or formatting. Just the JSON array.`;
 
     const chatCompletion = await groq.chat.completions.create({
       messages: [{ role: 'user', content: prompt }],
-      model: 'llama3-8b-8192',
+      model: 'llama-3.3-70b-versatile',
       temperature: 0.3,
       max_tokens: 2000
     });
@@ -199,7 +211,7 @@ WHY THIS MATTERS:
 
     const chatCompletion = await groq.chat.completions.create({
       messages: [{ role: 'user', content: prompt }],
-      model: 'llama3-8b-8192',
+      model: 'llama-3.3-70b-versatile',
       temperature: 0.4,
       max_tokens: 600
     });
