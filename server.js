@@ -12,8 +12,33 @@ app.use(express.static('public'));
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
 
+// ── Groq with retry ─────────────────────────────────────────────
+// Retries once after a 2-second pause on failure (rate limits, timeouts)
+async function groqChat(messages, options = {}) {
+  const config = {
+    messages,
+    model: GROQ_MODEL,
+    temperature: options.temperature || 0.3,
+    max_tokens: options.max_tokens || 600
+  };
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const result = await groq.chat.completions.create(config);
+      return result;
+    } catch (err) {
+      if (attempt === 0) {
+        console.log(`Groq attempt 1 failed (${err.status || err.message}), retrying in 2s...`);
+        await new Promise(r => setTimeout(r, 2000));
+      } else {
+        throw err;
+      }
+    }
+  }
+}
+
 // ── API Key Rotation ────────────────────────────────────────────
-// NewsAPI keys rotate automatically; when one hits rate limit, we switch
+
 const newsApiKeys = [
   process.env.NEWSAPI_KEY_1,
   process.env.NEWSAPI_KEY_2
@@ -48,12 +73,11 @@ const regionQueries = {
   'Oceania': 'Australia OR New Zealand OR Pacific Islands OR Fiji'
 };
 
-// GNews uses simpler queries (max 200 chars for free tier)
 const regionQueriesGNews = {
   'Global': 'world international',
   'Middle East': 'Middle East Israel Iran Saudi Arabia',
   'South Asia': 'India Pakistan Bangladesh Sri Lanka',
-  'Southeast Asia': 'Indonesia Philippines Vietnam Thailand Myanmar Malaysia Singapore',
+  'Southeast Asia': 'Indonesia Philippines Vietnam Thailand Malaysia Singapore',
   'Europe': 'Europe EU Germany France UK Ukraine NATO',
   'Africa': 'Africa Nigeria Kenya South Africa Ethiopia Egypt',
   'Latin America': 'Brazil Mexico Argentina Colombia Venezuela',
@@ -109,24 +133,48 @@ const sourceTypeDomains = {
     'channelnewsasia.com', 'koreaherald.com', 'dawn.com', 'bangkokpost.com',
     'arabnews.com', 'rappler.com', 'dailysabah.com', 'thejakartapost.com',
     'taipeitimes.com', 'nikkei.com', 'cbc.ca', 'smh.com.au'
-  ].join(','),
+  ],
   'Think tanks & academic': [
     'foreignaffairs.com', 'brookings.edu', 'cfr.org', 'chathamhouse.org',
     'carnegieendowment.org', 'rand.org', 'csis.org', 'iiss.org',
     'stimson.org', 'crisisgroup.org', 'lowyinstitute.org', 'eurasianet.org'
-  ].join(','),
+  ],
   'Independent journalism': [
     'theintercept.com', 'propublica.org', 'bellingcat.com', 'rest-of-world.org',
     'globalvoices.org', 'thediplomat.com', 'mondediplo.com', 'newlinesmag.com',
     'warontherocks.com', 'devex.com', 'middleeasteye.net', 'dailymaverick.co.za',
     'theafricareport.com', 'rferl.org'
-  ].join(',')
+  ]
 };
+
+// Build a flat set of all known domains for post-fetch filtering
+function getAllowedDomains(sourceTypeList) {
+  const domains = new Set();
+  sourceTypeList.forEach(t => {
+    const list = sourceTypeDomains[t];
+    if (list) list.forEach(d => domains.add(d));
+  });
+  return domains;
+}
+
+// Check if an article URL matches any allowed domain
+function articleMatchesDomains(article, allowedDomains) {
+  const url = article.url || '';
+  for (const domain of allowedDomains) {
+    if (url.includes(domain)) return true;
+  }
+  // Also check source name loosely (for GNews articles without full URLs)
+  const sourceName = (article.source?.name || article.source || '').toLowerCase();
+  for (const domain of allowedDomains) {
+    const shortName = domain.replace(/\.(com|co\.uk|org|edu|net|io)$/, '').replace(/\./g, '');
+    if (sourceName.includes(shortName)) return true;
+  }
+  return false;
+}
 
 // ── NewsAPI Fetch (with key rotation) ───────────────────────────
 
 async function fetchFromNewsAPI(query, domains, fromStr) {
-  // Try each key until one works
   for (let attempt = 0; attempt < newsApiKeys.length; attempt++) {
     const apiKey = getNewsApiKey();
     const params = new URLSearchParams({
@@ -148,21 +196,18 @@ async function fetchFromNewsAPI(query, domains, fromStr) {
       return data.articles || [];
     }
 
-    // Rate limited — rotate to next key and retry
     if (data.code === 'rateLimited') {
       console.log(`NewsAPI key #${currentNewsApiIndex + 1} rate limited, rotating...`);
       rotateNewsApiKey();
       continue;
     }
 
-    // Other error — log and return empty
     console.error('NewsAPI error:', data);
     return [];
   }
 
-  // All NewsAPI keys exhausted
   console.log('All NewsAPI keys rate limited');
-  return null; // Signal to fall back to GNews
+  return null;
 }
 
 // ── GNews Fetch (fallback) ──────────────────────────────────────
@@ -171,9 +216,6 @@ async function fetchFromGNews(region, sectorList) {
   if (!gnewsApiKey) return [];
 
   const regionQ = regionQueriesGNews[region] || regionQueriesGNews['Global'];
-
-  // GNews has a 200-char query limit, so keep it short
-  // Pick top 2 sectors only
   const topSectors = sectorList.slice(0, 2);
   const sectorQ = topSectors
     .map(s => sectorKeywordsGNews[s])
@@ -198,7 +240,6 @@ async function fetchFromGNews(region, sectorList) {
 
     if (data.articles && data.articles.length > 0) {
       console.log(`GNews returned ${data.articles.length} articles`);
-      // Map GNews format to match NewsAPI format
       return data.articles.map(a => ({
         title: a.title,
         source: { name: a.source?.name || 'Unknown' },
@@ -227,27 +268,21 @@ app.get('/api/news', async (req, res) => {
 
     const regionQ = regionQueries[region] || regionQueries['Global'];
     const sectorList = sectors ? sectors.split(',') : Object.keys(sectorKeywords);
-
-    // Build domains from source types
     const typeList = sourceTypes ? sourceTypes.split(',') : Object.keys(sourceTypeDomains);
-    const sourceTypeDomainStr = typeList
-      .map(t => sourceTypeDomains[t])
-      .filter(Boolean)
-      .join(',');
 
-    const regSources = regionalSources[region] || regionalSources['Global'];
-    const allDomains = new Set([
-      ...sourceTypeDomainStr.split(',').filter(Boolean),
-      ...regSources.split(',').filter(Boolean)
-    ]);
-    const domainStr = Array.from(allDomains).join(',');
+    // Build allowed domains: selected source types + regional sources
+    const allowedDomainSet = getAllowedDomains(typeList);
+    const regSources = (regionalSources[region] || regionalSources['Global']).split(',');
+    regSources.forEach(d => allowedDomainSet.add(d));
+
+    const domainStr = Array.from(allowedDomainSet).join(',');
 
     // Date range — last 7 days
     const fromDate = new Date();
     fromDate.setDate(fromDate.getDate() - 7);
     const fromStr = fromDate.toISOString().split('T')[0];
 
-    // Build queries for 2 batches
+    // Build queries for 2 batches — BOTH use domain filtering
     const midpoint = Math.ceil(sectorList.length / 2);
     const batch1 = sectorList.slice(0, midpoint);
     const batch2 = sectorList.slice(midpoint);
@@ -269,29 +304,33 @@ app.get('/api/news', async (req, res) => {
     const query1 = buildQuery(regionQ, batch1);
     const query2 = batch2.length > 0 ? buildQuery(regionQ, batch2) : null;
 
-    // Try NewsAPI first (with key rotation)
+    // Both NewsAPI calls use domain filtering now
     const newsApiResults1 = await fetchFromNewsAPI(query1, domainStr, fromStr);
-    const newsApiResults2 = query2 ? await fetchFromNewsAPI(query2, null, fromStr) : [];
+    const newsApiResults2 = query2 ? await fetchFromNewsAPI(query2, domainStr, fromStr) : [];
 
     let allArticles = [];
 
     if (newsApiResults1 === null && newsApiResults2 === null) {
-      // All NewsAPI keys exhausted — fall back entirely to GNews
       console.log('Falling back to GNews...');
       allArticles = await fetchFromGNews(region, sectorList);
     } else {
-      // Combine NewsAPI results
       if (newsApiResults1) allArticles.push(...newsApiResults1);
       if (newsApiResults2) allArticles.push(...newsApiResults2);
 
-      // Also fetch from GNews for supplementary coverage
+      // Supplementary GNews coverage
       const gnewsArticles = await fetchFromGNews(region, sectorList);
       allArticles.push(...gnewsArticles);
     }
 
-    // Deduplicate by title (case-insensitive)
+    // Post-fetch filter: only keep articles from allowed sources
+    const filtered = allArticles.filter(a => articleMatchesDomains(a, allowedDomainSet));
+
+    // If filtering removed too many, fall back to unfiltered (better than empty)
+    const finalList = filtered.length >= 3 ? filtered : allArticles;
+
+    // Deduplicate by title
     const seen = new Set();
-    const unique = allArticles.filter(a => {
+    const unique = finalList.filter(a => {
       const key = a.title?.toLowerCase().trim();
       if (!key || key === '[removed]' || seen.has(key)) return false;
       seen.add(key);
@@ -340,12 +379,10 @@ ${articleList}
 Respond with ONLY a JSON array of strings, one summary per article, in the same order. Example: ["Summary 1", "Summary 2"]
 Do not include any other text, markdown, or formatting. Just the JSON array.`;
 
-    const chatCompletion = await groq.chat.completions.create({
-      messages: [{ role: 'user', content: prompt }],
-      model: GROQ_MODEL,
-      temperature: 0.3,
-      max_tokens: 2000
-    });
+    const chatCompletion = await groqChat(
+      [{ role: 'user', content: prompt }],
+      { temperature: 0.3, max_tokens: 2000 }
+    );
 
     const raw = chatCompletion.choices[0]?.message?.content || '[]';
     let summaries;
@@ -390,12 +427,10 @@ WHAT EXPERTS ARE SAYING:
 WHY THIS MATTERS:
 [1-2 sentences on the broader significance and potential implications]`;
 
-    const chatCompletion = await groq.chat.completions.create({
-      messages: [{ role: 'user', content: prompt }],
-      model: GROQ_MODEL,
-      temperature: 0.4,
-      max_tokens: 600
-    });
+    const chatCompletion = await groqChat(
+      [{ role: 'user', content: prompt }],
+      { temperature: 0.4, max_tokens: 600 }
+    );
 
     const briefing = chatCompletion.choices[0]?.message?.content || 'Unable to generate briefing.';
     res.json({ briefing });
@@ -444,12 +479,10 @@ IMPACT SUMMARY:
 WHAT TO WATCH:
 [1-2 specific things they should monitor or actions they might consider based on their profile]`;
 
-    const chatCompletion = await groq.chat.completions.create({
-      messages: [{ role: 'user', content: prompt }],
-      model: GROQ_MODEL,
-      temperature: 0.4,
-      max_tokens: 400
-    });
+    const chatCompletion = await groqChat(
+      [{ role: 'user', content: prompt }],
+      { temperature: 0.4, max_tokens: 400 }
+    );
 
     const impact = chatCompletion.choices[0]?.message?.content || 'Unable to generate impact analysis.';
     const relevanceMatch = impact.match(/RELEVANCE:\s*(HIGH|MEDIUM|LOW)/i);
@@ -459,6 +492,62 @@ WHAT TO WATCH:
   } catch (err) {
     console.error('Impact analysis error:', err);
     res.status(500).json({ error: 'Failed to generate impact analysis' });
+  }
+});
+
+// ── Batch Relevance Scoring ─────────────────────────────────────
+// Scores all articles at once for the user's profile, used to sort the feed
+
+app.post('/api/relevance', async (req, res) => {
+  try {
+    const { articles, profile } = req.body;
+
+    if (!profile || !profile.role || !articles || !articles.length) {
+      return res.json({ scores: [] });
+    }
+
+    const profileDesc = [
+      profile.role && `Role: ${profile.role}`,
+      profile.industry && `Industry: ${profile.industry}`,
+      profile.location && `Based in: ${profile.location}`,
+      profile.focus && `Focus areas: ${profile.focus}`
+    ].filter(Boolean).join(' | ');
+
+    const articleList = articles.map((a, i) =>
+      `[${i}] "${a.title}" — ${a.description || 'No description'}`
+    ).join('\n');
+
+    const prompt = `You are an expert analyst. Rate how relevant each article is to this professional's profile.
+
+READER PROFILE:
+${profileDesc}
+
+ARTICLES:
+${articleList}
+
+For each article, rate relevance as HIGH, MEDIUM, or LOW based on how directly it impacts their role, industry, location, and focus areas.
+
+Respond with ONLY a JSON array of strings in the same order. Example: ["HIGH", "LOW", "MEDIUM"]
+No other text, just the JSON array.`;
+
+    const chatCompletion = await groqChat(
+      [{ role: 'user', content: prompt }],
+      { temperature: 0.2, max_tokens: 500 }
+    );
+
+    const raw = chatCompletion.choices[0]?.message?.content || '[]';
+    let scores;
+    try {
+      const jsonMatch = raw.match(/\[[\s\S]*\]/);
+      scores = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
+    } catch {
+      scores = [];
+    }
+
+    res.json({ scores });
+  } catch (err) {
+    console.error('Relevance scoring error:', err);
+    res.json({ scores: [] });
   }
 });
 

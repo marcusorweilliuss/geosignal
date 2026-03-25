@@ -91,7 +91,6 @@ profileClear.addEventListener('click', () => {
   closeModal();
 });
 
-// Init profile button on load
 updateProfileButton();
 
 // ── Pills & Filters ─────────────────────────────────────────────
@@ -147,6 +146,8 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
+const relevanceOrder = { 'HIGH': 0, 'MEDIUM': 1, 'LOW': 2, '': 3 };
+
 // ── Store ───────────────────────────────────────────────────────
 
 let currentArticles = [];
@@ -197,11 +198,67 @@ async function fetchStories() {
     feedCount.textContent = data.articles.length + ' signals detected';
     feedTimestamp.textContent = 'Updated ' + formatTimestamp();
 
-    renderFeed(data.articles);
-    generateTldrs(data.articles);
+    // Render initially sorted by date
+    renderFeed(currentArticles);
+
+    // Fire TL;DR generation
+    generateTldrs(currentArticles);
+
+    // If profile exists, batch-score relevance and re-sort
+    const profile = getProfile();
+    if (profile && profile.role) {
+      scoreAndSort(currentArticles, profile);
+    }
   } catch (err) {
     console.error('Fetch error:', err);
     feed.innerHTML = '<div class="empty-feed">Connection failed. Try again.</div>';
+  }
+}
+
+// ── Batch Relevance Scoring & Re-sort ───────────────────────────
+
+async function scoreAndSort(articles, profile) {
+  try {
+    const res = await fetch('/api/relevance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        articles: articles.map(a => ({
+          title: a.title,
+          description: a.description
+        })),
+        profile
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.scores && data.scores.length > 0) {
+      // Attach scores to articles
+      articles.forEach((a, i) => {
+        a.relevance = (data.scores[i] || '').toUpperCase();
+        if (!['HIGH', 'MEDIUM', 'LOW'].includes(a.relevance)) {
+          a.relevance = 'MEDIUM';
+        }
+      });
+
+      // Sort: HIGH first, then MEDIUM, then LOW
+      articles.sort((a, b) => {
+        const diff = relevanceOrder[a.relevance] - relevanceOrder[b.relevance];
+        if (diff !== 0) return diff;
+        // Within same relevance, sort by date (newest first)
+        return new Date(b.publishedAt) - new Date(a.publishedAt);
+      });
+
+      // Re-render with relevance badges
+      renderFeed(articles);
+
+      // Re-generate TL;DRs since we re-rendered
+      generateTldrs(articles);
+    }
+  } catch (err) {
+    console.error('Relevance scoring error:', err);
+    // Keep current order — fail silently
   }
 }
 
@@ -280,7 +337,7 @@ async function fetchImpact(article, container) {
     if (!res.ok || !data.impact) {
       container.innerHTML =
         '<div class="impact-section">' +
-          '<div class="briefing-error">Could not generate impact analysis.</div>' +
+          '<div class="briefing-error">Could not generate impact analysis. Groq may be rate-limited — try again in a moment.</div>' +
         '</div>';
       return;
     }
@@ -310,7 +367,7 @@ async function fetchImpact(article, container) {
     console.error('Impact analysis error:', err);
     container.innerHTML =
       '<div class="impact-section">' +
-        '<div class="briefing-error">Failed to generate impact analysis.</div>' +
+        '<div class="briefing-error">Failed to generate impact analysis. Try again in a moment.</div>' +
       '</div>';
   }
 }
@@ -320,7 +377,6 @@ function parseImpact(text) {
   const sections = [];
 
   for (let i = 0; i < labels.length; i++) {
-    // Skip RELEVANCE — it's extracted separately
     if (labels[i] === 'RELEVANCE') continue;
 
     const label = labels[i];
@@ -346,7 +402,6 @@ function parseImpact(text) {
   }
 
   if (sections.length === 0) {
-    // Fallback: strip the RELEVANCE line and show the rest
     const cleaned = text.replace(/RELEVANCE:\s*(HIGH|MEDIUM|LOW)\s*/i, '').trim();
     if (cleaned) sections.push({ label: 'IMPACT SUMMARY', text: cleaned });
   }
@@ -368,10 +423,23 @@ function renderFeed(articles) {
       ? escapeHtml(article.description)
       : 'Generating summary&hellip;';
 
+    // Build relevance badge if scored
+    let relevanceBadgeHtml = '';
+    if (article.relevance) {
+      const rel = article.relevance.toLowerCase();
+      relevanceBadgeHtml =
+        '<span class="card-relevance-badge ' + rel + '">' +
+          article.relevance +
+        '</span>';
+    }
+
     card.innerHTML =
       '<div class="card-header">' +
         '<div class="card-title">' + escapeHtml(article.title) + '</div>' +
-        '<span class="card-region">' + escapeHtml(article.region) + '</span>' +
+        '<div class="card-badges">' +
+          relevanceBadgeHtml +
+          '<span class="card-region">' + escapeHtml(article.region) + '</span>' +
+        '</div>' +
       '</div>' +
       '<div class="card-meta">' +
         '<span class="card-source">' + escapeHtml(article.source) + '</span>' +
@@ -407,7 +475,6 @@ function renderFeed(articles) {
       briefingEl = document.createElement('div');
       briefingEl.className = 'briefing';
 
-      // Two sections: intelligence briefing + impact analysis
       const briefingContent = document.createElement('div');
       briefingContent.innerHTML =
         '<div class="briefing-loading">' +
@@ -421,7 +488,6 @@ function renderFeed(articles) {
       briefingEl.appendChild(impactContent);
       card.appendChild(briefingEl);
 
-      // Fire both requests in parallel
       const briefingPromise = fetchBriefing(article, briefingContent);
       const impactPromise = fetchImpact(article, impactContent);
 
@@ -450,7 +516,7 @@ async function fetchBriefing(article, container) {
     const data = await res.json();
 
     if (!res.ok || !data.briefing) {
-      container.innerHTML = '<div class="briefing-error">Could not generate briefing.</div>';
+      container.innerHTML = '<div class="briefing-error">Could not generate briefing. Groq may be rate-limited — try again in a moment.</div>';
       return;
     }
 
@@ -473,7 +539,7 @@ async function fetchBriefing(article, container) {
     container.innerHTML = html;
   } catch (err) {
     console.error('Briefing error:', err);
-    container.innerHTML = '<div class="briefing-error">Failed to generate briefing.</div>';
+    container.innerHTML = '<div class="briefing-error">Failed to generate briefing. Try again in a moment.</div>';
   }
 }
 
@@ -516,5 +582,4 @@ function parseBriefing(text) {
 refreshBtn.addEventListener('click', fetchStories);
 regionSelect.addEventListener('change', fetchStories);
 
-// Load stories on page load
 fetchStories();
