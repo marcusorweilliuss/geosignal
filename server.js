@@ -10,6 +10,7 @@ app.use(express.json());
 app.use(express.static('public'));
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
 
 // Region queries — focused keywords for each region
 const regionQueries = {
@@ -215,7 +216,7 @@ Do not include any other text, markdown, or formatting. Just the JSON array.`;
 
     const chatCompletion = await groq.chat.completions.create({
       messages: [{ role: 'user', content: prompt }],
-      model: 'llama-3.3-70b-versatile',
+      model: GROQ_MODEL,
       temperature: 0.3,
       max_tokens: 2000
     });
@@ -264,7 +265,7 @@ WHY THIS MATTERS:
 
     const chatCompletion = await groq.chat.completions.create({
       messages: [{ role: 'user', content: prompt }],
-      model: 'llama-3.3-70b-versatile',
+      model: GROQ_MODEL,
       temperature: 0.4,
       max_tokens: 600
     });
@@ -317,7 +318,7 @@ WHAT TO WATCH:
 
     const chatCompletion = await groq.chat.completions.create({
       messages: [{ role: 'user', content: prompt }],
-      model: 'llama-3.3-70b-versatile',
+      model: GROQ_MODEL,
       temperature: 0.4,
       max_tokens: 400
     });
