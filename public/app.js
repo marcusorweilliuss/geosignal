@@ -6,7 +6,6 @@ const refreshBtn = document.getElementById('refresh-btn');
 const feedCount = document.getElementById('feed-count');
 const feedTimestamp = document.getElementById('feed-timestamp');
 
-// Profile elements
 const profileBtn = document.getElementById('profile-btn');
 const profileBtnText = document.getElementById('profile-btn-text');
 const profileModal = document.getElementById('profile-modal');
@@ -20,9 +19,7 @@ function getProfile() {
   try {
     const saved = localStorage.getItem('geosignal-profile');
     return saved ? JSON.parse(saved) : null;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
 function saveProfile(profile) {
@@ -72,12 +69,7 @@ profileSave.addEventListener('click', () => {
   const industry = document.getElementById('profile-industry').value;
   const location = document.getElementById('profile-location').value;
   const focus = document.getElementById('profile-focus').value;
-
-  if (!role) {
-    document.getElementById('profile-role').focus();
-    return;
-  }
-
+  if (!role) { document.getElementById('profile-role').focus(); return; }
   saveProfile({ role, industry, location, focus });
   closeModal();
 });
@@ -127,33 +119,24 @@ function timeAgo(dateStr) {
 }
 
 function formatTimestamp() {
-  const now = new Date();
-  return now.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false
+  return new Date().toLocaleTimeString('en-US', {
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
   }) + ' UTC';
 }
 
 function escapeHtml(str) {
   if (!str) return '';
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
-
-const relevanceOrder = { 'HIGH': 0, 'MEDIUM': 1, 'LOW': 2, '': 3 };
 
 // ── Store ───────────────────────────────────────────────────────
 
 let currentArticles = [];
 let tldrElements = [];
+let governmentCaveat = '';
 
-// ── Fetch Stories ───────────────────────────────────────────────
+// ── Fetch Stories (RSS-powered) ─────────────────────────────────
 
 async function fetchStories() {
   const region = regionSelect.value;
@@ -169,96 +152,45 @@ async function fetchStories() {
   feed.innerHTML =
     '<div class="loading-feed">' +
       '<div class="loading-pulse"></div>' +
-      '<span>Scanning global signals&hellip;</span>' +
+      '<span>Scanning RSS feeds&hellip;</span>' +
     '</div>';
   feedCount.textContent = '';
   feedTimestamp.textContent = '';
 
   try {
+    const profile = getProfile();
     const params = new URLSearchParams({
       region,
       sectors: sectors.join(','),
       sourceTypes: sourceTypes.join(',')
     });
+    if (profile) {
+      params.set('profile', JSON.stringify(profile));
+    }
 
     const res = await fetch('/api/news?' + params);
     const data = await res.json();
 
     if (!res.ok) {
-      feed.innerHTML = '<div class="empty-feed">Failed to load signals. Check your API key.</div>';
+      feed.innerHTML = '<div class="empty-feed">Failed to load signals.</div>';
       return;
     }
 
     if (!data.articles || data.articles.length === 0) {
-      feed.innerHTML = '<div class="empty-feed">No signals found for the current filters.</div>';
+      feed.innerHTML = '<div class="empty-feed">No signals found. RSS feeds may be loading — try refreshing in a moment.</div>';
       return;
     }
 
     currentArticles = data.articles;
+    governmentCaveat = data.governmentCaveat || '';
     feedCount.textContent = data.articles.length + ' signals detected';
     feedTimestamp.textContent = 'Updated ' + formatTimestamp();
 
-    // Render initially sorted by date
     renderFeed(currentArticles);
-
-    // Fire TL;DR generation
     generateTldrs(currentArticles);
-
-    // If profile exists, batch-score relevance and re-sort
-    const profile = getProfile();
-    if (profile && profile.role) {
-      scoreAndSort(currentArticles, profile);
-    }
   } catch (err) {
     console.error('Fetch error:', err);
     feed.innerHTML = '<div class="empty-feed">Connection failed. Try again.</div>';
-  }
-}
-
-// ── Batch Relevance Scoring & Re-sort ───────────────────────────
-
-async function scoreAndSort(articles, profile) {
-  try {
-    const res = await fetch('/api/relevance', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        articles: articles.map(a => ({
-          title: a.title,
-          description: a.description
-        })),
-        profile
-      })
-    });
-
-    const data = await res.json();
-
-    if (data.scores && data.scores.length > 0) {
-      // Attach scores to articles
-      articles.forEach((a, i) => {
-        a.relevance = (data.scores[i] || '').toUpperCase();
-        if (!['HIGH', 'MEDIUM', 'LOW'].includes(a.relevance)) {
-          a.relevance = 'MEDIUM';
-        }
-      });
-
-      // Sort: HIGH first, then MEDIUM, then LOW
-      articles.sort((a, b) => {
-        const diff = relevanceOrder[a.relevance] - relevanceOrder[b.relevance];
-        if (diff !== 0) return diff;
-        // Within same relevance, sort by date (newest first)
-        return new Date(b.publishedAt) - new Date(a.publishedAt);
-      });
-
-      // Re-render with relevance badges
-      renderFeed(articles);
-
-      // Re-generate TL;DRs since we re-rendered
-      generateTldrs(articles);
-    }
-  } catch (err) {
-    console.error('Relevance scoring error:', err);
-    // Keep current order — fail silently
   }
 }
 
@@ -272,7 +204,8 @@ async function generateTldrs(articles) {
       body: JSON.stringify({
         articles: articles.map(a => ({
           title: a.title,
-          description: a.description
+          description: a.description,
+          isOfficial: a.isOfficial
         }))
       })
     });
@@ -310,13 +243,8 @@ async function fetchImpact(article, container) {
 
   container.innerHTML =
     '<div class="impact-section">' +
-      '<div class="impact-header">' +
-        '<span class="impact-title">Personalized Impact</span>' +
-      '</div>' +
-      '<div class="impact-loading">' +
-        '<div class="spinner"></div>' +
-        '<span>Analyzing impact for your profile&hellip;</span>' +
-      '</div>' +
+      '<div class="impact-header"><span class="impact-title">Personalized Impact</span></div>' +
+      '<div class="impact-loading"><div class="spinner"></div><span>Analyzing impact&hellip;</span></div>' +
     '</div>';
 
   try {
@@ -324,21 +252,15 @@ async function fetchImpact(article, container) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        title: article.title,
-        source: article.source,
-        description: article.description,
-        content: article.content,
-        profile
+        title: article.title, source: article.source,
+        description: article.description, content: article.content, profile
       })
     });
 
     const data = await res.json();
 
     if (!res.ok || !data.impact) {
-      container.innerHTML =
-        '<div class="impact-section">' +
-          '<div class="briefing-error">Could not generate impact analysis. Groq may be rate-limited — try again in a moment.</div>' +
-        '</div>';
+      container.innerHTML = '<div class="impact-section"><div class="briefing-error">Could not generate impact analysis. Try again in a moment.</div></div>';
       return;
     }
 
@@ -350,62 +272,42 @@ async function fetchImpact(article, container) {
         '<div class="impact-header">' +
           '<span class="impact-title">How This Impacts You</span>' +
           '<span class="impact-badge ' + relevance + '">' + data.relevance + ' Relevance</span>' +
-        '</div>' +
-        '<div class="impact-body">';
+        '</div><div class="impact-body">';
 
-    sections.forEach(section => {
-      html +=
-        '<div class="briefing-section">' +
-          '<div class="briefing-label">' + escapeHtml(section.label) + '</div>' +
-          '<div class="briefing-text">' + escapeHtml(section.text) + '</div>' +
-        '</div>';
+    sections.forEach(s => {
+      html += '<div class="briefing-section"><div class="briefing-label">' + escapeHtml(s.label) + '</div><div class="briefing-text">' + escapeHtml(s.text) + '</div></div>';
     });
 
     html += '</div></div>';
     container.innerHTML = html;
   } catch (err) {
     console.error('Impact analysis error:', err);
-    container.innerHTML =
-      '<div class="impact-section">' +
-        '<div class="briefing-error">Failed to generate impact analysis. Try again in a moment.</div>' +
-      '</div>';
+    container.innerHTML = '<div class="impact-section"><div class="briefing-error">Failed to generate impact analysis.</div></div>';
   }
 }
 
 function parseImpact(text) {
   const labels = ['RELEVANCE', 'IMPACT SUMMARY', 'WHAT TO WATCH'];
   const sections = [];
-
   for (let i = 0; i < labels.length; i++) {
     if (labels[i] === 'RELEVANCE') continue;
-
     const label = labels[i];
     const nextLabel = labels[i + 1];
-
-    const pattern = new RegExp(label + '[:\\s]*', 'i');
-    const match = text.match(pattern);
+    const match = text.match(new RegExp(label + '[:\\s]*', 'i'));
     if (!match) continue;
-
     const startIdx = match.index + match[0].length;
     let endIdx = text.length;
-
     if (nextLabel) {
-      const nextPattern = new RegExp(nextLabel + '[:\\s]*', 'i');
-      const nextMatch = text.match(nextPattern);
+      const nextMatch = text.match(new RegExp(nextLabel + '[:\\s]*', 'i'));
       if (nextMatch) endIdx = nextMatch.index;
     }
-
     const sectionText = text.substring(startIdx, endIdx).trim();
-    if (sectionText) {
-      sections.push({ label, text: sectionText });
-    }
+    if (sectionText) sections.push({ label, text: sectionText });
   }
-
   if (sections.length === 0) {
     const cleaned = text.replace(/RELEVANCE:\s*(HIGH|MEDIUM|LOW)\s*/i, '').trim();
     if (cleaned) sections.push({ label: 'IMPACT SUMMARY', text: cleaned });
   }
-
   return sections;
 }
 
@@ -417,34 +319,32 @@ function renderFeed(articles) {
 
   articles.forEach((article, index) => {
     const card = document.createElement('div');
-    card.className = 'card';
+    card.className = 'card' + (article.isOfficial ? ' card-is-official' : '');
 
     const tldrFallback = article.description
       ? escapeHtml(article.description)
       : 'Generating summary&hellip;';
 
-    // Build relevance badge if scored
-    let relevanceBadgeHtml = '';
-    if (article.relevance) {
-      const rel = article.relevance.toLowerCase();
-      relevanceBadgeHtml =
-        '<span class="card-relevance-badge ' + rel + '">' +
-          article.relevance +
-        '</span>';
+    // Badges
+    let badgesHtml = '';
+    if (article.isOfficial) {
+      badgesHtml += '<span class="card-official-badge">OFFICIAL</span>';
     }
+    badgesHtml += '<span class="card-region">' + escapeHtml(article.region) + '</span>';
+
+    // Source tier label
+    const tierLabel = article.sourceTier ? article.sourceTier.replace(/-/g, ' ') : '';
 
     card.innerHTML =
       '<div class="card-header">' +
         '<div class="card-title">' + escapeHtml(article.title) + '</div>' +
-        '<div class="card-badges">' +
-          relevanceBadgeHtml +
-          '<span class="card-region">' + escapeHtml(article.region) + '</span>' +
-        '</div>' +
+        '<div class="card-badges">' + badgesHtml + '</div>' +
       '</div>' +
       '<div class="card-meta">' +
         '<span class="card-source">' + escapeHtml(article.source) + '</span>' +
         '<span class="card-dot"></span>' +
         '<span>' + timeAgo(article.publishedAt) + '</span>' +
+        (tierLabel ? '<span class="card-dot"></span><span>' + escapeHtml(tierLabel) + '</span>' : '') +
       '</div>' +
       '<div class="card-tldr loading" data-index="' + index + '">' +
         '<div class="card-tldr-label">TL;DR</div>' +
@@ -462,25 +362,18 @@ function renderFeed(articles) {
       if (e.target.closest('.no-profile-hint button')) return;
 
       if (expanded) {
-        if (briefingEl) {
-          briefingEl.remove();
-          briefingEl = null;
-        }
+        if (briefingEl) { briefingEl.remove(); briefingEl = null; }
         expanded = false;
         return;
       }
 
       expanded = true;
-
       briefingEl = document.createElement('div');
       briefingEl.className = 'briefing';
 
       const briefingContent = document.createElement('div');
       briefingContent.innerHTML =
-        '<div class="briefing-loading">' +
-          '<div class="spinner"></div>' +
-          '<span>Generating intelligence briefing&hellip;</span>' +
-        '</div>';
+        '<div class="briefing-loading"><div class="spinner"></div><span>Generating intelligence briefing&hellip;</span></div>';
 
       const impactContent = document.createElement('div');
 
@@ -488,10 +381,10 @@ function renderFeed(articles) {
       briefingEl.appendChild(impactContent);
       card.appendChild(briefingEl);
 
-      const briefingPromise = fetchBriefing(article, briefingContent);
-      const impactPromise = fetchImpact(article, impactContent);
-
-      await Promise.all([briefingPromise, impactPromise]);
+      await Promise.all([
+        fetchBriefing(article, briefingContent),
+        fetchImpact(article, impactContent)
+      ]);
     });
 
     feed.appendChild(card);
@@ -506,29 +399,31 @@ async function fetchBriefing(article, container) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        title: article.title,
-        source: article.source,
-        description: article.description,
-        content: article.content
+        title: article.title, source: article.source,
+        description: article.description, content: article.content,
+        isOfficial: article.isOfficial
       })
     });
 
     const data = await res.json();
 
     if (!res.ok || !data.briefing) {
-      container.innerHTML = '<div class="briefing-error">Could not generate briefing. Groq may be rate-limited — try again in a moment.</div>';
+      container.innerHTML = '<div class="briefing-error">Could not generate briefing. Try again in a moment.</div>';
       return;
     }
 
-    const sections = parseBriefing(data.briefing);
-    let html = '<div class="briefing-content">';
+    let html = '';
+
+    // Government caveat banner
+    if (article.isOfficial && governmentCaveat) {
+      html += '<div class="government-caveat">' + escapeHtml(governmentCaveat) + '</div>';
+    }
+
+    const sections = parseBriefing(data.briefing, article.isOfficial);
+    html += '<div class="briefing-content">';
 
     sections.forEach(section => {
-      html +=
-        '<div class="briefing-section">' +
-          '<div class="briefing-label">' + escapeHtml(section.label) + '</div>' +
-          '<div class="briefing-text">' + escapeHtml(section.text) + '</div>' +
-        '</div>';
+      html += '<div class="briefing-section"><div class="briefing-label">' + escapeHtml(section.label) + '</div><div class="briefing-text">' + escapeHtml(section.text) + '</div></div>';
     });
 
     if (article.url) {
@@ -539,35 +434,29 @@ async function fetchBriefing(article, container) {
     container.innerHTML = html;
   } catch (err) {
     console.error('Briefing error:', err);
-    container.innerHTML = '<div class="briefing-error">Failed to generate briefing. Try again in a moment.</div>';
+    container.innerHTML = '<div class="briefing-error">Failed to generate briefing.</div>';
   }
 }
 
-function parseBriefing(text) {
-  const labels = ['WHAT HAPPENED', 'WHAT LED TO THIS', 'WHAT EXPERTS ARE SAYING', 'WHY THIS MATTERS'];
+function parseBriefing(text, isOfficial) {
+  const standardLabels = ['WHAT HAPPENED', 'WHAT LED TO THIS', 'WHAT EXPERTS ARE SAYING', 'WHY THIS MATTERS'];
+  const officialLabels = ['WHAT HAPPENED', 'WHAT LED TO THIS', 'WHAT THE GOVERNMENT IS CLAIMING AND ITS LIKELY STRATEGIC INTENT', 'WHY THIS MATTERS'];
+  const labels = isOfficial ? officialLabels : standardLabels;
   const sections = [];
 
   for (let i = 0; i < labels.length; i++) {
     const label = labels[i];
     const nextLabel = labels[i + 1];
-
-    const pattern = new RegExp(label + '[:\\s]*', 'i');
-    const match = text.match(pattern);
+    const match = text.match(new RegExp(label + '[:\\s]*', 'i'));
     if (!match) continue;
-
     const startIdx = match.index + match[0].length;
     let endIdx = text.length;
-
     if (nextLabel) {
-      const nextPattern = new RegExp(nextLabel + '[:\\s]*', 'i');
-      const nextMatch = text.match(nextPattern);
+      const nextMatch = text.match(new RegExp(nextLabel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[:\\s]*', 'i'));
       if (nextMatch) endIdx = nextMatch.index;
     }
-
     const sectionText = text.substring(startIdx, endIdx).trim();
-    if (sectionText) {
-      sections.push({ label, text: sectionText });
-    }
+    if (sectionText) sections.push({ label, text: sectionText });
   }
 
   if (sections.length === 0) {

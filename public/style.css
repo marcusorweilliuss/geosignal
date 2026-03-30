@@ -234,6 +234,42 @@ select:focus {
   color: var(--text-secondary);
 }
 
+.pill-official.active {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+/* OFFICIAL badge on cards */
+.card-official-badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.card.card-is-official {
+  border-left: 2px solid rgba(245, 158, 11, 0.4);
+}
+
+.government-caveat {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: rgba(245, 158, 11, 0.06);
+  border: 1px solid rgba(245, 158, 11, 0.15);
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(245, 158, 11, 0.8);
+}
+
 /* Feed header */
 .feed-header {
   display: flex;
