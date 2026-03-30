@@ -346,7 +346,78 @@ const SOURCES = {
     { name: 'International Crisis Group Latin America', rssUrl: 'https://www.crisisgroup.org/rss/latin-america', country: ['Brazil', 'Mexico', 'Argentina', 'Colombia', 'Chile', 'Peru', 'Venezuela'], tier: 'think-tank-academic', language: 'English', region: 'latin-america' },
     { name: 'IISS Latin America', rssUrl: 'https://www.iiss.org/rss/latin-america', country: ['Brazil', 'Mexico', 'Argentina', 'Colombia', 'Chile', 'Peru', 'Venezuela'], tier: 'think-tank-academic', language: 'English', region: 'latin-america' },
   ],
-  'central-asia-caucasus': [],
+  'central-asia-caucasus': [
+    // ── Regional — Mainstream ──
+    { name: 'Eurasianet', rssUrl: 'https://eurasianet.org/feed', country: ['Kazakhstan', 'Uzbekistan', 'Kyrgyzstan', 'Tajikistan', 'Turkmenistan', 'Azerbaijan', 'Armenia', 'Georgia'], tier: 'mainstream', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'RFE/RL Central Asia', rssUrl: 'https://www.rferl.org/api/zncjqmveiy', country: ['Kazakhstan', 'Uzbekistan', 'Kyrgyzstan', 'Tajikistan', 'Turkmenistan'], tier: 'mainstream', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'The Diplomat Central Asia', rssUrl: 'https://thediplomat.com/regions/central-asia/feed', country: ['Kazakhstan', 'Uzbekistan', 'Kyrgyzstan', 'Tajikistan', 'Turkmenistan'], tier: 'mainstream', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'Times of Central Asia', rssUrl: 'https://timesca.com/feed/', country: ['Kazakhstan', 'Uzbekistan', 'Kyrgyzstan', 'Tajikistan', 'Turkmenistan'], tier: 'mainstream', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'Central Asia-Caucasus Analyst', rssUrl: 'https://cacianalyst.org/feed/', country: ['Kazakhstan', 'Uzbekistan', 'Kyrgyzstan', 'Tajikistan', 'Turkmenistan', 'Azerbaijan', 'Armenia', 'Georgia'], tier: 'mainstream', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'News Central Asia', rssUrl: 'https://www.newscentralasia.net/feed/', country: ['Kazakhstan', 'Uzbekistan', 'Kyrgyzstan', 'Tajikistan', 'Turkmenistan'], tier: 'mainstream', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'Silk Road Briefing', rssUrl: 'https://www.silkroadbriefing.com/news/feed', country: ['Kazakhstan', 'Uzbekistan', 'Kyrgyzstan', 'Tajikistan', 'Turkmenistan'], tier: 'mainstream', language: 'English', region: 'central-asia-caucasus' },
+
+    // ── KAZAKHSTAN — Mainstream ──
+    { name: 'Kazinform English', rssUrl: 'https://www.inform.kz/en/rss', country: ['Kazakhstan'], tier: 'mainstream', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'Tengrinews English', rssUrl: 'https://en.tengrinews.kz/rss', country: ['Kazakhstan'], tier: 'mainstream', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'Astana Times', rssUrl: 'https://astanatimes.com/feed/', country: ['Kazakhstan'], tier: 'mainstream', language: 'English', region: 'central-asia-caucasus' },
+
+    // ── UZBEKISTAN — Mainstream ──
+    { name: 'Kun.uz English', rssUrl: 'https://kun.uz/en/rss.xml', country: ['Uzbekistan'], tier: 'mainstream', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'UzDaily', rssUrl: 'https://www.uzdaily.uz/en/rss', country: ['Uzbekistan'], tier: 'mainstream', language: 'English', region: 'central-asia-caucasus' },
+
+    // ── KYRGYZSTAN — Mainstream ──
+    { name: '24.kg English', rssUrl: 'https://24.kg/english/rss', country: ['Kyrgyzstan'], tier: 'mainstream', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'Kabar English', rssUrl: 'https://kabar.kg/rss', country: ['Kyrgyzstan'], tier: 'mainstream', language: 'English', region: 'central-asia-caucasus' },
+
+    // ── TAJIKISTAN — Mainstream ──
+    { name: 'Asia-Plus', rssUrl: 'https://asiaplus.tj/en/rss', country: ['Tajikistan'], tier: 'mainstream', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'Radio Ozodi', rssUrl: 'https://www.ozodi.org/api/zpcjqmveiy', country: ['Tajikistan'], tier: 'mainstream', language: 'English', region: 'central-asia-caucasus' },
+
+    // ── TURKMENISTAN — Independent Critical ──
+    { name: 'Turkmen News', rssUrl: 'https://en.turkmen.news/rss', country: ['Turkmenistan'], tier: 'independent-critical', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'Chronicles of Turkmenistan', rssUrl: 'https://en.hronikatm.com/feed/', country: ['Turkmenistan'], tier: 'independent-critical', language: 'English', region: 'central-asia-caucasus' },
+
+    // ── AZERBAIJAN — Mainstream ──
+    { name: 'AzVision', rssUrl: 'https://azvision.az/rss.xml', country: ['Azerbaijan'], tier: 'mainstream', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'Trend News Agency', rssUrl: 'https://en.trend.az/rss', country: ['Azerbaijan'], tier: 'mainstream', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'Baku Tribune', rssUrl: 'https://bakutribune.com/feed', country: ['Azerbaijan'], tier: 'mainstream', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'JAM News', rssUrl: 'https://jam-news.net/feed/', country: ['Azerbaijan', 'Armenia', 'Georgia'], tier: 'mainstream', language: 'English', region: 'central-asia-caucasus' },
+
+    // ── ARMENIA — Mainstream ──
+    { name: 'Armenpress', rssUrl: 'https://armenpress.am/eng/rss', country: ['Armenia'], tier: 'mainstream', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'ArmInfo', rssUrl: 'https://arminfo.info/en/rss', country: ['Armenia'], tier: 'mainstream', language: 'English', region: 'central-asia-caucasus' },
+
+    // ── ARMENIA — Independent Left ──
+    { name: 'EVN Report', rssUrl: 'https://evnreport.com/feed/', country: ['Armenia'], tier: 'independent-left', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'RFE/RL Armenia', rssUrl: 'https://www.azatutyun.am/api/zmcjqmveiy', country: ['Armenia'], tier: 'independent-left', language: 'English', region: 'central-asia-caucasus' },
+
+    // ── GEORGIA — Mainstream ──
+    { name: 'Georgia Today', rssUrl: 'https://georgiatoday.ge/rss', country: ['Georgia'], tier: 'mainstream', language: 'English', region: 'central-asia-caucasus' },
+
+    // ── GEORGIA — Independent Critical ──
+    { name: 'Civil.ge', rssUrl: 'https://civil.ge/feed', country: ['Georgia'], tier: 'independent-critical', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'OC Media', rssUrl: 'https://oc-media.org/feed/', country: ['Georgia', 'Armenia', 'Azerbaijan'], tier: 'independent-critical', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'RFE/RL Georgia', rssUrl: 'https://www.radiotavisupleba.ge/api/zocjqmveiy', country: ['Georgia'], tier: 'independent-critical', language: 'English', region: 'central-asia-caucasus' },
+
+    // ── Regional — Independent Critical ──
+    { name: 'CABAR.asia', rssUrl: 'https://cabar.asia/en/feed/', country: ['Kazakhstan', 'Uzbekistan', 'Kyrgyzstan', 'Tajikistan', 'Turkmenistan'], tier: 'independent-critical', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'Fergana News', rssUrl: 'https://fergana.agency/en/feed/', country: ['Kazakhstan', 'Uzbekistan', 'Kyrgyzstan', 'Tajikistan', 'Turkmenistan'], tier: 'independent-critical', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'The Oxus Society', rssUrl: 'https://oxussociety.org/feed', country: ['Kazakhstan', 'Uzbekistan', 'Kyrgyzstan', 'Tajikistan', 'Turkmenistan'], tier: 'independent-critical', language: 'English', region: 'central-asia-caucasus' },
+
+    // ── Regional — Government Official ──
+    { name: 'Kazakhstan MFA', rssUrl: 'https://www.gov.kz/en/news', country: ['Kazakhstan'], tier: 'government-official', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'Uzbekistan MFA', rssUrl: 'https://mfa.uz/en/press/news/rss', country: ['Uzbekistan'], tier: 'government-official', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'Azerbaijan MFA', rssUrl: 'https://mfa.gov.az/en/news/rss', country: ['Azerbaijan'], tier: 'government-official', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'Armenia MFA', rssUrl: 'https://www.mfa.am/en/press-releases/rss', country: ['Armenia'], tier: 'government-official', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'Georgia MFA', rssUrl: 'https://mfa.gov.ge/en/news/rss', country: ['Georgia'], tier: 'government-official', language: 'English', region: 'central-asia-caucasus' },
+
+    // ── Regional — Think Tank / Academic ──
+    { name: 'PONARS Eurasia', rssUrl: 'https://www.ponarseurasia.org/feed/', country: ['Kazakhstan', 'Uzbekistan', 'Kyrgyzstan', 'Tajikistan', 'Turkmenistan', 'Azerbaijan', 'Armenia', 'Georgia'], tier: 'think-tank-academic', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'Carnegie Europe', rssUrl: 'https://carnegieeurope.eu/feed/', country: ['Kazakhstan', 'Uzbekistan', 'Kyrgyzstan', 'Tajikistan', 'Turkmenistan', 'Azerbaijan', 'Armenia', 'Georgia'], tier: 'think-tank-academic', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'German Marshall Fund', rssUrl: 'https://www.gmfus.org/feed', country: ['Kazakhstan', 'Uzbekistan', 'Kyrgyzstan', 'Tajikistan', 'Turkmenistan', 'Azerbaijan', 'Armenia', 'Georgia'], tier: 'think-tank-academic', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'IISS Eurasia', rssUrl: 'https://www.iiss.org/rss/eurasia', country: ['Kazakhstan', 'Uzbekistan', 'Kyrgyzstan', 'Tajikistan', 'Turkmenistan', 'Azerbaijan', 'Armenia', 'Georgia'], tier: 'think-tank-academic', language: 'English', region: 'central-asia-caucasus' },
+    { name: 'International Crisis Group Central Asia', rssUrl: 'https://www.crisisgroup.org/rss/asia', country: ['Kazakhstan', 'Uzbekistan', 'Kyrgyzstan', 'Tajikistan', 'Turkmenistan', 'Azerbaijan', 'Armenia', 'Georgia'], tier: 'think-tank-academic', language: 'English', region: 'central-asia-caucasus' },
+  ],
   'middle-east': [],
   'europe': [],
   'africa': [],
