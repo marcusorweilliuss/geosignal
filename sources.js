@@ -678,7 +678,92 @@ const SOURCES = {
     { name: 'Chatham House Africa', rssUrl: 'https://www.chathamhouse.org/rss/regions/africa', country: ['Nigeria', 'South Africa', 'Kenya', 'Ethiopia', 'Ghana', 'Tanzania', 'Uganda', 'Rwanda', 'DRC', 'Sudan'], tier: 'think-tank-academic', language: 'English', region: 'africa' },
     { name: 'Africa Policy Research Institute', rssUrl: 'https://afripoli.org/feed', country: ['Nigeria', 'South Africa', 'Kenya', 'Ethiopia', 'Ghana', 'Tanzania'], tier: 'think-tank-academic', language: 'English', region: 'africa' },
   ],
-  'southeast-asia': [],
+  'southeast-asia': [
+    // ── Regional — Mainstream ──
+    { name: 'Nikkei Asia', rssUrl: 'https://asia.nikkei.com/rss/feed/nar', country: ['Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Singapore', 'Cambodia', 'Laos'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+    { name: 'Channel News Asia', rssUrl: 'https://www.channelnewsasia.com/api/v1/rss-outbound-feed?_format=xml', country: ['Singapore', 'Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Cambodia'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+    { name: 'South China Morning Post Asia', rssUrl: 'https://www.scmp.com/rss/91/feed', country: ['Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Singapore', 'Cambodia'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+    { name: 'The Diplomat Southeast Asia', rssUrl: 'https://thediplomat.com/regions/southeast-asia/feed', country: ['Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Singapore', 'Cambodia', 'Laos'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+    { name: 'Southeast Asia Globe', rssUrl: 'https://southeastasiaglobe.com/feed', country: ['Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Singapore', 'Cambodia', 'Laos'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+    { name: 'Asia Sentinel', rssUrl: 'https://asiasentinel.com/feed', country: ['Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Singapore', 'Cambodia'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+    { name: 'Benar News', rssUrl: 'https://www.benarnews.org/rss/english', country: ['Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Cambodia'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+
+    // ── Regional — Independent Left ──
+    { name: 'New Mandala', rssUrl: 'https://www.newmandala.org/feed/', country: ['Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Singapore', 'Cambodia', 'Laos'], tier: 'independent-left', language: 'English', region: 'southeast-asia' },
+    { name: 'East Asia Forum', rssUrl: 'https://www.eastasiaforum.org/feed/', country: ['Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Singapore', 'Cambodia'], tier: 'independent-left', language: 'English', region: 'southeast-asia' },
+    { name: 'The Interpreter Lowy', rssUrl: 'https://www.lowyinstitute.org/the-interpreter/rss', country: ['Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Singapore', 'Cambodia'], tier: 'independent-left', language: 'English', region: 'southeast-asia' },
+
+    // ── SINGAPORE — Mainstream ──
+    { name: 'Straits Times', rssUrl: 'https://www.straitstimes.com/RSS/STITopStories.xml', country: ['Singapore'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+    { name: 'Today Singapore', rssUrl: 'https://www.todayonline.com/feed', country: ['Singapore'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+    { name: 'Business Times Singapore', rssUrl: 'https://www.businesstimes.com.sg/rss/top-stories', country: ['Singapore'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+
+    // ── THAILAND — Mainstream ──
+    { name: 'Bangkok Post', rssUrl: 'https://www.bangkokpost.com/rss/data/topstories.xml', country: ['Thailand'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+    { name: 'The Nation Thailand', rssUrl: 'https://www.nationthailand.com/rss', country: ['Thailand'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+
+    // ── THAILAND — Independent Critical ──
+    { name: 'Prachatai English', rssUrl: 'https://prachatai.com/english/feed', country: ['Thailand'], tier: 'independent-critical', language: 'English', region: 'southeast-asia' },
+
+    // ── INDONESIA — Mainstream ──
+    { name: 'Jakarta Post', rssUrl: 'https://www.thejakartapost.com/rss/id/all', country: ['Indonesia'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+    { name: 'Jakarta Globe', rssUrl: 'https://jakartaglobe.id/feed', country: ['Indonesia'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+    { name: 'Tempo English', rssUrl: 'https://en.tempo.co/rss/20', country: ['Indonesia'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+
+    // ── PHILIPPINES — Mainstream ──
+    { name: 'Philippine Daily Inquirer', rssUrl: 'https://newsinfo.inquirer.net/feed', country: ['Philippines'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+    { name: 'ABS-CBN News', rssUrl: 'https://news.abs-cbn.com/rss/headlines', country: ['Philippines'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+    { name: 'Philstar Global', rssUrl: 'https://www.philstar.com/rss/headlines', country: ['Philippines'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+    { name: 'Manila Times', rssUrl: 'https://www.manilatimes.net/feed', country: ['Philippines'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+
+    // ── PHILIPPINES — Independent Critical ──
+    { name: 'Rappler', rssUrl: 'https://www.rappler.com/rss', country: ['Philippines'], tier: 'independent-critical', language: 'English', region: 'southeast-asia' },
+
+    // ── MALAYSIA — Mainstream ──
+    { name: 'Malay Mail', rssUrl: 'https://www.malaymail.com/feed/', country: ['Malaysia'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+    { name: 'Free Malaysia Today', rssUrl: 'https://www.freemalaysiatoday.com/feed/', country: ['Malaysia'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+    { name: 'New Straits Times', rssUrl: 'https://www.nst.com.my/rss', country: ['Malaysia'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+
+    // ── MALAYSIA — Independent Critical ──
+    { name: 'Malaysiakini', rssUrl: 'https://www.malaysiakini.com/rss', country: ['Malaysia'], tier: 'independent-critical', language: 'English', region: 'southeast-asia' },
+
+    // ── VIETNAM — Mainstream ──
+    { name: 'VnExpress International', rssUrl: 'https://e.vnexpress.net/rss/news.rss', country: ['Vietnam'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+    { name: 'Vietnam News', rssUrl: 'https://vietnamnews.vn/rss', country: ['Vietnam'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+    { name: 'Tuoi Tre News', rssUrl: 'https://tuoitrenews.vn/rss', country: ['Vietnam'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+
+    // ── CAMBODIA — Mainstream ──
+    { name: 'Phnom Penh Post', rssUrl: 'https://www.phnompenhpost.com/rss', country: ['Cambodia'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+    { name: 'Khmer Times', rssUrl: 'https://www.khmertimeskh.com/feed', country: ['Cambodia'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+
+    // ── CAMBODIA — Independent Critical ──
+    { name: 'VOD English', rssUrl: 'https://vodenglish.news/feed', country: ['Cambodia'], tier: 'independent-critical', language: 'English', region: 'southeast-asia' },
+
+    // ── LAOS — Mainstream ──
+    { name: 'Vientiane Times', rssUrl: 'https://www.vientianetimes.org.la/feed', country: ['Laos'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+    { name: 'Laotian Times', rssUrl: 'https://laotiantimes.com/feed', country: ['Laos'], tier: 'mainstream', language: 'English', region: 'southeast-asia' },
+
+    // ── Southeast Asia — Business ──
+    { name: 'Deal Street Asia', rssUrl: 'https://www.dealstreetasia.com/feed', country: ['Singapore', 'Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia'], tier: 'business', language: 'English', region: 'southeast-asia' },
+    { name: 'ASEAN Briefing', rssUrl: 'https://www.aseanbriefing.com/news/feed/', country: ['Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Singapore', 'Cambodia'], tier: 'business', language: 'English', region: 'southeast-asia' },
+    { name: 'Eco-Business', rssUrl: 'https://www.eco-business.com/feed/', country: ['Singapore', 'Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia'], tier: 'business', language: 'English', region: 'southeast-asia' },
+
+    // ── Southeast Asia — Government Official ──
+    { name: 'ASEAN Official Statements', rssUrl: 'https://asean.org/news/rss', country: ['Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Singapore', 'Cambodia', 'Laos', 'Brunei'], tier: 'government-official', language: 'English', region: 'southeast-asia' },
+    { name: 'Singapore MFA', rssUrl: 'https://www.mfa.gov.sg/Newsroom/Press-Statements-Transcripts-and-Photos/rss', country: ['Singapore'], tier: 'government-official', language: 'English', region: 'southeast-asia' },
+    { name: 'Philippines DFA', rssUrl: 'https://dfa.gov.ph/feed/', country: ['Philippines'], tier: 'government-official', language: 'English', region: 'southeast-asia' },
+    { name: 'Indonesian MFA', rssUrl: 'https://kemlu.go.id/en/berita/siaran-pers/rss', country: ['Indonesia'], tier: 'government-official', language: 'English', region: 'southeast-asia' },
+    { name: 'Malaysian MFA', rssUrl: 'https://kln.gov.my/rss', country: ['Malaysia'], tier: 'government-official', language: 'English', region: 'southeast-asia' },
+    { name: 'Thai MFA', rssUrl: 'https://www.mfa.go.th/en/rss', country: ['Thailand'], tier: 'government-official', language: 'English', region: 'southeast-asia' },
+
+    // ── Southeast Asia — Think Tank / Academic ──
+    { name: 'ISEAS-Yusof Ishak Institute', rssUrl: 'https://www.iseas.edu.sg/feed/', country: ['Singapore', 'Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Cambodia', 'Laos'], tier: 'think-tank-academic', language: 'English', region: 'southeast-asia' },
+    { name: 'Lowy Institute', rssUrl: 'https://www.lowyinstitute.org/feed', country: ['Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Singapore', 'Cambodia'], tier: 'think-tank-academic', language: 'English', region: 'southeast-asia' },
+    { name: 'Australian Strategic Policy Institute', rssUrl: 'https://www.aspi.org.au/rss', country: ['Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Singapore', 'Cambodia'], tier: 'think-tank-academic', language: 'English', region: 'southeast-asia' },
+    { name: 'Pacific Forum CSIS', rssUrl: 'https://pacforum.org/feed', country: ['Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Singapore'], tier: 'think-tank-academic', language: 'English', region: 'southeast-asia' },
+    { name: 'CSIS Southeast Asia', rssUrl: 'https://www.csis.org/programs/southeast-asia-program/feed', country: ['Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Singapore', 'Cambodia'], tier: 'think-tank-academic', language: 'English', region: 'southeast-asia' },
+    { name: 'Stimson Southeast Asia', rssUrl: 'https://www.stimson.org/feed', country: ['Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Singapore', 'Cambodia'], tier: 'think-tank-academic', language: 'English', region: 'southeast-asia' },
+  ],
   'east-asia': [],
   'oceania': [],
   'global': []
