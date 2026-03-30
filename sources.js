@@ -211,7 +211,81 @@ const SOURCES = {
     { name: 'Stimson Center', rssUrl: 'https://stimson.org/feed', country: ['India', 'Pakistan', 'Bangladesh', 'Sri Lanka', 'Nepal', 'Afghanistan'], tier: 'think-tank-academic', language: 'English', region: 'south-asia' },
     { name: 'USIP South Asia', rssUrl: 'https://usip.org/feed', country: ['India', 'Pakistan', 'Bangladesh', 'Sri Lanka', 'Nepal', 'Afghanistan'], tier: 'think-tank-academic', language: 'English', region: 'south-asia' },
   ],
-  'north-america': [],
+  'north-america': [
+    // ── USA — Mainstream ──
+    { name: 'New York Times', rssUrl: 'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml', country: ['United States'], tier: 'mainstream', language: 'English', region: 'north-america' },
+    { name: 'Washington Post', rssUrl: 'https://feeds.washingtonpost.com/rss/world', country: ['United States'], tier: 'mainstream', language: 'English', region: 'north-america' },
+    { name: 'Wall Street Journal', rssUrl: 'https://feeds.a.dj.com/rss/RSSWorldNews.xml', country: ['United States'], tier: 'mainstream', language: 'English', region: 'north-america' },
+    { name: 'NPR News', rssUrl: 'https://feeds.npr.org/1001/rss.xml', country: ['United States'], tier: 'mainstream', language: 'English', region: 'north-america' },
+    { name: 'PBS NewsHour', rssUrl: 'https://www.pbs.org/newshour/feeds/rss/headlines', country: ['United States'], tier: 'mainstream', language: 'English', region: 'north-america' },
+    { name: 'CBS News', rssUrl: 'https://www.cbsnews.com/latest/rss/main', country: ['United States'], tier: 'mainstream', language: 'English', region: 'north-america' },
+    { name: 'NBC News', rssUrl: 'https://feeds.nbcnews.com/nbcnews/public/news', country: ['United States'], tier: 'mainstream', language: 'English', region: 'north-america' },
+    { name: 'USA Today', rssUrl: 'https://rssfeeds.usatoday.com/usatoday-NewsTopStories', country: ['United States'], tier: 'mainstream', language: 'English', region: 'north-america' },
+
+    // ── USA — Independent Left ──
+    { name: 'The Atlantic', rssUrl: 'https://feeds.feedburner.com/TheAtlantic', country: ['United States'], tier: 'independent-left', language: 'English', region: 'north-america' },
+    { name: 'Mother Jones', rssUrl: 'https://feeds.feedburner.com/motherjones/main', country: ['United States'], tier: 'independent-left', language: 'English', region: 'north-america' },
+    { name: 'The Nation', rssUrl: 'https://www.thenation.com/feed/', country: ['United States'], tier: 'independent-left', language: 'English', region: 'north-america' },
+    { name: 'ProPublica', rssUrl: 'https://feeds.propublica.org/propublica/main', country: ['United States'], tier: 'independent-left', language: 'English', region: 'north-america' },
+    { name: 'The Intercept', rssUrl: 'https://theintercept.com/feed/?rss', country: ['United States'], tier: 'independent-left', language: 'English', region: 'north-america' },
+    { name: 'Democracy Now', rssUrl: 'https://www.democracynow.org/democracynow.rss', country: ['United States'], tier: 'independent-left', language: 'English', region: 'north-america' },
+    { name: 'Jacobin', rssUrl: 'https://jacobin.com/feed/', country: ['United States'], tier: 'independent-left', language: 'English', region: 'north-america' },
+
+    // ── USA — Independent Right ──
+    { name: 'National Review', rssUrl: 'https://feeds.feedburner.com/nationalreview/TEB7', country: ['United States'], tier: 'independent-right', language: 'English', region: 'north-america' },
+    { name: 'The Federalist', rssUrl: 'https://thefederalist.com/feed/', country: ['United States'], tier: 'independent-right', language: 'English', region: 'north-america' },
+    { name: 'Washington Examiner', rssUrl: 'https://www.washingtonexaminer.com/rss', country: ['United States'], tier: 'independent-right', language: 'English', region: 'north-america' },
+    { name: 'The Daily Wire', rssUrl: 'https://www.dailywire.com/feeds/rss.xml', country: ['United States'], tier: 'independent-right', language: 'English', region: 'north-america' },
+    { name: 'Reason Magazine', rssUrl: 'https://reason.com/feed/', country: ['United States'], tier: 'independent-right', language: 'English', region: 'north-america' },
+
+    // ── USA — Business ──
+    { name: 'Bloomberg', rssUrl: 'https://feeds.bloomberg.com/markets/news.rss', country: ['United States'], tier: 'business', language: 'English', region: 'north-america' },
+    { name: 'Financial Times', rssUrl: 'https://www.ft.com/rss/home', country: ['United States'], tier: 'business', language: 'English', region: 'north-america' },
+    { name: 'CNBC', rssUrl: 'https://www.cnbc.com/id/100003114/device/rss/rss.html', country: ['United States'], tier: 'business', language: 'English', region: 'north-america' },
+    { name: 'Forbes', rssUrl: 'https://www.forbes.com/real-time/feed2/', country: ['United States'], tier: 'business', language: 'English', region: 'north-america' },
+    { name: 'The Economist', rssUrl: 'https://www.economist.com/latest/rss.xml', country: ['United States'], tier: 'business', language: 'English', region: 'north-america' },
+
+    // ── CANADA — Mainstream ──
+    { name: 'Globe and Mail', rssUrl: 'https://www.theglobeandmail.com/arc/outboundfeeds/rss/category/canada/', country: ['Canada'], tier: 'mainstream', language: 'English', region: 'north-america' },
+    { name: 'CBC News', rssUrl: 'https://rss.cbc.ca/lineup/topstories.xml', country: ['Canada'], tier: 'mainstream', language: 'English', region: 'north-america' },
+    { name: 'Toronto Star', rssUrl: 'https://www.thestar.com/content/thestar/feed.RSSManagerServlet.topstories.rss', country: ['Canada'], tier: 'mainstream', language: 'English', region: 'north-america' },
+    { name: 'National Post', rssUrl: 'https://nationalpost.com/feed/', country: ['Canada'], tier: 'mainstream', language: 'English', region: 'north-america' },
+    { name: 'CTV News', rssUrl: 'https://www.ctvnews.ca/rss/ctvnews-ca-top-stories-public-rss-1.822009', country: ['Canada'], tier: 'mainstream', language: 'English', region: 'north-america' },
+
+    // ── CANADA — Independent Left ──
+    { name: "Maclean's", rssUrl: 'https://www.macleans.ca/feed/', country: ['Canada'], tier: 'independent-left', language: 'English', region: 'north-america' },
+    { name: 'The Walrus', rssUrl: 'https://thewalrus.ca/feed/', country: ['Canada'], tier: 'independent-left', language: 'English', region: 'north-america' },
+    { name: 'iPolitics', rssUrl: 'https://ipolitics.ca/feed/', country: ['Canada'], tier: 'independent-left', language: 'English', region: 'north-america' },
+
+    // ── MEXICO — Mainstream ──
+    { name: 'Mexico News Daily', rssUrl: 'https://mexiconewsdaily.com/feed/', country: ['Mexico'], tier: 'mainstream', language: 'English', region: 'north-america' },
+    { name: 'El Universal English', rssUrl: 'https://www.eluniversal.com.mx/rss.xml', country: ['Mexico'], tier: 'mainstream', language: 'English', region: 'north-america' },
+
+    // ── MEXICO — Independent Critical ──
+    { name: 'Animal Político', rssUrl: 'https://www.animalpolitico.com/feed/', country: ['Mexico'], tier: 'independent-critical', language: 'English', region: 'north-america' },
+    { name: 'Proceso', rssUrl: 'https://www.proceso.com.mx/rss/', country: ['Mexico'], tier: 'independent-critical', language: 'English', region: 'north-america' },
+
+    // ── USA/CANADA/MEXICO — Government Official ──
+    { name: 'White House Press Releases', rssUrl: 'https://www.whitehouse.gov/feed/', country: ['United States'], tier: 'government-official', language: 'English', region: 'north-america' },
+    { name: 'US State Department', rssUrl: 'https://www.state.gov/rss-feeds/', country: ['United States'], tier: 'government-official', language: 'English', region: 'north-america' },
+    { name: 'US Department of Defense', rssUrl: 'https://www.defense.gov/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=945&max=10', country: ['United States'], tier: 'government-official', language: 'English', region: 'north-america' },
+    { name: 'US Trade Representative', rssUrl: 'https://ustr.gov/rss.xml', country: ['United States'], tier: 'government-official', language: 'English', region: 'north-america' },
+    { name: 'Government of Canada News', rssUrl: 'https://www.canada.ca/en/news.atom', country: ['Canada'], tier: 'government-official', language: 'English', region: 'north-america' },
+    { name: 'Global Affairs Canada', rssUrl: 'https://www.canada.ca/en/global-affairs.atom', country: ['Canada'], tier: 'government-official', language: 'English', region: 'north-america' },
+    { name: 'Mexican Foreign Ministry', rssUrl: 'https://www.gob.mx/sre/rss', country: ['Mexico'], tier: 'government-official', language: 'English', region: 'north-america' },
+
+    // ── North America — Think Tank / Academic ──
+    { name: 'Council on Foreign Relations', rssUrl: 'https://www.cfr.org/rss.xml', country: ['United States'], tier: 'think-tank-academic', language: 'English', region: 'north-america' },
+    { name: 'Brookings Institution', rssUrl: 'https://www.brookings.edu/feed/', country: ['United States'], tier: 'think-tank-academic', language: 'English', region: 'north-america' },
+    { name: 'CATO Institute', rssUrl: 'https://feeds.cato.org/CatoRecentOpeds', country: ['United States'], tier: 'think-tank-academic', language: 'English', region: 'north-america' },
+    { name: 'Center for American Progress', rssUrl: 'https://www.americanprogress.org/feed/', country: ['United States'], tier: 'think-tank-academic', language: 'English', region: 'north-america' },
+    { name: 'RAND Corporation', rssUrl: 'https://www.rand.org/feeds/rand-all.xml', country: ['United States'], tier: 'think-tank-academic', language: 'English', region: 'north-america' },
+    { name: 'Wilson Center', rssUrl: 'https://www.wilsoncenter.org/feed', country: ['United States'], tier: 'think-tank-academic', language: 'English', region: 'north-america' },
+    { name: 'Atlantic Council', rssUrl: 'https://www.atlanticcouncil.org/feed/', country: ['United States'], tier: 'think-tank-academic', language: 'English', region: 'north-america' },
+    { name: 'CSIS', rssUrl: 'https://www.csis.org/feed', country: ['United States'], tier: 'think-tank-academic', language: 'English', region: 'north-america' },
+    { name: 'Carnegie Endowment', rssUrl: 'https://carnegieendowment.org/feed/', country: ['United States'], tier: 'think-tank-academic', language: 'English', region: 'north-america' },
+    { name: 'Heritage Foundation', rssUrl: 'https://feeds.feedburner.com/TheFoundry', country: ['United States'], tier: 'think-tank-academic', language: 'English', region: 'north-america' },
+  ],
   'latin-america': [],
   'central-asia-caucasus': [],
   'middle-east': [],
