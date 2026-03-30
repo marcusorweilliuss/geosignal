@@ -136,6 +136,13 @@ let currentArticles = [];
 let tldrElements = [];
 let governmentCaveat = '';
 
+// Convert numeric score to relevance label
+function scoreToRelevance(score) {
+  if (score >= 40) return 'HIGH';
+  if (score >= 20) return 'MEDIUM';
+  return 'LOW';
+}
+
 // ── Fetch Stories (RSS-powered) ─────────────────────────────────
 
 async function fetchStories() {
@@ -327,6 +334,11 @@ function renderFeed(articles) {
 
     // Badges
     let badgesHtml = '';
+    if (article.score !== undefined) {
+      const rel = scoreToRelevance(article.score);
+      const relLower = rel.toLowerCase();
+      badgesHtml += '<span class="card-relevance-badge ' + relLower + '">' + rel + '</span>';
+    }
     if (article.isOfficial) {
       badgesHtml += '<span class="card-official-badge">OFFICIAL</span>';
     }
