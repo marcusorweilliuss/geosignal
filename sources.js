@@ -764,7 +764,87 @@ const SOURCES = {
     { name: 'CSIS Southeast Asia', rssUrl: 'https://www.csis.org/programs/southeast-asia-program/feed', country: ['Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Singapore', 'Cambodia'], tier: 'think-tank-academic', language: 'English', region: 'southeast-asia' },
     { name: 'Stimson Southeast Asia', rssUrl: 'https://www.stimson.org/feed', country: ['Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Singapore', 'Cambodia'], tier: 'think-tank-academic', language: 'English', region: 'southeast-asia' },
   ],
-  'east-asia': [],
+  'east-asia': [
+    // ── Regional — Mainstream ──
+    { name: 'Nikkei Asia', rssUrl: 'https://asia.nikkei.com/rss/feed/nar', country: ['China', 'Japan', 'South Korea', 'Taiwan', 'North Korea', 'Mongolia', 'Hong Kong'], tier: 'mainstream', language: 'English', region: 'east-asia' },
+    { name: 'South China Morning Post', rssUrl: 'https://www.scmp.com/rss/91/feed', country: ['China', 'Japan', 'South Korea', 'Taiwan', 'North Korea', 'Hong Kong'], tier: 'mainstream', language: 'English', region: 'east-asia' },
+    { name: 'Asia Times', rssUrl: 'https://asiatimes.com/feed/', country: ['China', 'Japan', 'South Korea', 'Taiwan', 'North Korea', 'Hong Kong'], tier: 'mainstream', language: 'English', region: 'east-asia' },
+    { name: 'The Diplomat East Asia', rssUrl: 'https://thediplomat.com/regions/east-asia/feed', country: ['China', 'Japan', 'South Korea', 'Taiwan', 'North Korea', 'Mongolia'], tier: 'mainstream', language: 'English', region: 'east-asia' },
+    { name: 'East Asia Forum', rssUrl: 'https://www.eastasiaforum.org/feed/', country: ['China', 'Japan', 'South Korea', 'Taiwan', 'North Korea', 'Mongolia'], tier: 'mainstream', language: 'English', region: 'east-asia' },
+
+    // ── CHINA — Mainstream ──
+    { name: 'SCMP China', rssUrl: 'https://www.scmp.com/rss/91/feed', country: ['China'], tier: 'mainstream', language: 'English', region: 'east-asia' },
+    { name: 'Caixin Global', rssUrl: 'https://www.caixinglobal.com/rss', country: ['China'], tier: 'mainstream', language: 'English', region: 'east-asia' },
+
+    // ── CHINA — Independent Critical ──
+    { name: 'China Media Project', rssUrl: 'https://chinamediaproject.org/feed/', country: ['China'], tier: 'independent-critical', language: 'English', region: 'east-asia' },
+    { name: 'Initium Media', rssUrl: 'https://theinitium.com/feed', country: ['China', 'Hong Kong'], tier: 'independent-critical', language: 'English', region: 'east-asia' },
+    { name: 'Radio Free Asia China', rssUrl: 'https://www.rfa.org/english/rss2.0/china.xml', country: ['China'], tier: 'independent-critical', language: 'English', region: 'east-asia' },
+    { name: 'SupChina', rssUrl: 'https://supchina.com/feed/', country: ['China'], tier: 'independent-critical', language: 'English', region: 'east-asia' },
+    { name: 'The Wire China', rssUrl: 'https://www.thewirechina.com/feed/', country: ['China'], tier: 'independent-critical', language: 'English', region: 'east-asia' },
+    { name: 'China Story ANU', rssUrl: 'https://www.thechinastory.org/feed/', country: ['China'], tier: 'independent-critical', language: 'English', region: 'east-asia' },
+
+    // ── CHINA — Government Official ──
+    { name: 'Chinese Foreign Ministry MFA', rssUrl: 'https://www.mfa.gov.cn/eng/rss.xml', country: ['China'], tier: 'government-official', language: 'English', region: 'east-asia' },
+    { name: 'China Daily', rssUrl: 'https://www.chinadaily.com.cn/rss/china_rss.xml', country: ['China'], tier: 'government-official', language: 'English', region: 'east-asia' },
+    { name: 'Xinhua English', rssUrl: 'https://www.xinhuanet.com/english/rss/worldrss.xml', country: ['China'], tier: 'government-official', language: 'English', region: 'east-asia' },
+
+    // ── HONG KONG — Independent Critical ──
+    { name: 'Hong Kong Free Press', rssUrl: 'https://hongkongfp.com/feed/', country: ['Hong Kong'], tier: 'independent-critical', language: 'English', region: 'east-asia' },
+    { name: 'RTHK English', rssUrl: 'https://rthk.hk/rss/news/index.xml', country: ['Hong Kong'], tier: 'independent-critical', language: 'English', region: 'east-asia' },
+
+    // ── JAPAN — Mainstream ──
+    { name: 'Japan Times', rssUrl: 'https://www.japantimes.co.jp/feed/', country: ['Japan'], tier: 'mainstream', language: 'English', region: 'east-asia' },
+    { name: 'NHK World', rssUrl: 'https://www3.nhk.or.jp/nhkworld/en/news/feeds/', country: ['Japan'], tier: 'mainstream', language: 'English', region: 'east-asia' },
+    { name: 'Asahi Shimbun English', rssUrl: 'https://www.asahi.com/ajw/rss/ajw_rss.rdf', country: ['Japan'], tier: 'mainstream', language: 'English', region: 'east-asia' },
+    { name: 'The Mainichi English', rssUrl: 'https://mainichi.jp/rss/etc/english.rss', country: ['Japan'], tier: 'mainstream', language: 'English', region: 'east-asia' },
+
+    // ── JAPAN — Government Official ──
+    { name: 'Japanese MOFA', rssUrl: 'https://www.mofa.go.jp/rss/news.xml', country: ['Japan'], tier: 'government-official', language: 'English', region: 'east-asia' },
+
+    // ── SOUTH KOREA — Mainstream ──
+    { name: 'Korea Herald', rssUrl: 'https://www.koreaherald.com/rss/', country: ['South Korea'], tier: 'mainstream', language: 'English', region: 'east-asia' },
+    { name: 'Korea JoongAng Daily', rssUrl: 'https://koreajoongangdaily.joins.com/rss', country: ['South Korea'], tier: 'mainstream', language: 'English', region: 'east-asia' },
+    { name: 'Hankyoreh English', rssUrl: 'https://english.hani.co.kr/rss', country: ['South Korea'], tier: 'mainstream', language: 'English', region: 'east-asia' },
+    { name: 'Yonhap News Agency', rssUrl: 'https://en.yna.co.kr/RSS/headline.xml', country: ['South Korea'], tier: 'mainstream', language: 'English', region: 'east-asia' },
+
+    // ── SOUTH KOREA — Government Official ──
+    { name: 'South Korean MOFA', rssUrl: 'https://www.mofa.go.kr/eng/rss', country: ['South Korea'], tier: 'government-official', language: 'English', region: 'east-asia' },
+
+    // ── TAIWAN — Mainstream ──
+    { name: 'Taipei Times', rssUrl: 'https://www.taipeitimes.com/rss', country: ['Taiwan'], tier: 'mainstream', language: 'English', region: 'east-asia' },
+    { name: 'Taiwan News', rssUrl: 'https://www.taiwannews.com.tw/en/rss', country: ['Taiwan'], tier: 'mainstream', language: 'English', region: 'east-asia' },
+    { name: 'Focus Taiwan', rssUrl: 'https://focustaiwan.tw/rss', country: ['Taiwan'], tier: 'mainstream', language: 'English', region: 'east-asia' },
+
+    // ── TAIWAN — Government Official ──
+    { name: 'Taiwanese MOFA', rssUrl: 'https://www.mofa.gov.tw/rss/en', country: ['Taiwan'], tier: 'government-official', language: 'English', region: 'east-asia' },
+
+    // ── NORTH KOREA — Independent Critical ──
+    { name: 'NK News', rssUrl: 'https://www.nknews.org/feed/', country: ['North Korea'], tier: 'independent-critical', language: 'English', region: 'east-asia' },
+    { name: 'Daily NK', rssUrl: 'https://www.dailynk.com/english/rss', country: ['North Korea'], tier: 'independent-critical', language: 'English', region: 'east-asia' },
+    { name: '38 North', rssUrl: 'https://www.38north.org/feed/', country: ['North Korea'], tier: 'independent-critical', language: 'English', region: 'east-asia' },
+    { name: 'Radio Free Asia Korea', rssUrl: 'https://www.rfa.org/english/rss2.0/korea.xml', country: ['North Korea', 'South Korea'], tier: 'independent-critical', language: 'English', region: 'east-asia' },
+    { name: 'KCNA Watch', rssUrl: 'https://kcnawatch.org/feed/', country: ['North Korea'], tier: 'independent-critical', language: 'English', region: 'east-asia' },
+
+    // ── MONGOLIA — Mainstream ──
+    { name: 'UB Post', rssUrl: 'https://theubpost.mn/feed', country: ['Mongolia'], tier: 'mainstream', language: 'English', region: 'east-asia' },
+    { name: 'Montsame', rssUrl: 'https://montsame.mn/en/rss', country: ['Mongolia'], tier: 'mainstream', language: 'English', region: 'east-asia' },
+
+    // ── East Asia — Business ──
+    { name: 'Caixin Global Business', rssUrl: 'https://www.caixinglobal.com/rss', country: ['China'], tier: 'business', language: 'English', region: 'east-asia' },
+    { name: 'Korea Economic Daily', rssUrl: 'https://www.kedglobal.com/feed', country: ['South Korea'], tier: 'business', language: 'English', region: 'east-asia' },
+
+    // ── East Asia — Think Tank / Academic ──
+    { name: 'MERICS', rssUrl: 'https://merics.org/en/feed', country: ['China', 'Hong Kong'], tier: 'think-tank-academic', language: 'English', region: 'east-asia' },
+    { name: '38 North Think Tank', rssUrl: 'https://www.38north.org/feed/', country: ['North Korea'], tier: 'think-tank-academic', language: 'English', region: 'east-asia' },
+    { name: 'CSIS Asia', rssUrl: 'https://www.csis.org/regions/asia/feed', country: ['China', 'Japan', 'South Korea', 'Taiwan', 'North Korea'], tier: 'think-tank-academic', language: 'English', region: 'east-asia' },
+    { name: 'Council on Foreign Relations Asia', rssUrl: 'https://www.cfr.org/region/asia/feed', country: ['China', 'Japan', 'South Korea', 'Taiwan', 'North Korea'], tier: 'think-tank-academic', language: 'English', region: 'east-asia' },
+    { name: 'Lowy Institute East Asia', rssUrl: 'https://www.lowyinstitute.org/feed', country: ['China', 'Japan', 'South Korea', 'Taiwan', 'North Korea'], tier: 'think-tank-academic', language: 'English', region: 'east-asia' },
+    { name: 'IISS Asia', rssUrl: 'https://www.iiss.org/rss/asia', country: ['China', 'Japan', 'South Korea', 'Taiwan', 'North Korea'], tier: 'think-tank-academic', language: 'English', region: 'east-asia' },
+    { name: 'Korea Economic Institute', rssUrl: 'https://keia.org/feed', country: ['South Korea', 'North Korea'], tier: 'think-tank-academic', language: 'English', region: 'east-asia' },
+    { name: 'China Policy Institute', rssUrl: 'https://chinapolicyinstitute.org/feed', country: ['China'], tier: 'think-tank-academic', language: 'English', region: 'east-asia' },
+    { name: 'Stimson East Asia', rssUrl: 'https://www.stimson.org/feed', country: ['China', 'Japan', 'South Korea', 'Taiwan', 'North Korea'], tier: 'think-tank-academic', language: 'English', region: 'east-asia' },
+  ],
   'oceania': [],
   'global': []
 };
