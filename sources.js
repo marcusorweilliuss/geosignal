@@ -509,7 +509,82 @@ const SOURCES = {
     { name: 'Arab Reform Initiative', rssUrl: 'https://www.arab-reform.net/feed/', country: ['Saudi Arabia', 'UAE', 'Iran', 'Iraq', 'Turkey', 'Israel', 'Palestine', 'Lebanon', 'Syria', 'Yemen', 'Egypt', 'Tunisia', 'Morocco', 'Algeria'], tier: 'think-tank-academic', language: 'English', region: 'middle-east' },
     { name: 'Stimson Center MENA', rssUrl: 'https://www.stimson.org/feed', country: ['Saudi Arabia', 'UAE', 'Iran', 'Iraq', 'Turkey', 'Israel', 'Palestine', 'Lebanon', 'Syria', 'Yemen', 'Egypt'], tier: 'think-tank-academic', language: 'English', region: 'middle-east' },
   ],
-  'europe': [],
+  'europe': [
+    // ── Pan-European — Mainstream ──
+    { name: 'BBC World', rssUrl: 'https://feeds.bbci.co.uk/news/world/rss.xml', country: ['UK', 'Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Poland', 'Ukraine', 'Russia'], tier: 'mainstream', language: 'English', region: 'europe' },
+    { name: 'Reuters Europe', rssUrl: 'https://feeds.reuters.com/reuters/europeNews', country: ['UK', 'Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Poland', 'Ukraine', 'Russia'], tier: 'mainstream', language: 'English', region: 'europe' },
+    { name: 'Euronews', rssUrl: 'https://www.euronews.com/rss', country: ['UK', 'Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Poland', 'Ukraine'], tier: 'mainstream', language: 'English', region: 'europe' },
+    { name: 'Politico Europe', rssUrl: 'https://www.politico.eu/feed/', country: ['UK', 'Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Belgium', 'Poland'], tier: 'mainstream', language: 'English', region: 'europe' },
+    { name: 'EUobserver', rssUrl: 'https://euobserver.com/rss', country: ['Belgium', 'Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Poland'], tier: 'mainstream', language: 'English', region: 'europe' },
+    { name: 'Deutsche Welle', rssUrl: 'https://rss.dw.com/xml/rss-en-all', country: ['Germany', 'UK', 'France', 'Italy', 'Spain', 'Poland', 'Ukraine', 'Russia'], tier: 'mainstream', language: 'English', region: 'europe' },
+    { name: 'France 24 English', rssUrl: 'https://www.france24.com/en/rss', country: ['France', 'UK', 'Germany', 'Italy', 'Spain', 'Poland', 'Ukraine'], tier: 'mainstream', language: 'English', region: 'europe' },
+    { name: 'RFI English', rssUrl: 'https://www.rfi.fr/en/rss', country: ['France', 'UK', 'Germany', 'Italy', 'Spain', 'Poland', 'Ukraine'], tier: 'mainstream', language: 'English', region: 'europe' },
+
+    // ── UK — Mainstream ──
+    { name: 'The Guardian', rssUrl: 'https://www.theguardian.com/world/rss', country: ['UK'], tier: 'mainstream', language: 'English', region: 'europe' },
+    { name: 'Financial Times UK', rssUrl: 'https://www.ft.com/rss/home/uk', country: ['UK'], tier: 'mainstream', language: 'English', region: 'europe' },
+    { name: 'The Times UK', rssUrl: 'https://www.thetimes.co.uk/rss/', country: ['UK'], tier: 'mainstream', language: 'English', region: 'europe' },
+    { name: 'The Independent', rssUrl: 'https://www.independent.co.uk/rss', country: ['UK'], tier: 'mainstream', language: 'English', region: 'europe' },
+
+    // ── UK — Independent Left ──
+    { name: 'openDemocracy', rssUrl: 'https://www.opendemocracy.net/en/rss.xml', country: ['UK'], tier: 'independent-left', language: 'English', region: 'europe' },
+
+    // ── UK — Independent Right ──
+    { name: 'The Spectator', rssUrl: 'https://www.spectator.co.uk/feed/', country: ['UK'], tier: 'independent-right', language: 'English', region: 'europe' },
+
+    // ── GERMANY — Mainstream ──
+    { name: 'Der Spiegel International', rssUrl: 'https://www.spiegel.de/international/index.rss', country: ['Germany'], tier: 'mainstream', language: 'English', region: 'europe' },
+    { name: 'Handelsblatt Global', rssUrl: 'https://www.handelsblatt.com/rss', country: ['Germany'], tier: 'mainstream', language: 'English', region: 'europe' },
+
+    // ── FRANCE — Independent Left ──
+    { name: 'Le Monde Diplomatique English', rssUrl: 'https://mondediplo.com/spip.php?page=backend', country: ['France'], tier: 'independent-left', language: 'English', region: 'europe' },
+
+    // ── ITALY — Mainstream ──
+    { name: 'ANSA English', rssUrl: 'https://www.ansa.it/english/news/rss.xml', country: ['Italy'], tier: 'mainstream', language: 'English', region: 'europe' },
+
+    // ── SPAIN — Mainstream ──
+    { name: 'El País English', rssUrl: 'https://feeds.elpais.com/mrss-s/list/feed/section/inenglish', country: ['Spain'], tier: 'mainstream', language: 'English', region: 'europe' },
+
+    // ── NORDICS — Mainstream ──
+    { name: 'Yle Finland English', rssUrl: 'https://feeds.yle.fi/uutiset/5/8/uutiset-5-8.rss', country: ['Finland'], tier: 'mainstream', language: 'English', region: 'europe' },
+    { name: 'The Local Europe', rssUrl: 'https://www.thelocal.com/feed/', country: ['Sweden', 'Norway', 'Denmark', 'Germany', 'France', 'Italy', 'Spain', 'Austria', 'Switzerland'], tier: 'mainstream', language: 'English', region: 'europe' },
+
+    // ── EASTERN EUROPE / UKRAINE / RUSSIA — Mainstream ──
+    { name: 'Kyiv Independent', rssUrl: 'https://kyivindependent.com/feed/', country: ['Ukraine'], tier: 'mainstream', language: 'English', region: 'europe' },
+    { name: 'Moscow Times', rssUrl: 'https://www.themoscowtimes.com/rss/news', country: ['Russia'], tier: 'mainstream', language: 'English', region: 'europe' },
+    { name: 'RFE/RL', rssUrl: 'https://www.rferl.org/api/zqcjqmveiy', country: ['Ukraine', 'Russia', 'Poland', 'Hungary', 'Romania', 'Czech Republic'], tier: 'mainstream', language: 'English', region: 'europe' },
+    { name: 'Balkan Insight', rssUrl: 'https://balkaninsight.com/feed/', country: ['Romania', 'Hungary', 'Greece', 'Czech Republic'], tier: 'mainstream', language: 'English', region: 'europe' },
+    { name: 'Notes From Poland', rssUrl: 'https://notesfrompoland.com/feed/', country: ['Poland'], tier: 'mainstream', language: 'English', region: 'europe' },
+
+    // ── RUSSIA — Independent Critical ──
+    { name: 'Meduza', rssUrl: 'https://meduza.io/rss/en/all', country: ['Russia'], tier: 'independent-critical', language: 'English', region: 'europe' },
+
+    // ── Europe — Business ──
+    { name: 'Financial Times', rssUrl: 'https://www.ft.com/rss/home', country: ['UK', 'Germany', 'France', 'Italy', 'Spain', 'Netherlands'], tier: 'business', language: 'English', region: 'europe' },
+    { name: 'Bloomberg Europe', rssUrl: 'https://feeds.bloomberg.com/europe/news.rss', country: ['UK', 'Germany', 'France', 'Italy', 'Spain', 'Netherlands'], tier: 'business', language: 'English', region: 'europe' },
+    { name: 'Euractiv', rssUrl: 'https://www.euractiv.com/feed/', country: ['Belgium', 'Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Poland'], tier: 'business', language: 'English', region: 'europe' },
+
+    // ── Europe — Government Official ──
+    { name: 'European Commission Press Releases', rssUrl: 'https://ec.europa.eu/commission/presscorner/rss/en', country: ['Belgium', 'Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Poland'], tier: 'government-official', language: 'English', region: 'europe' },
+    { name: 'European Council', rssUrl: 'https://www.consilium.europa.eu/en/press/press-releases/rss', country: ['Belgium', 'Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Poland'], tier: 'government-official', language: 'English', region: 'europe' },
+    { name: 'European Parliament', rssUrl: 'https://www.europarl.europa.eu/rss/doc/press-releases-full.xml', country: ['Belgium', 'Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Poland'], tier: 'government-official', language: 'English', region: 'europe' },
+    { name: 'UK Government Press Releases', rssUrl: 'https://www.gov.uk/search/news-and-communications.atom', country: ['UK'], tier: 'government-official', language: 'English', region: 'europe' },
+    { name: 'UK Foreign Office', rssUrl: 'https://www.gov.uk/search/news-and-communications.atom?organisations%5B%5D=foreign-commonwealth-development-office', country: ['UK'], tier: 'government-official', language: 'English', region: 'europe' },
+    { name: 'German Federal Government', rssUrl: 'https://www.bundesregierung.de/breg-en/feed', country: ['Germany'], tier: 'government-official', language: 'English', region: 'europe' },
+    { name: 'NATO', rssUrl: 'https://www.nato.int/cps/en/natolive/rss.htm', country: ['Belgium', 'UK', 'Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Poland', 'Norway', 'Denmark'], tier: 'government-official', language: 'English', region: 'europe' },
+
+    // ── Europe — Think Tank / Academic ──
+    { name: 'European Council on Foreign Relations', rssUrl: 'https://ecfr.eu/feed/', country: ['UK', 'Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Poland'], tier: 'think-tank-academic', language: 'English', region: 'europe' },
+    { name: 'Chatham House', rssUrl: 'https://www.chathamhouse.org/rss', country: ['UK', 'Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Poland', 'Ukraine', 'Russia'], tier: 'think-tank-academic', language: 'English', region: 'europe' },
+    { name: 'IISS', rssUrl: 'https://www.iiss.org/rss', country: ['UK', 'Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Poland', 'Ukraine', 'Russia'], tier: 'think-tank-academic', language: 'English', region: 'europe' },
+    { name: 'Carnegie Europe', rssUrl: 'https://carnegieeurope.eu/feed/', country: ['UK', 'Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Poland', 'Ukraine', 'Russia'], tier: 'think-tank-academic', language: 'English', region: 'europe' },
+    { name: 'German Marshall Fund', rssUrl: 'https://www.gmfus.org/feed', country: ['Germany', 'UK', 'France', 'Italy', 'Poland'], tier: 'think-tank-academic', language: 'English', region: 'europe' },
+    { name: 'Bruegel', rssUrl: 'https://www.bruegel.org/feed/', country: ['Belgium', 'Germany', 'France', 'Italy', 'Spain', 'Netherlands'], tier: 'think-tank-academic', language: 'English', region: 'europe' },
+    { name: 'SWP Berlin', rssUrl: 'https://www.swp-berlin.org/en/feed', country: ['Germany', 'UK', 'France', 'Italy', 'Poland', 'Ukraine', 'Russia'], tier: 'think-tank-academic', language: 'English', region: 'europe' },
+    { name: 'War on the Rocks', rssUrl: 'https://warontherocks.com/feed/', country: ['UK', 'Germany', 'France', 'Ukraine', 'Russia', 'Poland'], tier: 'think-tank-academic', language: 'English', region: 'europe' },
+    { name: 'Visegrad Insight', rssUrl: 'https://visegradinsight.eu/feed/', country: ['Poland', 'Hungary', 'Czech Republic', 'Romania'], tier: 'think-tank-academic', language: 'English', region: 'europe' },
+    { name: 'European Policy Centre', rssUrl: 'https://www.epc.eu/rss', country: ['Belgium', 'Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Poland'], tier: 'think-tank-academic', language: 'English', region: 'europe' },
+  ],
   'africa': [],
   'southeast-asia': [],
   'east-asia': [],
