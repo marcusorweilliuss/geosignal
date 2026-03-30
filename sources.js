@@ -418,7 +418,97 @@ const SOURCES = {
     { name: 'IISS Eurasia', rssUrl: 'https://www.iiss.org/rss/eurasia', country: ['Kazakhstan', 'Uzbekistan', 'Kyrgyzstan', 'Tajikistan', 'Turkmenistan', 'Azerbaijan', 'Armenia', 'Georgia'], tier: 'think-tank-academic', language: 'English', region: 'central-asia-caucasus' },
     { name: 'International Crisis Group Central Asia', rssUrl: 'https://www.crisisgroup.org/rss/asia', country: ['Kazakhstan', 'Uzbekistan', 'Kyrgyzstan', 'Tajikistan', 'Turkmenistan', 'Azerbaijan', 'Armenia', 'Georgia'], tier: 'think-tank-academic', language: 'English', region: 'central-asia-caucasus' },
   ],
-  'middle-east': [],
+  'middle-east': [
+    // ── Regional — Mainstream ──
+    { name: 'Al Jazeera English', rssUrl: 'https://www.aljazeera.com/xml/rss/all.xml', country: ['Saudi Arabia', 'UAE', 'Iran', 'Iraq', 'Turkey', 'Israel', 'Palestine', 'Jordan', 'Lebanon', 'Syria', 'Yemen', 'Qatar', 'Egypt'], tier: 'mainstream', language: 'English', region: 'middle-east' },
+    { name: 'Middle East Eye', rssUrl: 'https://www.middleeasteye.net/rss', country: ['Saudi Arabia', 'UAE', 'Iran', 'Iraq', 'Turkey', 'Israel', 'Palestine', 'Jordan', 'Lebanon', 'Syria', 'Yemen', 'Qatar', 'Egypt'], tier: 'mainstream', language: 'English', region: 'middle-east' },
+    { name: 'The National UAE', rssUrl: 'https://www.thenationalnews.com/rss', country: ['UAE', 'Saudi Arabia', 'Qatar', 'Kuwait', 'Bahrain', 'Oman'], tier: 'mainstream', language: 'English', region: 'middle-east' },
+    { name: 'Arab News', rssUrl: 'https://www.arabnews.com/rss.xml', country: ['Saudi Arabia', 'UAE', 'Qatar', 'Kuwait', 'Bahrain', 'Oman'], tier: 'mainstream', language: 'English', region: 'middle-east' },
+    { name: 'Al Monitor', rssUrl: 'https://feeds.feedburner.com/al-monitor/frontpage', country: ['Saudi Arabia', 'UAE', 'Iran', 'Iraq', 'Turkey', 'Israel', 'Palestine', 'Lebanon', 'Syria', 'Egypt'], tier: 'mainstream', language: 'English', region: 'middle-east' },
+    { name: 'Reuters Middle East', rssUrl: 'https://feeds.reuters.com/reuters/middleeastNews', country: ['Saudi Arabia', 'UAE', 'Iran', 'Iraq', 'Turkey', 'Israel', 'Palestine', 'Lebanon', 'Syria', 'Yemen', 'Egypt'], tier: 'mainstream', language: 'English', region: 'middle-east' },
+    { name: 'BBC Middle East', rssUrl: 'https://feeds.bbci.co.uk/news/world/middle_east/rss.xml', country: ['Saudi Arabia', 'UAE', 'Iran', 'Iraq', 'Turkey', 'Israel', 'Palestine', 'Lebanon', 'Syria', 'Yemen', 'Egypt'], tier: 'mainstream', language: 'English', region: 'middle-east' },
+    { name: 'Haaretz English', rssUrl: 'https://www.haaretz.com/cmlink/1.628765', country: ['Israel', 'Palestine'], tier: 'mainstream', language: 'English', region: 'middle-east' },
+    { name: 'The New Arab', rssUrl: 'https://www.newarab.com/feed', country: ['Saudi Arabia', 'UAE', 'Iran', 'Iraq', 'Turkey', 'Israel', 'Palestine', 'Lebanon', 'Syria', 'Yemen', 'Egypt'], tier: 'mainstream', language: 'English', region: 'middle-east' },
+
+    // ── Regional — Independent Critical ──
+    { name: '+972 Magazine', rssUrl: 'https://972mag.com/feed/', country: ['Israel', 'Palestine'], tier: 'independent-critical', language: 'English', region: 'middle-east' },
+    { name: 'Mondoweiss', rssUrl: 'https://mondoweiss.net/feed/', country: ['Israel', 'Palestine'], tier: 'independent-critical', language: 'English', region: 'middle-east' },
+    { name: 'Jadaliyya', rssUrl: 'https://www.jadaliyya.com/feed/', country: ['Saudi Arabia', 'UAE', 'Iran', 'Iraq', 'Turkey', 'Israel', 'Palestine', 'Lebanon', 'Syria', 'Egypt'], tier: 'independent-critical', language: 'English', region: 'middle-east' },
+    { name: 'MEE Opinion', rssUrl: 'https://www.middleeasteye.net/rss/opinion', country: ['Saudi Arabia', 'UAE', 'Iran', 'Iraq', 'Turkey', 'Israel', 'Palestine', 'Lebanon', 'Syria', 'Yemen', 'Egypt'], tier: 'independent-critical', language: 'English', region: 'middle-east' },
+
+    // ── TURKEY — Mainstream ──
+    { name: 'Hurriyet Daily News', rssUrl: 'https://www.hurriyetdailynews.com/rss', country: ['Turkey'], tier: 'mainstream', language: 'English', region: 'middle-east' },
+    { name: 'Daily Sabah', rssUrl: 'https://www.dailysabah.com/rss', country: ['Turkey'], tier: 'mainstream', language: 'English', region: 'middle-east' },
+
+    // ── TURKEY — Independent Critical ──
+    { name: 'Bianet English', rssUrl: 'https://bianet.org/english/rss', country: ['Turkey'], tier: 'independent-critical', language: 'English', region: 'middle-east' },
+    { name: 'Cumhuriyet English', rssUrl: 'https://www.cumhuriyet.com.tr/rss/en', country: ['Turkey'], tier: 'independent-critical', language: 'English', region: 'middle-east' },
+
+    // ── IRAN — Independent Critical ──
+    { name: 'Iran International', rssUrl: 'https://www.iranintl.com/en/rss', country: ['Iran'], tier: 'independent-critical', language: 'English', region: 'middle-east' },
+    { name: 'Radio Farda', rssUrl: 'https://www.radiofarda.com/api/zqcjqmveiy', country: ['Iran'], tier: 'independent-critical', language: 'English', region: 'middle-east' },
+    { name: 'IranWire', rssUrl: 'https://iranwire.com/feed/', country: ['Iran'], tier: 'independent-critical', language: 'English', region: 'middle-east' },
+
+    // ── IRAN — Government Official ──
+    { name: 'IRNA State Agency', rssUrl: 'https://en.irna.ir/rss', country: ['Iran'], tier: 'government-official', language: 'English', region: 'middle-east' },
+    { name: 'Tehran Times', rssUrl: 'https://www.tehrantimes.com/rss', country: ['Iran'], tier: 'government-official', language: 'English', region: 'middle-east' },
+
+    // ── EGYPT — Mainstream ──
+    { name: 'Ahram Online', rssUrl: 'https://english.ahram.org.eg/RSS.aspx', country: ['Egypt'], tier: 'mainstream', language: 'English', region: 'middle-east' },
+    { name: 'Egypt Independent', rssUrl: 'https://www.egyptindependent.com/feed/', country: ['Egypt'], tier: 'mainstream', language: 'English', region: 'middle-east' },
+
+    // ── EGYPT — Independent Critical ──
+    { name: 'Mada Masr', rssUrl: 'https://madamasr.com/en/feed/', country: ['Egypt'], tier: 'independent-critical', language: 'English', region: 'middle-east' },
+
+    // ── IRAQ — Mainstream ──
+    { name: 'Rudaw English', rssUrl: 'https://www.rudaw.net/rss/english', country: ['Iraq'], tier: 'mainstream', language: 'English', region: 'middle-east' },
+    { name: 'Iraq Oil Report', rssUrl: 'https://www.iraqoilreport.com/feed/', country: ['Iraq'], tier: 'mainstream', language: 'English', region: 'middle-east' },
+
+    // ── LEBANON — Mainstream ──
+    { name: "L'Orient Today", rssUrl: 'https://lorientlejour.com/en/feed', country: ['Lebanon'], tier: 'mainstream', language: 'English', region: 'middle-east' },
+    { name: 'Naharnet', rssUrl: 'https://www.naharnet.com/stories/en/rss', country: ['Lebanon'], tier: 'mainstream', language: 'English', region: 'middle-east' },
+
+    // ── ISRAEL/PALESTINE — Mainstream ──
+    { name: 'Times of Israel', rssUrl: 'https://www.timesofisrael.com/feed/', country: ['Israel', 'Palestine'], tier: 'mainstream', language: 'English', region: 'middle-east' },
+    { name: 'Jerusalem Post', rssUrl: 'https://www.jpost.com/Rss/RssFeedsHeadlines.aspx', country: ['Israel', 'Palestine'], tier: 'mainstream', language: 'English', region: 'middle-east' },
+
+    // ── SAUDI ARABIA / GULF — Mainstream ──
+    { name: 'Gulf News', rssUrl: 'https://gulfnews.com/rss', country: ['UAE', 'Saudi Arabia', 'Qatar', 'Kuwait', 'Bahrain', 'Oman'], tier: 'mainstream', language: 'English', region: 'middle-east' },
+    { name: 'Saudi Gazette', rssUrl: 'https://saudigazette.com.sa/feed', country: ['Saudi Arabia'], tier: 'mainstream', language: 'English', region: 'middle-east' },
+    { name: 'Khaleej Times', rssUrl: 'https://www.khaleejtimes.com/rss', country: ['UAE', 'Saudi Arabia', 'Qatar', 'Kuwait', 'Bahrain', 'Oman'], tier: 'mainstream', language: 'English', region: 'middle-east' },
+
+    // ── NORTH AFRICA — Mainstream ──
+    { name: 'Morocco World News', rssUrl: 'https://www.moroccoworldnews.com/feed/', country: ['Morocco'], tier: 'mainstream', language: 'English', region: 'middle-east' },
+    { name: 'Libya Observer', rssUrl: 'https://libyaobserver.ly/feed', country: ['Libya'], tier: 'mainstream', language: 'English', region: 'middle-east' },
+    { name: 'Algeria Press Service', rssUrl: 'https://www.aps.dz/en/rss', country: ['Algeria'], tier: 'mainstream', language: 'English', region: 'middle-east' },
+
+    // ── YEMEN — Independent Critical ──
+    { name: 'Yemen Monitor', rssUrl: 'https://yemenmonitor.com/feed', country: ['Yemen'], tier: 'independent-critical', language: 'English', region: 'middle-east' },
+
+    // ── Middle East — Business ──
+    { name: 'Gulf Business', rssUrl: 'https://gulfbusiness.com/feed/', country: ['UAE', 'Saudi Arabia', 'Qatar', 'Kuwait', 'Bahrain', 'Oman'], tier: 'business', language: 'English', region: 'middle-east' },
+    { name: 'Zawya', rssUrl: 'https://www.zawya.com/rss', country: ['UAE', 'Saudi Arabia', 'Qatar', 'Kuwait', 'Bahrain', 'Oman'], tier: 'business', language: 'English', region: 'middle-east' },
+    { name: 'MEED', rssUrl: 'https://www.meed.com/rss', country: ['UAE', 'Saudi Arabia', 'Qatar', 'Kuwait', 'Bahrain', 'Oman'], tier: 'business', language: 'English', region: 'middle-east' },
+
+    // ── Middle East — Government Official ──
+    { name: 'Saudi Press Agency', rssUrl: 'https://www.spa.gov.sa/rss.php', country: ['Saudi Arabia'], tier: 'government-official', language: 'English', region: 'middle-east' },
+    { name: 'Qatar News Agency', rssUrl: 'https://www.qna.org.qa/en/rss', country: ['Qatar'], tier: 'government-official', language: 'English', region: 'middle-east' },
+    { name: 'Turkish Foreign Ministry', rssUrl: 'https://www.mfa.gov.tr/rss.en.mfa', country: ['Turkey'], tier: 'government-official', language: 'English', region: 'middle-east' },
+    { name: 'UAE Government News', rssUrl: 'https://www.uaecabinet.ae/en/rss', country: ['UAE'], tier: 'government-official', language: 'English', region: 'middle-east' },
+    { name: 'Israeli Government Press', rssUrl: 'https://www.gov.il/en/departments/news/rss', country: ['Israel'], tier: 'government-official', language: 'English', region: 'middle-east' },
+    { name: 'Egyptian MENA State Agency', rssUrl: 'https://www.mena.org.eg/en/rss', country: ['Egypt'], tier: 'government-official', language: 'English', region: 'middle-east' },
+
+    // ── Middle East — Think Tank / Academic ──
+    { name: 'Middle East Institute', rssUrl: 'https://www.mei.edu/feed/', country: ['Saudi Arabia', 'UAE', 'Iran', 'Iraq', 'Turkey', 'Israel', 'Palestine', 'Lebanon', 'Syria', 'Yemen', 'Egypt'], tier: 'think-tank-academic', language: 'English', region: 'middle-east' },
+    { name: 'Chatham House MENA', rssUrl: 'https://www.chathamhouse.org/rss/regions/middle-east-north-africa', country: ['Saudi Arabia', 'UAE', 'Iran', 'Iraq', 'Turkey', 'Israel', 'Palestine', 'Lebanon', 'Syria', 'Yemen', 'Egypt'], tier: 'think-tank-academic', language: 'English', region: 'middle-east' },
+    { name: 'Carnegie Middle East', rssUrl: 'https://carnegieendowment.org/middle-east/feed/', country: ['Saudi Arabia', 'UAE', 'Iran', 'Iraq', 'Turkey', 'Israel', 'Palestine', 'Lebanon', 'Syria', 'Yemen', 'Egypt'], tier: 'think-tank-academic', language: 'English', region: 'middle-east' },
+    { name: 'Washington Institute for Near East Policy', rssUrl: 'https://www.washingtoninstitute.org/rss', country: ['Saudi Arabia', 'UAE', 'Iran', 'Iraq', 'Turkey', 'Israel', 'Palestine', 'Lebanon', 'Syria', 'Egypt'], tier: 'think-tank-academic', language: 'English', region: 'middle-east' },
+    { name: 'International Crisis Group MENA', rssUrl: 'https://www.crisisgroup.org/rss/middle-east-north-africa', country: ['Saudi Arabia', 'UAE', 'Iran', 'Iraq', 'Turkey', 'Israel', 'Palestine', 'Lebanon', 'Syria', 'Yemen', 'Egypt', 'Libya', 'Tunisia', 'Morocco', 'Algeria'], tier: 'think-tank-academic', language: 'English', region: 'middle-east' },
+    { name: 'Brookings Doha', rssUrl: 'https://www.brookings.edu/feed/?region=middle-east', country: ['Saudi Arabia', 'UAE', 'Iran', 'Iraq', 'Turkey', 'Israel', 'Palestine', 'Lebanon', 'Syria', 'Yemen', 'Qatar', 'Egypt'], tier: 'think-tank-academic', language: 'English', region: 'middle-east' },
+    { name: 'IISS MENA', rssUrl: 'https://www.iiss.org/rss/middle-east-north-africa', country: ['Saudi Arabia', 'UAE', 'Iran', 'Iraq', 'Turkey', 'Israel', 'Palestine', 'Lebanon', 'Syria', 'Yemen', 'Egypt'], tier: 'think-tank-academic', language: 'English', region: 'middle-east' },
+    { name: 'Arab Reform Initiative', rssUrl: 'https://www.arab-reform.net/feed/', country: ['Saudi Arabia', 'UAE', 'Iran', 'Iraq', 'Turkey', 'Israel', 'Palestine', 'Lebanon', 'Syria', 'Yemen', 'Egypt', 'Tunisia', 'Morocco', 'Algeria'], tier: 'think-tank-academic', language: 'English', region: 'middle-east' },
+    { name: 'Stimson Center MENA', rssUrl: 'https://www.stimson.org/feed', country: ['Saudi Arabia', 'UAE', 'Iran', 'Iraq', 'Turkey', 'Israel', 'Palestine', 'Lebanon', 'Syria', 'Yemen', 'Egypt'], tier: 'think-tank-academic', language: 'English', region: 'middle-east' },
+  ],
   'europe': [],
   'africa': [],
   'southeast-asia': [],
