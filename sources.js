@@ -933,4 +933,176 @@ const SOURCES = {
   ]
 };
 
-module.exports = SOURCES;
+// ── Filter Logic ────────────────────────────────────────────────
+
+// Maps UI source type filter names to tier values
+const TIER_MAP = {
+  'Mainstream news': ['mainstream', 'regional', 'business'],
+  'Independent journalism': ['independent-left', 'independent-right', 'independent-critical'],
+  'Think tanks & academic': ['think-tank-academic'],
+  'Official statements': ['government-official'],
+};
+
+// Sector keywords used for article scoring
+const SECTOR_KEYWORDS = {
+  'Geopolitics': ['geopolitics', 'diplomacy', 'sanctions', 'foreign policy', 'conflict', 'treaty', 'alliance', 'sovereignty'],
+  'Economy & Trade': ['economy', 'trade', 'tariff', 'gdp', 'market', 'inflation', 'recession', 'currency', 'supply chain'],
+  'Technology & AI': ['technology', 'artificial intelligence', 'ai', 'cyber', 'semiconductor', 'quantum', 'data privacy'],
+  'Climate & Energy': ['climate', 'energy', 'renewable', 'emissions', 'oil', 'carbon', 'solar', 'wind power', 'nuclear energy'],
+  'Defence & Security': ['defense', 'defence', 'military', 'security', 'weapons', 'intelligence', 'terrorism', 'missile', 'arms'],
+  'Society & Culture': ['migration', 'human rights', 'protests', 'election', 'democracy', 'refugees', 'demographics'],
+  'Space & Frontier': ['space', 'satellite', 'rocket', 'nasa', 'launch', 'orbital', 'mars', 'moon'],
+  'Health & Biotech': ['health', 'pandemic', 'biotech', 'pharmaceutical', 'vaccine', 'disease', 'who', 'medical'],
+};
+
+// Country lists per region for scoring
+const REGION_COUNTRIES = {
+  'south-asia': ['India', 'Pakistan', 'Bangladesh', 'Sri Lanka', 'Nepal', 'Bhutan', 'Afghanistan', 'Maldives', 'Myanmar'],
+  'north-america': ['United States', 'Canada', 'Mexico', 'US', 'USA', 'American'],
+  'latin-america': ['Brazil', 'Mexico', 'Argentina', 'Colombia', 'Chile', 'Peru', 'Venezuela', 'Ecuador', 'Bolivia', 'Uruguay', 'Paraguay', 'Cuba', 'Dominican Republic', 'Haiti', 'Guatemala', 'Honduras', 'El Salvador', 'Nicaragua', 'Costa Rica', 'Panama', 'Jamaica', 'Trinidad'],
+  'central-asia-caucasus': ['Kazakhstan', 'Uzbekistan', 'Kyrgyzstan', 'Tajikistan', 'Turkmenistan', 'Azerbaijan', 'Armenia', 'Georgia'],
+  'middle-east': ['Saudi Arabia', 'UAE', 'Iran', 'Iraq', 'Turkey', 'Israel', 'Palestine', 'Jordan', 'Lebanon', 'Syria', 'Yemen', 'Qatar', 'Kuwait', 'Bahrain', 'Oman', 'Egypt', 'Libya', 'Tunisia', 'Morocco', 'Algeria'],
+  'europe': ['UK', 'Britain', 'Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Belgium', 'Sweden', 'Norway', 'Denmark', 'Finland', 'Poland', 'Czech', 'Hungary', 'Romania', 'Greece', 'Portugal', 'Switzerland', 'Austria', 'Ukraine', 'Russia', 'EU', 'NATO'],
+  'africa': ['Nigeria', 'South Africa', 'Kenya', 'Ethiopia', 'Egypt', 'Ghana', 'Tanzania', 'Uganda', 'Rwanda', 'Senegal', 'Cameroon', 'DRC', 'Congo', 'Sudan', 'Somalia', 'Zimbabwe', 'Mozambique', 'Angola', 'Zambia', 'Botswana', 'Morocco'],
+  'southeast-asia': ['Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Singapore', 'Cambodia', 'Laos', 'Brunei', 'Timor-Leste', 'Myanmar', 'ASEAN'],
+  'east-asia': ['China', 'Japan', 'South Korea', 'Taiwan', 'North Korea', 'Mongolia', 'Hong Kong', 'Beijing', 'Tokyo', 'Seoul', 'Taipei', 'Pyongyang'],
+  'oceania': ['Australia', 'New Zealand', 'Papua New Guinea', 'Fiji', 'Solomon Islands', 'Vanuatu', 'Samoa', 'Tonga', 'Pacific'],
+  'global': [],
+};
+
+/**
+ * Returns sources for a given region filtered by active source type filters.
+ * @param {string} region - Region slug (e.g. 'south-asia')
+ * @param {string[]} sourceTypeFilters - Active filter names from UI
+ * @returns {object[]} Filtered source objects
+ */
+function getSourcesForRegion(region, sourceTypeFilters) {
+  // Build set of allowed tiers from active filters
+  const allowedTiers = new Set();
+  sourceTypeFilters.forEach(filter => {
+    const tiers = TIER_MAP[filter];
+    if (tiers) tiers.forEach(t => allowedTiers.add(t));
+  });
+
+  // Government-official only included when 'Official statements' is explicitly active
+  if (!sourceTypeFilters.includes('Official statements')) {
+    allowedTiers.delete('government-official');
+  }
+
+  if (region === 'global') {
+    // Global: all global sources + top 5 mainstream from every other region
+    const globalSources = (SOURCES['global'] || []).filter(s => allowedTiers.has(s.tier));
+
+    const regionMainstream = [];
+    Object.keys(SOURCES).forEach(key => {
+      if (key === 'global') return;
+      const mainstream = SOURCES[key]
+        .filter(s => s.tier === 'mainstream')
+        .slice(0, 5);
+      regionMainstream.push(...mainstream);
+    });
+
+    // Only include regional mainstream if 'Mainstream news' filter is active
+    const mainstreamAllowed = sourceTypeFilters.includes('Mainstream news');
+    const combined = mainstreamAllowed
+      ? [...globalSources, ...regionMainstream]
+      : globalSources;
+
+    // Deduplicate by rssUrl
+    const seen = new Set();
+    return combined.filter(s => {
+      if (seen.has(s.rssUrl)) return false;
+      seen.add(s.rssUrl);
+      return true;
+    });
+  }
+
+  // Standard region: filter by tier
+  const regionSources = SOURCES[region] || [];
+  return regionSources.filter(s => allowedTiers.has(s.tier));
+}
+
+/**
+ * Scores an article for relevance ranking. Higher score = more relevant.
+ * @param {object} article - { title, description, source, publishedAt, region }
+ * @param {string} region - Selected region slug
+ * @param {object|null} userProfile - { role, industry, location, focus } or null
+ * @returns {number} Relevance score (0-100)
+ */
+function scoreArticle(article, region, userProfile) {
+  let score = 0;
+  const headline = ((article.title || '') + ' ' + (article.description || '')).toLowerCase();
+
+  // +20 if headline mentions a country from the selected region
+  const countries = REGION_COUNTRIES[region] || [];
+  for (const country of countries) {
+    if (headline.includes(country.toLowerCase())) {
+      score += 20;
+      break;
+    }
+  }
+
+  // +15 if the source country matches the user profile location
+  if (userProfile && userProfile.location) {
+    const loc = userProfile.location.toLowerCase();
+    const sourceCountries = (article.sourceCountry || []).map(c => c.toLowerCase());
+    for (const c of sourceCountries) {
+      if (loc.includes(c) || c.includes(loc)) {
+        score += 15;
+        break;
+      }
+    }
+    // Also check headline for user location
+    if (headline.includes(loc)) {
+      score += 10;
+    }
+  }
+
+  // +20 if published within the last 12 hours
+  if (article.publishedAt) {
+    const pubDate = new Date(article.publishedAt);
+    const hoursAgo = (Date.now() - pubDate.getTime()) / (1000 * 60 * 60);
+    if (hoursAgo <= 12) {
+      score += 20;
+    } else if (hoursAgo <= 24) {
+      score += 10;
+    }
+  }
+
+  // +15 if headline matches any active sector keyword
+  const allKeywords = Object.values(SECTOR_KEYWORDS).flat();
+  for (const keyword of allKeywords) {
+    if (headline.includes(keyword.toLowerCase())) {
+      score += 15;
+      break;
+    }
+  }
+
+  // +10 if user industry keywords appear in headline
+  if (userProfile && userProfile.industry) {
+    const industryWords = userProfile.industry.toLowerCase().split(/[\s&\/]+/);
+    for (const word of industryWords) {
+      if (word.length > 3 && headline.includes(word)) {
+        score += 10;
+        break;
+      }
+    }
+  }
+
+  // +10 if user focus areas appear in headline
+  if (userProfile && userProfile.focus) {
+    const focusWords = userProfile.focus.toLowerCase().split(/[\s,]+/);
+    for (const word of focusWords) {
+      if (word.length > 3 && headline.includes(word)) {
+        score += 10;
+        break;
+      }
+    }
+  }
+
+  return Math.min(score, 100);
+}
+
+const GOVERNMENT_CAVEAT = 'This is an official government statement. The analysis below summarises the content as presented by the issuing government. It does not reflect independent verification or editorial judgment. Read alongside independent sources for full context.';
+
+module.exports = { SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT, SECTOR_KEYWORDS, REGION_COUNTRIES };
