@@ -845,7 +845,57 @@ const SOURCES = {
     { name: 'China Policy Institute', rssUrl: 'https://chinapolicyinstitute.org/feed', country: ['China'], tier: 'think-tank-academic', language: 'English', region: 'east-asia' },
     { name: 'Stimson East Asia', rssUrl: 'https://www.stimson.org/feed', country: ['China', 'Japan', 'South Korea', 'Taiwan', 'North Korea'], tier: 'think-tank-academic', language: 'English', region: 'east-asia' },
   ],
-  'oceania': [],
+  'oceania': [
+    // ── AUSTRALIA — Mainstream ──
+    { name: 'ABC News Australia', rssUrl: 'https://www.abc.net.au/news/feed/51120/rss.xml', country: ['Australia'], tier: 'mainstream', language: 'English', region: 'oceania' },
+    { name: 'The Australian', rssUrl: 'https://www.theaustralian.com.au/rss', country: ['Australia'], tier: 'mainstream', language: 'English', region: 'oceania' },
+    { name: 'Sydney Morning Herald', rssUrl: 'https://www.smh.com.au/rss/feed.xml', country: ['Australia'], tier: 'mainstream', language: 'English', region: 'oceania' },
+    { name: 'The Age', rssUrl: 'https://www.theage.com.au/rss/feed.xml', country: ['Australia'], tier: 'mainstream', language: 'English', region: 'oceania' },
+    { name: 'Guardian Australia', rssUrl: 'https://www.theguardian.com/australia-news/rss', country: ['Australia'], tier: 'mainstream', language: 'English', region: 'oceania' },
+    { name: 'SBS News', rssUrl: 'https://www.sbs.com.au/news/feed', country: ['Australia'], tier: 'mainstream', language: 'English', region: 'oceania' },
+
+    // ── AUSTRALIA — Independent Left ──
+    { name: 'The Saturday Paper', rssUrl: 'https://www.thesaturdaypaper.com.au/feed', country: ['Australia'], tier: 'independent-left', language: 'English', region: 'oceania' },
+    { name: 'Crikey', rssUrl: 'https://www.crikey.com.au/feed/', country: ['Australia'], tier: 'independent-left', language: 'English', region: 'oceania' },
+    { name: 'The Conversation Australia', rssUrl: 'https://theconversation.com/au/articles.atom', country: ['Australia'], tier: 'independent-left', language: 'English', region: 'oceania' },
+    { name: 'Michael West Media', rssUrl: 'https://www.michaelwest.com.au/feed/', country: ['Australia'], tier: 'independent-left', language: 'English', region: 'oceania' },
+
+    // ── NEW ZEALAND — Mainstream ──
+    { name: 'RNZ News', rssUrl: 'https://www.rnz.co.nz/rss/news.xml', country: ['New Zealand'], tier: 'mainstream', language: 'English', region: 'oceania' },
+    { name: 'NZ Herald', rssUrl: 'https://www.nzherald.co.nz/rss/feeds/nzhf-topstories.xml', country: ['New Zealand'], tier: 'mainstream', language: 'English', region: 'oceania' },
+    { name: 'Stuff.co.nz', rssUrl: 'https://www.stuff.co.nz/rss', country: ['New Zealand'], tier: 'mainstream', language: 'English', region: 'oceania' },
+    { name: 'The Spinoff', rssUrl: 'https://thespinoff.co.nz/feed', country: ['New Zealand'], tier: 'mainstream', language: 'English', region: 'oceania' },
+
+    // ── PACIFIC ISLANDS — Mainstream ──
+    { name: 'RNZ Pacific', rssUrl: 'https://www.rnz.co.nz/rss/pacific.xml', country: ['Fiji', 'Solomon Islands', 'Vanuatu', 'Samoa', 'Tonga', 'Papua New Guinea'], tier: 'mainstream', language: 'English', region: 'oceania' },
+    { name: 'Islands Business', rssUrl: 'https://islandsbusiness.com/feed/', country: ['Fiji', 'Solomon Islands', 'Vanuatu', 'Samoa', 'Tonga'], tier: 'mainstream', language: 'English', region: 'oceania' },
+    { name: 'Pacific Beat ABC', rssUrl: 'https://www.abc.net.au/pacific/feed/51132/rss.xml', country: ['Fiji', 'Solomon Islands', 'Vanuatu', 'Samoa', 'Tonga', 'Papua New Guinea'], tier: 'mainstream', language: 'English', region: 'oceania' },
+
+    // ── FIJI — Mainstream ──
+    { name: 'Fiji Times', rssUrl: 'https://www.fijitimes.com/feed/', country: ['Fiji'], tier: 'mainstream', language: 'English', region: 'oceania' },
+    { name: 'Fiji Sun', rssUrl: 'https://fijisun.com.fj/feed/', country: ['Fiji'], tier: 'mainstream', language: 'English', region: 'oceania' },
+
+    // ── PAPUA NEW GUINEA — Mainstream ──
+    { name: 'Post-Courier PNG', rssUrl: 'https://www.postcourier.com.pg/feed', country: ['Papua New Guinea'], tier: 'mainstream', language: 'English', region: 'oceania' },
+
+    // ── Oceania — Independent Left ──
+    { name: 'Devpolicy Blog ANU', rssUrl: 'https://devpolicy.org/feed/', country: ['Australia', 'Papua New Guinea', 'Fiji', 'Solomon Islands', 'Vanuatu', 'Samoa', 'Tonga'], tier: 'independent-left', language: 'English', region: 'oceania' },
+
+    // ── Oceania — Business ──
+    { name: 'Australian Financial Review', rssUrl: 'https://www.afr.com/rss', country: ['Australia'], tier: 'business', language: 'English', region: 'oceania' },
+
+    // ── Oceania — Government Official ──
+    { name: 'Australian DFAT', rssUrl: 'https://www.dfat.gov.au/news/rss/news.xml', country: ['Australia'], tier: 'government-official', language: 'English', region: 'oceania' },
+    { name: 'New Zealand MFAT', rssUrl: 'https://www.mfat.govt.nz/rss/', country: ['New Zealand'], tier: 'government-official', language: 'English', region: 'oceania' },
+    { name: 'Pacific Islands Forum', rssUrl: 'https://www.forumsec.org/rss', country: ['Australia', 'New Zealand', 'Fiji', 'Solomon Islands', 'Vanuatu', 'Samoa', 'Tonga', 'Papua New Guinea'], tier: 'government-official', language: 'English', region: 'oceania' },
+    { name: 'Pacific Community SPC', rssUrl: 'https://www.spc.int/rss', country: ['Fiji', 'Solomon Islands', 'Vanuatu', 'Samoa', 'Tonga', 'Papua New Guinea'], tier: 'government-official', language: 'English', region: 'oceania' },
+
+    // ── Oceania — Think Tank / Academic ──
+    { name: 'Lowy Institute', rssUrl: 'https://www.lowyinstitute.org/feed', country: ['Australia', 'New Zealand', 'Fiji', 'Solomon Islands', 'Vanuatu', 'Samoa', 'Tonga', 'Papua New Guinea'], tier: 'think-tank-academic', language: 'English', region: 'oceania' },
+    { name: 'Australian Strategic Policy Institute', rssUrl: 'https://www.aspi.org.au/rss', country: ['Australia', 'New Zealand', 'Papua New Guinea', 'Fiji'], tier: 'think-tank-academic', language: 'English', region: 'oceania' },
+    { name: 'East-West Center', rssUrl: 'https://www.eastwestcenter.org/feed', country: ['Australia', 'New Zealand', 'Fiji', 'Solomon Islands', 'Vanuatu', 'Samoa', 'Tonga', 'Papua New Guinea'], tier: 'think-tank-academic', language: 'English', region: 'oceania' },
+    { name: 'Pacific Institute for Public Policy', rssUrl: 'https://www.pacificpolicy.org/feed', country: ['Fiji', 'Solomon Islands', 'Vanuatu', 'Samoa', 'Tonga', 'Papua New Guinea'], tier: 'think-tank-academic', language: 'English', region: 'oceania' },
+  ],
   'global': []
 };
 
