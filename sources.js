@@ -1033,14 +1033,16 @@ function scoreArticle(article, region, userProfile) {
   let score = 0;
   const headline = ((article.title || '') + ' ' + (article.description || '')).toLowerCase();
 
-  // +20 if headline mentions a country from the selected region
+  // +25 if headline mentions a country from the selected region
   const countries = REGION_COUNTRIES[region] || [];
+  let countryMatches = 0;
   for (const country of countries) {
     if (headline.includes(country.toLowerCase())) {
-      score += 20;
-      break;
+      countryMatches++;
     }
   }
+  if (countryMatches >= 2) score += 25; // Multiple countries = very relevant
+  else if (countryMatches === 1) score += 15;
 
   // +15 if the source country matches the user profile location
   if (userProfile && userProfile.location) {
@@ -1052,49 +1054,55 @@ function scoreArticle(article, region, userProfile) {
         break;
       }
     }
-    // Also check headline for user location
     if (headline.includes(loc)) {
       score += 10;
     }
   }
 
-  // +20 if published within the last 12 hours
+  // Recency — strong weight for freshness
   if (article.publishedAt) {
     const pubDate = new Date(article.publishedAt);
     const hoursAgo = (Date.now() - pubDate.getTime()) / (1000 * 60 * 60);
-    if (hoursAgo <= 12) {
-      score += 20;
-    } else if (hoursAgo <= 24) {
-      score += 10;
-    }
+    if (hoursAgo <= 6) score += 25;
+    else if (hoursAgo <= 12) score += 20;
+    else if (hoursAgo <= 24) score += 12;
+    else if (hoursAgo <= 48) score += 5;
+    // Older than 48h gets no recency bonus
   }
 
-  // +15 if headline matches any active sector keyword
+  // +10 per sector keyword match (up to +20 for multiple sectors)
   const allKeywords = Object.values(SECTOR_KEYWORDS).flat();
+  let sectorMatches = 0;
   for (const keyword of allKeywords) {
     if (headline.includes(keyword.toLowerCase())) {
-      score += 15;
-      break;
+      sectorMatches++;
+      if (sectorMatches >= 2) break;
     }
   }
+  score += Math.min(sectorMatches * 10, 20);
 
-  // +10 if user industry keywords appear in headline
+  // +10 if source tier is mainstream or think-tank (higher credibility)
+  if (article.sourceTier === 'mainstream' || article.sourceTier === 'think-tank-academic') {
+    score += 5;
+  }
+
+  // +15 if user industry keywords appear in headline
   if (userProfile && userProfile.industry) {
     const industryWords = userProfile.industry.toLowerCase().split(/[\s&\/]+/);
     for (const word of industryWords) {
       if (word.length > 3 && headline.includes(word)) {
-        score += 10;
+        score += 15;
         break;
       }
     }
   }
 
-  // +10 if user focus areas appear in headline
+  // +15 if user focus areas appear in headline
   if (userProfile && userProfile.focus) {
     const focusWords = userProfile.focus.toLowerCase().split(/[\s,]+/);
     for (const word of focusWords) {
       if (word.length > 3 && headline.includes(word)) {
-        score += 10;
+        score += 15;
         break;
       }
     }

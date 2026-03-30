@@ -57,7 +57,7 @@ async function groqChat(messages, options = {}) {
 // ── RSS Feed Fetching with Cache ────────────────────────────────
 
 const rssParser = new Parser({
-  timeout: 10000,
+  timeout: 5000,
   headers: { 'User-Agent': 'GeoSignal/1.0' }
 });
 
@@ -73,7 +73,7 @@ async function fetchFeed(source) {
 
   try {
     const feed = await rssParser.parseURL(source.rssUrl);
-    const articles = (feed.items || []).slice(0, 10).map(item => ({
+    const articles = (feed.items || []).slice(0, 8).map(item => ({
       title: item.title || '',
       description: item.contentSnippet || item.content || item.summary || '',
       content: item.content || item.contentSnippet || item.summary || '',
@@ -88,14 +88,13 @@ async function fetchFeed(source) {
     feedCache[source.rssUrl] = { articles, fetchedAt: Date.now() };
     return articles;
   } catch (err) {
-    // Return cached even if stale, or empty
     if (cached) return cached.articles;
     return [];
   }
 }
 
-// Fetch multiple feeds with concurrency limit
-async function fetchFeeds(sources, maxConcurrent = 10) {
+// Fetch multiple feeds with high concurrency
+async function fetchFeeds(sources, maxConcurrent = 25) {
   const results = [];
   for (let i = 0; i < sources.length; i += maxConcurrent) {
     const batch = sources.slice(i, i + maxConcurrent);
@@ -104,6 +103,34 @@ async function fetchFeeds(sources, maxConcurrent = 10) {
   }
   return results;
 }
+
+// ── Background Pre-fetching ─────────────────────────────────────
+// Pre-fetches all feeds on startup and every 15 minutes so user requests are instant
+
+let prefetchRunning = false;
+
+async function prefetchAllFeeds() {
+  if (prefetchRunning) return;
+  prefetchRunning = true;
+  const allSources = Object.values(SOURCES).flat();
+  console.log(`Background: pre-fetching ${allSources.length} RSS feeds...`);
+  const startTime = Date.now();
+
+  // Fetch in large batches for speed
+  for (let i = 0; i < allSources.length; i += 30) {
+    const batch = allSources.slice(i, i + 30);
+    await Promise.all(batch.map(s => fetchFeed(s)));
+  }
+
+  const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+  const cached = Object.keys(feedCache).length;
+  console.log(`Background: pre-fetch complete — ${cached} feeds cached in ${elapsed}s`);
+  prefetchRunning = false;
+}
+
+// Start pre-fetching after server boots, then every 15 minutes
+setTimeout(() => prefetchAllFeeds(), 2000);
+setInterval(() => prefetchAllFeeds(), CACHE_TTL);
 
 // ── Region slug mapping ─────────────────────────────────────────
 
@@ -131,10 +158,30 @@ app.get('/api/news', async (req, res) => {
 
     // Get filtered sources from registry
     const sources = getSourcesForRegion(regionSlug, typeList);
-    console.log(`Fetching ${sources.length} RSS feeds for ${region} (${typeList.join(', ')})`);
 
-    // Fetch RSS feeds
-    const allArticles = await fetchFeeds(sources);
+    // Serve from cache first — only fetch uncached feeds
+    const cachedArticles = [];
+    const uncachedSources = [];
+
+    sources.forEach(s => {
+      const cached = feedCache[s.rssUrl];
+      if (cached) {
+        cachedArticles.push(...cached.articles);
+      } else {
+        uncachedSources.push(s);
+      }
+    });
+
+    // Fetch only uncached feeds (fast since most are pre-cached)
+    let freshArticles = [];
+    if (uncachedSources.length > 0) {
+      console.log(`Fetching ${uncachedSources.length} uncached feeds for ${region} (${cachedArticles.length} from cache)`);
+      freshArticles = await fetchFeeds(uncachedSources);
+    } else {
+      console.log(`Serving ${cachedArticles.length} cached articles for ${region}`);
+    }
+
+    const allArticles = [...cachedArticles, ...freshArticles];
 
     // Parse user profile for scoring
     let userProfile = null;
