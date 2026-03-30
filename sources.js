@@ -896,7 +896,41 @@ const SOURCES = {
     { name: 'East-West Center', rssUrl: 'https://www.eastwestcenter.org/feed', country: ['Australia', 'New Zealand', 'Fiji', 'Solomon Islands', 'Vanuatu', 'Samoa', 'Tonga', 'Papua New Guinea'], tier: 'think-tank-academic', language: 'English', region: 'oceania' },
     { name: 'Pacific Institute for Public Policy', rssUrl: 'https://www.pacificpolicy.org/feed', country: ['Fiji', 'Solomon Islands', 'Vanuatu', 'Samoa', 'Tonga', 'Papua New Guinea'], tier: 'think-tank-academic', language: 'English', region: 'oceania' },
   ],
-  'global': []
+  'global': [
+    // ── Global — Mainstream ──
+    { name: 'Reuters Top News', rssUrl: 'https://feeds.reuters.com/reuters/topNews', country: [], tier: 'mainstream', language: 'English', region: 'global' },
+    { name: 'BBC World', rssUrl: 'https://feeds.bbci.co.uk/news/world/rss.xml', country: [], tier: 'mainstream', language: 'English', region: 'global' },
+    { name: 'Al Jazeera', rssUrl: 'https://www.aljazeera.com/xml/rss/all.xml', country: [], tier: 'mainstream', language: 'English', region: 'global' },
+    { name: 'France 24', rssUrl: 'https://www.france24.com/en/rss', country: [], tier: 'mainstream', language: 'English', region: 'global' },
+    { name: 'Deutsche Welle', rssUrl: 'https://rss.dw.com/xml/rss-en-all', country: [], tier: 'mainstream', language: 'English', region: 'global' },
+    { name: 'Voice of America', rssUrl: 'https://www.voanews.com/api/zmkqmveiy', country: [], tier: 'mainstream', language: 'English', region: 'global' },
+    { name: 'AFP', rssUrl: 'https://www.afp.com/en/agency/press-releases-newsfeed', country: [], tier: 'mainstream', language: 'English', region: 'global' },
+
+    // ── Global — Independent Left ──
+    { name: 'The Guardian Global', rssUrl: 'https://www.theguardian.com/world/rss', country: [], tier: 'independent-left', language: 'English', region: 'global' },
+    { name: 'Foreign Policy', rssUrl: 'https://feeds.foreignpolicy.com/rss/Foreign-Policy-Main-RSS-Feed', country: [], tier: 'independent-left', language: 'English', region: 'global' },
+
+    // ── Global — Independent Critical ──
+    { name: 'Global Voices', rssUrl: 'https://globalvoices.org/feed/', country: [], tier: 'independent-critical', language: 'English', region: 'global' },
+    { name: 'The Intercept', rssUrl: 'https://theintercept.com/feed/?rss', country: [], tier: 'independent-critical', language: 'English', region: 'global' },
+
+    // ── Global — Business ──
+    { name: 'Financial Times', rssUrl: 'https://www.ft.com/rss/home', country: [], tier: 'business', language: 'English', region: 'global' },
+    { name: 'The Economist', rssUrl: 'https://www.economist.com/latest/rss.xml', country: [], tier: 'business', language: 'English', region: 'global' },
+    { name: 'Bloomberg', rssUrl: 'https://feeds.bloomberg.com/markets/news.rss', country: [], tier: 'business', language: 'English', region: 'global' },
+
+    // ── Global — Think Tank / Academic ──
+    { name: 'Foreign Affairs', rssUrl: 'https://www.foreignaffairs.com/rss.xml', country: [], tier: 'think-tank-academic', language: 'English', region: 'global' },
+    { name: 'World Politics Review', rssUrl: 'https://www.worldpoliticsreview.com/feed', country: [], tier: 'think-tank-academic', language: 'English', region: 'global' },
+    { name: 'The Diplomat', rssUrl: 'https://thediplomat.com/feed', country: [], tier: 'think-tank-academic', language: 'English', region: 'global' },
+    { name: 'International Crisis Group', rssUrl: 'https://www.crisisgroup.org/rss', country: [], tier: 'think-tank-academic', language: 'English', region: 'global' },
+    { name: 'ICRC', rssUrl: 'https://www.icrc.org/en/rss', country: [], tier: 'think-tank-academic', language: 'English', region: 'global' },
+    { name: 'UN News', rssUrl: 'https://news.un.org/feed/subscribe/en/news/all/rss.xml', country: [], tier: 'think-tank-academic', language: 'English', region: 'global' },
+    { name: 'RAND Corporation', rssUrl: 'https://www.rand.org/feeds/rand-all.xml', country: [], tier: 'think-tank-academic', language: 'English', region: 'global' },
+    { name: 'Carnegie Endowment Global', rssUrl: 'https://carnegieendowment.org/feed/', country: [], tier: 'think-tank-academic', language: 'English', region: 'global' },
+    { name: 'Chatham House Global', rssUrl: 'https://www.chathamhouse.org/rss', country: [], tier: 'think-tank-academic', language: 'English', region: 'global' },
+    { name: 'IISS Global', rssUrl: 'https://www.iiss.org/rss', country: [], tier: 'think-tank-academic', language: 'English', region: 'global' },
+  ]
 };
 
 module.exports = SOURCES;
