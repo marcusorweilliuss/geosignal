@@ -585,7 +585,99 @@ const SOURCES = {
     { name: 'Visegrad Insight', rssUrl: 'https://visegradinsight.eu/feed/', country: ['Poland', 'Hungary', 'Czech Republic', 'Romania'], tier: 'think-tank-academic', language: 'English', region: 'europe' },
     { name: 'European Policy Centre', rssUrl: 'https://www.epc.eu/rss', country: ['Belgium', 'Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Poland'], tier: 'think-tank-academic', language: 'English', region: 'europe' },
   ],
-  'africa': [],
+  'africa': [
+    // ── Pan-African — Mainstream ──
+    { name: 'AllAfrica', rssUrl: 'https://allafrica.com/tools/headlines/rdf.html', country: ['Nigeria', 'South Africa', 'Kenya', 'Ethiopia', 'Ghana', 'Tanzania', 'Uganda', 'Rwanda', 'Egypt', 'Morocco'], tier: 'mainstream', language: 'English', region: 'africa' },
+    { name: 'The Africa Report', rssUrl: 'https://www.theafricareport.com/feed/', country: ['Nigeria', 'South Africa', 'Kenya', 'Ethiopia', 'Ghana', 'Tanzania', 'Uganda', 'Rwanda', 'Egypt', 'Morocco'], tier: 'mainstream', language: 'English', region: 'africa' },
+    { name: 'Africanews', rssUrl: 'https://www.africanews.com/feed/', country: ['Nigeria', 'South Africa', 'Kenya', 'Ethiopia', 'Ghana', 'Tanzania', 'Uganda', 'Rwanda', 'Egypt', 'Morocco'], tier: 'mainstream', language: 'English', region: 'africa' },
+    { name: 'BBC Africa', rssUrl: 'https://feeds.bbci.co.uk/news/world/africa/rss.xml', country: ['Nigeria', 'South Africa', 'Kenya', 'Ethiopia', 'Ghana', 'Tanzania', 'Uganda', 'Rwanda', 'Egypt', 'Morocco'], tier: 'mainstream', language: 'English', region: 'africa' },
+    { name: 'Reuters Africa', rssUrl: 'https://feeds.reuters.com/reuters/AfricaNews', country: ['Nigeria', 'South Africa', 'Kenya', 'Ethiopia', 'Ghana', 'Tanzania', 'Uganda', 'Rwanda', 'Egypt', 'Morocco'], tier: 'mainstream', language: 'English', region: 'africa' },
+    { name: 'Al Jazeera Africa', rssUrl: 'https://www.aljazeera.com/xml/rss/africa.xml', country: ['Nigeria', 'South Africa', 'Kenya', 'Ethiopia', 'Ghana', 'Tanzania', 'Uganda', 'Rwanda', 'Egypt', 'Morocco'], tier: 'mainstream', language: 'English', region: 'africa' },
+    { name: 'RFI Africa', rssUrl: 'https://www.rfi.fr/en/rss/africa-rss', country: ['Nigeria', 'South Africa', 'Kenya', 'Ethiopia', 'Ghana', 'Tanzania', 'Uganda', 'Rwanda', 'Senegal', 'DRC'], tier: 'mainstream', language: 'English', region: 'africa' },
+    { name: 'VOA Africa', rssUrl: 'https://www.voanews.com/api/zmkqmveiy', country: ['Nigeria', 'South Africa', 'Kenya', 'Ethiopia', 'Ghana', 'Tanzania', 'Uganda', 'Rwanda', 'Somalia', 'Sudan'], tier: 'mainstream', language: 'English', region: 'africa' },
+
+    // ── Pan-African — Independent Critical ──
+    { name: 'African Arguments', rssUrl: 'https://africanarguments.org/feed/', country: ['Nigeria', 'South Africa', 'Kenya', 'Ethiopia', 'Ghana', 'Tanzania', 'Uganda', 'Rwanda', 'DRC', 'Sudan'], tier: 'independent-critical', language: 'English', region: 'africa' },
+    { name: 'Africa Is A Country', rssUrl: 'https://africasacountry.com/feed/', country: ['Nigeria', 'South Africa', 'Kenya', 'Ethiopia', 'Ghana', 'Tanzania', 'Uganda'], tier: 'independent-critical', language: 'English', region: 'africa' },
+    { name: 'The Conversation Africa', rssUrl: 'https://theconversation.com/africa/articles.atom', country: ['South Africa', 'Nigeria', 'Kenya', 'Ethiopia', 'Ghana', 'Tanzania'], tier: 'independent-critical', language: 'English', region: 'africa' },
+    { name: 'Quartz Africa', rssUrl: 'https://qz.com/africa/feed/', country: ['Nigeria', 'South Africa', 'Kenya', 'Ethiopia', 'Ghana', 'Tanzania', 'Uganda', 'Rwanda'], tier: 'independent-critical', language: 'English', region: 'africa' },
+    { name: 'Africa Confidential', rssUrl: 'https://www.africa-confidential.com/rss', country: ['Nigeria', 'South Africa', 'Kenya', 'Ethiopia', 'Ghana', 'Tanzania', 'Uganda', 'Rwanda', 'DRC', 'Sudan'], tier: 'independent-critical', language: 'English', region: 'africa' },
+
+    // ── SOUTH AFRICA — Mainstream ──
+    { name: 'News24', rssUrl: 'https://feeds.news24.com/articles/news24/TopStories/rss', country: ['South Africa'], tier: 'mainstream', language: 'English', region: 'africa' },
+    { name: 'Mail and Guardian', rssUrl: 'https://mg.co.za/feed/', country: ['South Africa'], tier: 'mainstream', language: 'English', region: 'africa' },
+    { name: 'Business Day', rssUrl: 'https://businesslive.co.za/bd/rss', country: ['South Africa'], tier: 'mainstream', language: 'English', region: 'africa' },
+    { name: 'Sunday Times SA', rssUrl: 'https://www.timeslive.co.za/rss', country: ['South Africa'], tier: 'mainstream', language: 'English', region: 'africa' },
+
+    // ── SOUTH AFRICA — Independent Critical ──
+    { name: 'Daily Maverick', rssUrl: 'https://www.dailymaverick.co.za/feed/', country: ['South Africa'], tier: 'independent-critical', language: 'English', region: 'africa' },
+    { name: 'amaBhungane', rssUrl: 'https://amabhungane.co.za/feed/', country: ['South Africa'], tier: 'independent-critical', language: 'English', region: 'africa' },
+
+    // ── NIGERIA — Mainstream ──
+    { name: 'The Punch Nigeria', rssUrl: 'https://punchng.com/feed/', country: ['Nigeria'], tier: 'mainstream', language: 'English', region: 'africa' },
+    { name: 'Vanguard Nigeria', rssUrl: 'https://www.vanguardngr.com/feed/', country: ['Nigeria'], tier: 'mainstream', language: 'English', region: 'africa' },
+    { name: 'ThisDay Nigeria', rssUrl: 'https://www.thisdaylive.com/index.php/feed/', country: ['Nigeria'], tier: 'mainstream', language: 'English', region: 'africa' },
+    { name: 'The Cable Nigeria', rssUrl: 'https://www.thecable.ng/feed', country: ['Nigeria'], tier: 'mainstream', language: 'English', region: 'africa' },
+
+    // ── NIGERIA — Independent Critical ──
+    { name: 'Premium Times Nigeria', rssUrl: 'https://premiumtimesng.com/feed/', country: ['Nigeria'], tier: 'independent-critical', language: 'English', region: 'africa' },
+    { name: 'Sahara Reporters', rssUrl: 'https://saharareporters.com/rss.xml', country: ['Nigeria'], tier: 'independent-critical', language: 'English', region: 'africa' },
+
+    // ── KENYA — Mainstream ──
+    { name: 'Daily Nation', rssUrl: 'https://nation.africa/rss', country: ['Kenya'], tier: 'mainstream', language: 'English', region: 'africa' },
+    { name: 'The Standard Kenya', rssUrl: 'https://www.standardmedia.co.ke/rss', country: ['Kenya'], tier: 'mainstream', language: 'English', region: 'africa' },
+    { name: 'The Star Kenya', rssUrl: 'https://www.the-star.co.ke/rss', country: ['Kenya'], tier: 'mainstream', language: 'English', region: 'africa' },
+
+    // ── KENYA — Business ──
+    { name: 'Business Daily Africa', rssUrl: 'https://www.businessdailyafrica.com/rss', country: ['Kenya'], tier: 'business', language: 'English', region: 'africa' },
+
+    // ── ETHIOPIA — Mainstream ──
+    { name: 'Ethiopian Reporter', rssUrl: 'https://www.ethiopianreporter.com/feed', country: ['Ethiopia'], tier: 'mainstream', language: 'English', region: 'africa' },
+
+    // ── ETHIOPIA — Independent Critical ──
+    { name: 'Addis Standard', rssUrl: 'https://addisstandard.com/feed/', country: ['Ethiopia'], tier: 'independent-critical', language: 'English', region: 'africa' },
+
+    // ── GHANA — Mainstream ──
+    { name: 'Ghana Web', rssUrl: 'https://www.ghanaweb.com/rss', country: ['Ghana'], tier: 'mainstream', language: 'English', region: 'africa' },
+    { name: 'Citifmonline', rssUrl: 'https://citifmonline.com/feed/', country: ['Ghana'], tier: 'mainstream', language: 'English', region: 'africa' },
+
+    // ── EAST AFRICA — Mainstream ──
+    { name: 'The East African', rssUrl: 'https://www.theeastafrican.co.ke/rss', country: ['Kenya', 'Tanzania', 'Uganda', 'Rwanda'], tier: 'mainstream', language: 'English', region: 'africa' },
+    { name: 'Rwanda New Times', rssUrl: 'https://www.newtimes.co.rw/rss', country: ['Rwanda'], tier: 'mainstream', language: 'English', region: 'africa' },
+    { name: 'Uganda Monitor', rssUrl: 'https://www.monitor.co.ug/rss', country: ['Uganda'], tier: 'mainstream', language: 'English', region: 'africa' },
+
+    // ── NORTH AFRICA — Mainstream ──
+    { name: 'Egypt Independent', rssUrl: 'https://www.egyptindependent.com/feed/', country: ['Egypt'], tier: 'mainstream', language: 'English', region: 'africa' },
+    { name: 'Morocco World News', rssUrl: 'https://www.moroccoworldnews.com/feed/', country: ['Morocco'], tier: 'mainstream', language: 'English', region: 'africa' },
+    { name: 'Libya Observer', rssUrl: 'https://libyaobserver.ly/feed', country: ['Libya'], tier: 'mainstream', language: 'English', region: 'africa' },
+    { name: 'Algeria Press Service', rssUrl: 'https://www.aps.dz/en/rss', country: ['Algeria'], tier: 'mainstream', language: 'English', region: 'africa' },
+
+    // ── DRC / CENTRAL AFRICA — Mainstream ──
+    { name: 'Radio Okapi English', rssUrl: 'https://www.radiookapi.net/en/feed', country: ['DRC'], tier: 'mainstream', language: 'English', region: 'africa' },
+
+    // ── HORN OF AFRICA — Independent Critical ──
+    { name: 'Somalia Garowe Online', rssUrl: 'https://www.garoweonline.com/en/rss', country: ['Somalia'], tier: 'independent-critical', language: 'English', region: 'africa' },
+    { name: 'Sudan Tribune', rssUrl: 'https://www.sudantribune.com/spip.php?page=backend', country: ['Sudan'], tier: 'independent-critical', language: 'English', region: 'africa' },
+
+    // ── Africa — Business ──
+    { name: 'African Business', rssUrl: 'https://african.business/feed/', country: ['Nigeria', 'South Africa', 'Kenya', 'Ethiopia', 'Ghana', 'Tanzania'], tier: 'business', language: 'English', region: 'africa' },
+    { name: 'How We Made It In Africa', rssUrl: 'https://www.howwemadeitinafrica.com/feed/', country: ['Nigeria', 'South Africa', 'Kenya', 'Ethiopia', 'Ghana', 'Tanzania'], tier: 'business', language: 'English', region: 'africa' },
+
+    // ── Africa — Government Official ──
+    { name: 'African Union Press Releases', rssUrl: 'https://www.au.int/en/rss', country: ['Nigeria', 'South Africa', 'Kenya', 'Ethiopia', 'Ghana', 'Tanzania', 'Uganda', 'Rwanda', 'Egypt', 'Morocco'], tier: 'government-official', language: 'English', region: 'africa' },
+    { name: 'South Africa Presidency', rssUrl: 'https://www.thepresidency.gov.za/rss', country: ['South Africa'], tier: 'government-official', language: 'English', region: 'africa' },
+    { name: 'Nigerian Presidency', rssUrl: 'https://statehouse.gov.ng/feed/', country: ['Nigeria'], tier: 'government-official', language: 'English', region: 'africa' },
+    { name: 'Kenyan Government', rssUrl: 'https://www.president.go.ke/rss', country: ['Kenya'], tier: 'government-official', language: 'English', region: 'africa' },
+
+    // ── Africa — Think Tank / Academic ──
+    { name: 'Institute for Security Studies Africa', rssUrl: 'https://issafrica.org/feed', country: ['South Africa', 'Nigeria', 'Kenya', 'Ethiopia', 'Ghana', 'Tanzania', 'Uganda', 'Rwanda', 'DRC', 'Sudan'], tier: 'think-tank-academic', language: 'English', region: 'africa' },
+    { name: 'South African Institute of International Affairs', rssUrl: 'https://saiia.org.za/feed/', country: ['South Africa'], tier: 'think-tank-academic', language: 'English', region: 'africa' },
+    { name: 'African Development Bank', rssUrl: 'https://www.afdb.org/en/rss', country: ['Nigeria', 'South Africa', 'Kenya', 'Ethiopia', 'Ghana', 'Tanzania', 'Uganda', 'Rwanda', 'Egypt', 'Morocco'], tier: 'think-tank-academic', language: 'English', region: 'africa' },
+    { name: 'Brookings Africa', rssUrl: 'https://www.brookings.edu/feed/?region=africa', country: ['Nigeria', 'South Africa', 'Kenya', 'Ethiopia', 'Ghana', 'Tanzania'], tier: 'think-tank-academic', language: 'English', region: 'africa' },
+    { name: 'International Crisis Group Africa', rssUrl: 'https://www.crisisgroup.org/rss/africa', country: ['Nigeria', 'South Africa', 'Kenya', 'Ethiopia', 'Ghana', 'Tanzania', 'Uganda', 'Rwanda', 'DRC', 'Sudan', 'Somalia'], tier: 'think-tank-academic', language: 'English', region: 'africa' },
+    { name: 'Chatham House Africa', rssUrl: 'https://www.chathamhouse.org/rss/regions/africa', country: ['Nigeria', 'South Africa', 'Kenya', 'Ethiopia', 'Ghana', 'Tanzania', 'Uganda', 'Rwanda', 'DRC', 'Sudan'], tier: 'think-tank-academic', language: 'English', region: 'africa' },
+    { name: 'Africa Policy Research Institute', rssUrl: 'https://afripoli.org/feed', country: ['Nigeria', 'South Africa', 'Kenya', 'Ethiopia', 'Ghana', 'Tanzania'], tier: 'think-tank-academic', language: 'English', region: 'africa' },
+  ],
   'southeast-asia': [],
   'east-asia': [],
   'oceania': [],
