@@ -286,7 +286,66 @@ const SOURCES = {
     { name: 'Carnegie Endowment', rssUrl: 'https://carnegieendowment.org/feed/', country: ['United States'], tier: 'think-tank-academic', language: 'English', region: 'north-america' },
     { name: 'Heritage Foundation', rssUrl: 'https://feeds.feedburner.com/TheFoundry', country: ['United States'], tier: 'think-tank-academic', language: 'English', region: 'north-america' },
   ],
-  'latin-america': [],
+  'latin-america': [
+    // ── Regional / Pan-Latin — Mainstream ──
+    { name: 'Reuters Latin America', rssUrl: 'https://feeds.reuters.com/reuters/latinamericaNews', country: ['Brazil', 'Mexico', 'Argentina', 'Colombia', 'Chile', 'Peru', 'Venezuela'], tier: 'mainstream', language: 'English', region: 'latin-america' },
+    { name: 'BBC Latin America', rssUrl: 'https://feeds.bbci.co.uk/news/world/latin_america/rss.xml', country: ['Brazil', 'Mexico', 'Argentina', 'Colombia', 'Chile', 'Peru', 'Venezuela'], tier: 'mainstream', language: 'English', region: 'latin-america' },
+    { name: 'Agencia EFE English', rssUrl: 'https://www.efe.com/efe/english/rss', country: ['Brazil', 'Mexico', 'Argentina', 'Colombia', 'Chile', 'Peru', 'Venezuela'], tier: 'mainstream', language: 'English', region: 'latin-america' },
+    { name: 'Merco Press', rssUrl: 'https://en.mercopress.com/rss', country: ['Argentina', 'Brazil', 'Uruguay', 'Paraguay', 'Chile'], tier: 'mainstream', language: 'English', region: 'latin-america' },
+
+    // ── BRAZIL — Mainstream ──
+    { name: 'Agência Brasil English', rssUrl: 'https://agenciabrasil.ebc.com.br/en/rss', country: ['Brazil'], tier: 'mainstream', language: 'English', region: 'latin-america' },
+    { name: 'The Brazilian Report', rssUrl: 'https://brazilian.report/feed/', country: ['Brazil'], tier: 'mainstream', language: 'English', region: 'latin-america' },
+
+    // ── BRAZIL — Independent Critical ──
+    { name: 'The Intercept Brasil', rssUrl: 'https://theintercept.com/brasil/feed/?rss', country: ['Brazil'], tier: 'independent-critical', language: 'English', region: 'latin-america' },
+    { name: 'Agência Pública', rssUrl: 'https://apublica.org/feed/', country: ['Brazil'], tier: 'independent-critical', language: 'English', region: 'latin-america' },
+
+    // ── ARGENTINA — Mainstream ──
+    { name: 'Buenos Aires Herald', rssUrl: 'https://www.buenosairesherald.com/feed/', country: ['Argentina'], tier: 'mainstream', language: 'English', region: 'latin-america' },
+    { name: 'Infobae English', rssUrl: 'https://www.infobae.com/feeds/rss/', country: ['Argentina'], tier: 'mainstream', language: 'English', region: 'latin-america' },
+    { name: 'MercoPress Argentina', rssUrl: 'https://en.mercopress.com/rss', country: ['Argentina'], tier: 'mainstream', language: 'English', region: 'latin-america' },
+
+    // ── COLOMBIA — Mainstream ──
+    { name: 'Colombia Reports', rssUrl: 'https://colombiareports.com/feed/', country: ['Colombia'], tier: 'mainstream', language: 'English', region: 'latin-america' },
+
+    // ── COLOMBIA — Independent Critical ──
+    { name: 'La Silla Vacía', rssUrl: 'https://lasillavacia.com/feed', country: ['Colombia'], tier: 'independent-critical', language: 'English', region: 'latin-america' },
+
+    // ── VENEZUELA — Independent Critical ──
+    { name: 'Caracas Chronicles', rssUrl: 'https://www.caracaschronicles.com/feed/', country: ['Venezuela'], tier: 'independent-critical', language: 'English', region: 'latin-america' },
+
+    // ── CHILE — Mainstream ──
+    { name: 'Santiago Times', rssUrl: 'https://santiagotimes.cl/feed/', country: ['Chile'], tier: 'mainstream', language: 'English', region: 'latin-america' },
+
+    // ── CARIBBEAN — Mainstream ──
+    { name: 'Caribbean Journal', rssUrl: 'https://caribjournal.com/feed/', country: ['Jamaica', 'Trinidad and Tobago', 'Dominican Republic', 'Haiti', 'Cuba'], tier: 'mainstream', language: 'English', region: 'latin-america' },
+    { name: 'Jamaica Observer', rssUrl: 'https://www.jamaicaobserver.com/rss', country: ['Jamaica'], tier: 'mainstream', language: 'English', region: 'latin-america' },
+    { name: 'Trinidad Express', rssUrl: 'https://www.trinidadexpress.com/feed/', country: ['Trinidad and Tobago'], tier: 'mainstream', language: 'English', region: 'latin-america' },
+
+    // ── CENTRAL AMERICA — Independent Critical ──
+    { name: 'El Faro English', rssUrl: 'https://elfaro.net/feed', country: ['El Salvador'], tier: 'independent-critical', language: 'English', region: 'latin-america' },
+    { name: 'Confidencial Nicaragua', rssUrl: 'https://confidencial.digital/feed/', country: ['Nicaragua'], tier: 'independent-critical', language: 'English', region: 'latin-america' },
+
+    // ── Latin America — Business ──
+    { name: 'Americas Quarterly', rssUrl: 'https://www.americasquarterly.org/feed/', country: ['Brazil', 'Mexico', 'Argentina', 'Colombia', 'Chile', 'Peru', 'Venezuela'], tier: 'business', language: 'English', region: 'latin-america' },
+    { name: 'BNamericas', rssUrl: 'https://www.bnamericas.com/rss', country: ['Brazil', 'Mexico', 'Argentina', 'Colombia', 'Chile', 'Peru'], tier: 'business', language: 'English', region: 'latin-america' },
+    { name: 'Latin Finance', rssUrl: 'https://www.latinfinance.com/feed', country: ['Brazil', 'Mexico', 'Argentina', 'Colombia', 'Chile', 'Peru'], tier: 'business', language: 'English', region: 'latin-america' },
+
+    // ── Latin America — Government Official ──
+    { name: 'Brazilian Government News', rssUrl: 'https://www.gov.br/en/latest-news/rss', country: ['Brazil'], tier: 'government-official', language: 'English', region: 'latin-america' },
+    { name: 'Brazilian Ministry of Foreign Affairs', rssUrl: 'https://www.gov.br/mre/en/rss', country: ['Brazil'], tier: 'government-official', language: 'English', region: 'latin-america' },
+    { name: 'Argentine Foreign Ministry', rssUrl: 'https://www.cancilleria.gob.ar/en/rss', country: ['Argentina'], tier: 'government-official', language: 'English', region: 'latin-america' },
+    { name: 'Colombian Foreign Ministry', rssUrl: 'https://www.cancilleria.gov.co/rss', country: ['Colombia'], tier: 'government-official', language: 'English', region: 'latin-america' },
+
+    // ── Latin America — Think Tank / Academic ──
+    { name: 'Inter-American Dialogue', rssUrl: 'https://www.thedialogue.org/feed/', country: ['Brazil', 'Mexico', 'Argentina', 'Colombia', 'Chile', 'Peru', 'Venezuela'], tier: 'think-tank-academic', language: 'English', region: 'latin-america' },
+    { name: 'WOLA', rssUrl: 'https://www.wola.org/feed/', country: ['Brazil', 'Mexico', 'Argentina', 'Colombia', 'Chile', 'Peru', 'Venezuela'], tier: 'think-tank-academic', language: 'English', region: 'latin-america' },
+    { name: 'NACLA Report', rssUrl: 'https://nacla.org/feed', country: ['Brazil', 'Mexico', 'Argentina', 'Colombia', 'Chile', 'Peru', 'Venezuela'], tier: 'think-tank-academic', language: 'English', region: 'latin-america' },
+    { name: 'Council on Hemispheric Affairs', rssUrl: 'https://www.coha.org/feed/', country: ['Brazil', 'Mexico', 'Argentina', 'Colombia', 'Chile', 'Peru', 'Venezuela'], tier: 'think-tank-academic', language: 'English', region: 'latin-america' },
+    { name: 'International Crisis Group Latin America', rssUrl: 'https://www.crisisgroup.org/rss/latin-america', country: ['Brazil', 'Mexico', 'Argentina', 'Colombia', 'Chile', 'Peru', 'Venezuela'], tier: 'think-tank-academic', language: 'English', region: 'latin-america' },
+    { name: 'IISS Latin America', rssUrl: 'https://www.iiss.org/rss/latin-america', country: ['Brazil', 'Mexico', 'Argentina', 'Colombia', 'Chile', 'Peru', 'Venezuela'], tier: 'think-tank-academic', language: 'English', region: 'latin-america' },
+  ],
   'central-asia-caucasus': [],
   'middle-east': [],
   'europe': [],
