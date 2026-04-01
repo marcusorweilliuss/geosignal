@@ -943,17 +943,33 @@ const TIER_MAP = {
   'Official statements': ['government-official'],
 };
 
-// Sector keywords used for article scoring
+// Sector keywords — expanded with multi-word phrases for precision
 const SECTOR_KEYWORDS = {
-  'Geopolitics': ['geopolitics', 'diplomacy', 'sanctions', 'foreign policy', 'conflict', 'treaty', 'alliance', 'sovereignty'],
-  'Economy & Trade': ['economy', 'trade', 'tariff', 'gdp', 'market', 'inflation', 'recession', 'currency', 'supply chain'],
-  'Technology & AI': ['technology', 'artificial intelligence', 'ai', 'cyber', 'semiconductor', 'quantum', 'data privacy'],
-  'Climate & Energy': ['climate', 'energy', 'renewable', 'emissions', 'oil', 'carbon', 'solar', 'wind power', 'nuclear energy'],
-  'Defence & Security': ['defense', 'defence', 'military', 'security', 'weapons', 'intelligence', 'terrorism', 'missile', 'arms'],
-  'Society & Culture': ['migration', 'human rights', 'protests', 'election', 'democracy', 'refugees', 'demographics'],
-  'Space & Frontier': ['space', 'satellite', 'rocket', 'nasa', 'launch', 'orbital', 'mars', 'moon'],
-  'Health & Biotech': ['health', 'pandemic', 'biotech', 'pharmaceutical', 'vaccine', 'disease', 'who', 'medical'],
+  'Geopolitics': ['geopolitics', 'geopolitical', 'diplomacy', 'diplomatic', 'sanctions', 'foreign policy', 'foreign minister', 'conflict', 'treaty', 'alliance', 'sovereignty', 'territorial', 'border dispute', 'ambassador', 'bilateral', 'multilateral', 'summit', 'peace talks', 'ceasefire', 'annexation', 'proxy war', 'frozen conflict', 'non-proliferation', 'regime change', 'coup', 'junta', 'state visit', 'diplomatic ties', 'expel diplomat', 'consulate', 'embassy'],
+  'Economy & Trade': ['economy', 'economic', 'trade deal', 'trade war', 'tariff', 'gdp', 'stock market', 'inflation', 'recession', 'currency', 'supply chain', 'central bank', 'interest rate', 'fiscal policy', 'monetary policy', 'bond yield', 'sovereign debt', 'imf', 'world bank', 'trade deficit', 'trade surplus', 'export', 'import', 'fdi', 'foreign investment', 'devaluation', 'austerity', 'stimulus', 'subsidy', 'embargo', 'price surge', 'commodity'],
+  'Technology & AI': ['artificial intelligence', 'ai regulation', 'cyber attack', 'cybersecurity', 'semiconductor', 'chip war', 'quantum computing', 'data privacy', 'surveillance', 'tech regulation', 'big tech', 'social media ban', 'disinformation', 'deepfake', 'autonomous weapons', 'drone technology', '5g', 'tech decoupling', 'digital sovereignty', 'spyware', 'encryption'],
+  'Climate & Energy': ['climate change', 'global warming', 'renewable energy', 'carbon emissions', 'net zero', 'oil price', 'opec', 'natural gas', 'lng', 'solar power', 'wind power', 'nuclear energy', 'fossil fuel', 'energy transition', 'paris agreement', 'cop28', 'cop29', 'cop30', 'carbon tax', 'carbon credit', 'drought', 'flooding', 'wildfire', 'sea level', 'green bond', 'esg', 'energy security', 'pipeline', 'refinery'],
+  'Defence & Security': ['defense', 'defence', 'military', 'armed forces', 'security', 'weapons', 'intelligence', 'terrorism', 'missile', 'arms deal', 'arms race', 'nuclear weapon', 'nato', 'air strike', 'drone strike', 'counterterrorism', 'insurgency', 'guerrilla', 'naval', 'aircraft carrier', 'conscription', 'military exercise', 'defence budget', 'peacekeeping', 'war crime', 'ammunition', 'artillery'],
+  'Society & Culture': ['migration', 'human rights', 'protest', 'election', 'democracy', 'authoritarian', 'refugees', 'asylum', 'demographics', 'civil unrest', 'press freedom', 'censorship', 'ethnic', 'religious', 'discrimination', 'gender', 'minority', 'indigenous', 'famine', 'humanitarian crisis', 'displacement', 'voter turnout', 'opposition party', 'political prisoner', 'civil society'],
+  'Space & Frontier': ['space launch', 'satellite', 'rocket', 'nasa', 'spacex', 'orbital', 'mars mission', 'moon landing', 'asteroid', 'space station', 'space force', 'anti-satellite', 'space debris', 'space race', 'deep space', 'james webb', 'artemis'],
+  'Health & Biotech': ['pandemic', 'epidemic', 'outbreak', 'biotech', 'pharmaceutical', 'vaccine', 'disease', 'world health', 'who', 'public health', 'drug approval', 'clinical trial', 'antimicrobial', 'genomics', 'biosecurity', 'health crisis', 'hospital', 'mortality', 'infection rate', 'quarantine', 'variant'],
 };
+
+// Junk patterns — articles matching these are filtered out entirely
+const JUNK_PATTERNS = [
+  /^\[removed\]$/i,
+  /^(ad|sponsored|promoted):/i,
+  /\d+ best .* to buy/i,
+  /\d+ things you/i,
+  /you won't believe/i,
+  /click here/i,
+  /subscribe now/i,
+  /horoscope/i,
+  /celebrities/i,
+  /lottery/i,
+  /weight loss/i,
+  /diet tips/i,
+];
 
 // Country lists per region for scoring
 const REGION_COUNTRIES = {
@@ -1030,52 +1046,61 @@ function getSourcesForRegion(region, sourceTypeFilters) {
  * @returns {number} Relevance score (0-100)
  */
 function scoreArticle(article, region, userProfile, activeSectors) {
-  let score = 0;
   const headline = ((article.title || '') + ' ' + (article.description || '')).toLowerCase();
 
+  // ── Junk filter — return -1 to flag for removal ──
+  for (const pattern of JUNK_PATTERNS) {
+    if (pattern.test(article.title || '')) return -1;
+  }
+  if ((article.title || '').length < 15) return -1;
+
+  let score = 0;
+
   // ── Region relevance (0-30) ──
-  // Strong reward for matching the selected region's countries
   const countries = REGION_COUNTRIES[region] || [];
   let countryMatches = 0;
   for (const country of countries) {
-    if (headline.includes(country.toLowerCase())) {
-      countryMatches++;
-    }
+    if (headline.includes(country.toLowerCase())) countryMatches++;
   }
   if (countryMatches >= 3) score += 30;
   else if (countryMatches >= 2) score += 25;
-  else if (countryMatches === 1) score += 15;
-  // Penalty: if source is from a different region and no country match, -10
+  else if (countryMatches === 1) score += 18;
+
+  // Source IS from the selected region — strong signal even without country mention
+  if (article.region === region && region !== 'global') {
+    score += 10;
+  }
+  // Penalty: wrong region source + no country match
   if (countryMatches === 0 && region !== 'global' && article.region && article.region !== region) {
-    score -= 10;
+    score -= 15;
   }
 
-  // ── Sector relevance (0-25) ──
-  // Strong reward for matching the USER'S SELECTED sectors specifically
+  // ── Sector relevance (0-30) ──
   if (activeSectors && activeSectors.length > 0) {
     const activeKws = activeSectors
       .map(s => SECTOR_KEYWORDS[s])
       .filter(Boolean)
       .flat()
       .map(k => k.toLowerCase());
-    let activeMatches = 0;
-    for (const kw of activeKws) {
-      if (headline.includes(kw)) {
-        activeMatches++;
-        if (activeMatches >= 3) break;
-      }
+
+    // Multi-word phrases first (more precise), then single words
+    const multiWord = activeKws.filter(k => k.includes(' '));
+    const singleWord = activeKws.filter(k => !k.includes(' '));
+
+    let matchScore = 0;
+    // Multi-word matches are worth more (precision)
+    for (const phrase of multiWord) {
+      if (headline.includes(phrase)) matchScore += 12;
     }
-    if (activeMatches >= 3) score += 25;
-    else if (activeMatches >= 2) score += 20;
-    else if (activeMatches === 1) score += 10;
+    // Single word matches
+    for (const word of singleWord) {
+      if (headline.includes(word)) matchScore += 5;
+    }
+    score += Math.min(matchScore, 30);
   } else {
-    // No sector filter — score against all sectors
     const allKeywords = Object.values(SECTOR_KEYWORDS).flat();
     for (const keyword of allKeywords) {
-      if (headline.includes(keyword.toLowerCase())) {
-        score += 10;
-        break;
-      }
+      if (headline.includes(keyword.toLowerCase())) { score += 8; break; }
     }
   }
 
@@ -1083,53 +1108,54 @@ function scoreArticle(article, region, userProfile, activeSectors) {
   if (article.publishedAt) {
     const pubDate = new Date(article.publishedAt);
     const hoursAgo = (Date.now() - pubDate.getTime()) / (1000 * 60 * 60);
-    if (hoursAgo <= 6) score += 25;
-    else if (hoursAgo <= 12) score += 20;
+    if (hoursAgo <= 3) score += 25;
+    else if (hoursAgo <= 6) score += 22;
+    else if (hoursAgo <= 12) score += 18;
     else if (hoursAgo <= 24) score += 12;
     else if (hoursAgo <= 48) score += 5;
   }
 
-  // ── Source credibility (0-5) ──
-  if (article.sourceTier === 'mainstream' || article.sourceTier === 'think-tank-academic') {
-    score += 5;
-  }
+  // ── Source credibility (0-8) ──
+  if (article.sourceTier === 'think-tank-academic') score += 8;
+  else if (article.sourceTier === 'mainstream') score += 5;
+  else if (article.sourceTier === 'independent-critical') score += 6;
 
-  // ── User profile match (0-30) ──
-  if (userProfile && userProfile.location) {
-    const loc = userProfile.location.toLowerCase();
-    // Source country matches user location
-    const sourceCountries = (article.sourceCountry || []).map(c => c.toLowerCase());
-    for (const c of sourceCountries) {
-      if (loc.includes(c) || c.includes(loc)) {
-        score += 15;
-        break;
+  // ── User profile match (0-35) ──
+  if (userProfile) {
+    if (userProfile.location) {
+      const loc = userProfile.location.toLowerCase();
+      const sourceCountries = (article.sourceCountry || []).map(c => c.toLowerCase());
+      for (const c of sourceCountries) {
+        if (loc.includes(c) || c.includes(loc)) { score += 12; break; }
+      }
+      if (headline.includes(loc)) score += 8;
+    }
+
+    if (userProfile.industry) {
+      const industryWords = userProfile.industry.toLowerCase().split(/[\s&\/]+/).filter(w => w.length > 3);
+      let industryMatches = 0;
+      for (const word of industryWords) {
+        if (headline.includes(word)) industryMatches++;
+      }
+      score += Math.min(industryMatches * 8, 15);
+    }
+
+    if (userProfile.focus) {
+      const focusWords = userProfile.focus.toLowerCase().split(/[\s,]+/).filter(w => w.length > 3);
+      let focusMatches = 0;
+      for (const word of focusWords) {
+        if (headline.includes(word)) focusMatches++;
+      }
+      score += Math.min(focusMatches * 10, 20);
+    }
+
+    // Role-based boost: analysts/researchers care more about think-tank content
+    if (userProfile.role && article.sourceTier === 'think-tank-academic') {
+      const analyticRoles = ['analyst', 'researcher', 'consultant', 'policy'];
+      if (analyticRoles.some(r => userProfile.role.toLowerCase().includes(r))) {
+        score += 5;
       }
     }
-    // Headline mentions user's location
-    if (headline.includes(loc)) {
-      score += 10;
-    }
-  }
-
-  if (userProfile && userProfile.industry) {
-    const industryWords = userProfile.industry.toLowerCase().split(/[\s&\/]+/);
-    for (const word of industryWords) {
-      if (word.length > 3 && headline.includes(word)) {
-        score += 15;
-        break;
-      }
-    }
-  }
-
-  if (userProfile && userProfile.focus) {
-    const focusWords = userProfile.focus.toLowerCase().split(/[\s,]+/);
-    let focusMatches = 0;
-    for (const word of focusWords) {
-      if (word.length > 3 && headline.includes(word)) {
-        focusMatches++;
-      }
-    }
-    score += Math.min(focusMatches * 10, 20);
   }
 
   return Math.max(Math.min(score, 100), 0);
@@ -1137,4 +1163,4 @@ function scoreArticle(article, region, userProfile, activeSectors) {
 
 const GOVERNMENT_CAVEAT = 'This is an official government statement. The analysis below summarises the content as presented by the issuing government. It does not reflect independent verification or editorial judgment. Read alongside independent sources for full context.';
 
-module.exports = { SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT, SECTOR_KEYWORDS, REGION_COUNTRIES };
+module.exports = { SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT, SECTOR_KEYWORDS, REGION_COUNTRIES, JUNK_PATTERNS };

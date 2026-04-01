@@ -404,16 +404,17 @@ app.get('/api/news', async (req, res) => {
       }
     }
 
-    // Score and sort — pass active sectors so scoring weights them
+    // Score, filter junk, and sort
     unique.forEach(a => {
       a.score = scoreArticle(a, regionSlug, userProfile, activeSectors);
-      // Boost score for search matches in title
       if (searchTerms.length > 0) {
         const titleLower = (a.title || '').toLowerCase();
         const titleMatches = searchTerms.filter(t => titleLower.includes(t)).length;
         a.score += titleMatches * 10;
       }
     });
+    // Remove junk articles (score -1)
+    unique = unique.filter(a => a.score >= 0);
     unique.sort((a, b) => b.score - a.score);
 
     // Map to card format
