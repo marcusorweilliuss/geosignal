@@ -965,23 +965,33 @@ const JUNK_PATTERNS = [
   /click here/i,
   /subscribe now/i,
   /horoscope/i,
-  /celebrities/i,
+  /celebrit(y|ies)/i,
   /lottery/i,
   /weight loss/i,
   /diet tips/i,
+  /gossip/i,
+  /reality tv/i,
+  /quiz:/i,
+  /listicle/i,
+  /deals of the day/i,
+  /coupon/i,
+  /unboxing/i,
+  /top \d+ (best|worst|funniest)/i,
+  /watch live stream/i,
 ];
 
 // Country lists per region for scoring
+// Country lists + key cities, leaders, institutions, alternate names
 const REGION_COUNTRIES = {
-  'south-asia': ['India', 'Pakistan', 'Bangladesh', 'Sri Lanka', 'Nepal', 'Bhutan', 'Afghanistan', 'Maldives', 'Myanmar'],
-  'north-america': ['United States', 'Canada', 'Mexico', 'US', 'USA', 'American'],
-  'latin-america': ['Brazil', 'Mexico', 'Argentina', 'Colombia', 'Chile', 'Peru', 'Venezuela', 'Ecuador', 'Bolivia', 'Uruguay', 'Paraguay', 'Cuba', 'Dominican Republic', 'Haiti', 'Guatemala', 'Honduras', 'El Salvador', 'Nicaragua', 'Costa Rica', 'Panama', 'Jamaica', 'Trinidad'],
-  'central-asia-caucasus': ['Kazakhstan', 'Uzbekistan', 'Kyrgyzstan', 'Tajikistan', 'Turkmenistan', 'Azerbaijan', 'Armenia', 'Georgia'],
-  'middle-east': ['Saudi Arabia', 'UAE', 'Iran', 'Iraq', 'Turkey', 'Israel', 'Palestine', 'Jordan', 'Lebanon', 'Syria', 'Yemen', 'Qatar', 'Kuwait', 'Bahrain', 'Oman', 'Egypt', 'Libya', 'Tunisia', 'Morocco', 'Algeria'],
-  'europe': ['UK', 'Britain', 'Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Belgium', 'Sweden', 'Norway', 'Denmark', 'Finland', 'Poland', 'Czech', 'Hungary', 'Romania', 'Greece', 'Portugal', 'Switzerland', 'Austria', 'Ukraine', 'Russia', 'EU', 'NATO'],
-  'africa': ['Nigeria', 'South Africa', 'Kenya', 'Ethiopia', 'Egypt', 'Ghana', 'Tanzania', 'Uganda', 'Rwanda', 'Senegal', 'Cameroon', 'DRC', 'Congo', 'Sudan', 'Somalia', 'Zimbabwe', 'Mozambique', 'Angola', 'Zambia', 'Botswana', 'Morocco'],
-  'southeast-asia': ['Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Singapore', 'Cambodia', 'Laos', 'Brunei', 'Timor-Leste', 'Myanmar', 'ASEAN'],
-  'east-asia': ['China', 'Japan', 'South Korea', 'Taiwan', 'North Korea', 'Mongolia', 'Hong Kong', 'Beijing', 'Tokyo', 'Seoul', 'Taipei', 'Pyongyang'],
+  'south-asia': ['India', 'Pakistan', 'Bangladesh', 'Sri Lanka', 'Nepal', 'Bhutan', 'Afghanistan', 'Maldives', 'Myanmar', 'Modi', 'Delhi', 'New Delhi', 'Mumbai', 'Islamabad', 'Karachi', 'Dhaka', 'Colombo', 'Kathmandu', 'Kabul', 'Kashmir', 'Indian', 'Pakistani', 'Taliban', 'Rohingya', 'Bengali'],
+  'north-america': ['United States', 'Canada', 'Mexico', 'US', 'USA', 'American', 'Washington', 'Pentagon', 'White House', 'Congress', 'Capitol Hill', 'Wall Street', 'Silicon Valley', 'Ottawa', 'Mexico City', 'Trump', 'Biden', 'Canadian', 'Mexican', 'Federal Reserve', 'Fed'],
+  'latin-america': ['Brazil', 'Mexico', 'Argentina', 'Colombia', 'Chile', 'Peru', 'Venezuela', 'Ecuador', 'Bolivia', 'Uruguay', 'Paraguay', 'Cuba', 'Dominican Republic', 'Haiti', 'Guatemala', 'Honduras', 'El Salvador', 'Nicaragua', 'Costa Rica', 'Panama', 'Jamaica', 'Trinidad', 'Lula', 'Maduro', 'Bogota', 'Buenos Aires', 'Sao Paulo', 'Rio', 'Havana', 'Brasilia', 'Mercosur', 'Brazilian', 'Venezuelan', 'Colombian'],
+  'central-asia-caucasus': ['Kazakhstan', 'Uzbekistan', 'Kyrgyzstan', 'Tajikistan', 'Turkmenistan', 'Azerbaijan', 'Armenia', 'Georgia', 'Kazakh', 'Tbilisi', 'Baku', 'Yerevan', 'Astana', 'Tashkent', 'Nagorno-Karabakh', 'Caspian', 'Silk Road', 'Caucasus'],
+  'middle-east': ['Saudi Arabia', 'UAE', 'Iran', 'Iraq', 'Turkey', 'Israel', 'Palestine', 'Jordan', 'Lebanon', 'Syria', 'Yemen', 'Qatar', 'Kuwait', 'Bahrain', 'Oman', 'Egypt', 'Libya', 'Tunisia', 'Morocco', 'Algeria', 'Tehran', 'Riyadh', 'Dubai', 'Abu Dhabi', 'Baghdad', 'Ankara', 'Istanbul', 'Jerusalem', 'Tel Aviv', 'Gaza', 'West Bank', 'Hezbollah', 'Hamas', 'Houthi', 'Netanyahu', 'Erdogan', 'Khamenei', 'MBS', 'Arab', 'Israeli', 'Palestinian', 'Iranian', 'Turkish', 'Egyptian', 'Doha', 'Beirut', 'Damascus', 'Suez', 'Red Sea', 'Persian Gulf', 'OPEC'],
+  'europe': ['UK', 'Britain', 'British', 'Germany', 'German', 'France', 'French', 'Italy', 'Italian', 'Spain', 'Spanish', 'Netherlands', 'Dutch', 'Belgium', 'Sweden', 'Norway', 'Denmark', 'Finland', 'Poland', 'Polish', 'Czech', 'Hungary', 'Romanian', 'Romania', 'Greece', 'Greek', 'Portugal', 'Switzerland', 'Austria', 'Ukraine', 'Ukrainian', 'Russia', 'Russian', 'EU', 'NATO', 'European', 'Brussels', 'London', 'Paris', 'Berlin', 'Rome', 'Madrid', 'Kyiv', 'Moscow', 'Kremlin', 'Putin', 'Zelensky', 'Macron', 'Scholz', 'Starmer', 'Brexit', 'Eurozone', 'ECB', 'Balkans', 'Baltic', 'Nordic', 'Crimea', 'Donbas'],
+  'africa': ['Nigeria', 'Nigerian', 'South Africa', 'South African', 'Kenya', 'Kenyan', 'Ethiopia', 'Ethiopian', 'Egypt', 'Egyptian', 'Ghana', 'Tanzania', 'Uganda', 'Rwanda', 'Senegal', 'Cameroon', 'DRC', 'Congo', 'Sudan', 'Sudanese', 'Somalia', 'Somali', 'Zimbabwe', 'Mozambique', 'Angola', 'Zambia', 'Botswana', 'Morocco', 'Moroccan', 'Sahel', 'Lagos', 'Nairobi', 'Johannesburg', 'Addis Ababa', 'Cairo', 'Abuja', 'Khartoum', 'Mogadishu', 'African Union', 'ECOWAS', 'Sub-Saharan'],
+  'southeast-asia': ['Thailand', 'Thai', 'Vietnam', 'Vietnamese', 'Indonesia', 'Indonesian', 'Philippines', 'Filipino', 'Malaysia', 'Malaysian', 'Singapore', 'Singaporean', 'Cambodia', 'Cambodian', 'Laos', 'Brunei', 'Timor-Leste', 'Myanmar', 'Burma', 'ASEAN', 'Bangkok', 'Jakarta', 'Manila', 'Kuala Lumpur', 'Hanoi', 'Ho Chi Minh', 'Phnom Penh', 'Strait of Malacca', 'South China Sea', 'Mekong', 'Jokowi', 'Marcos', 'Duterte'],
+  'east-asia': ['China', 'Chinese', 'Japan', 'Japanese', 'South Korea', 'Korean', 'Taiwan', 'Taiwanese', 'North Korea', 'DPRK', 'Mongolia', 'Hong Kong', 'Beijing', 'Shanghai', 'Tokyo', 'Seoul', 'Taipei', 'Pyongyang', 'Xi Jinping', 'Kim Jong', 'Kishida', 'CCP', 'Communist Party', 'Xinjiang', 'Tibet', 'Uyghur', 'Taiwan Strait', 'East China Sea', 'Yellow Sea', 'Samsung', 'TSMC', 'Alibaba', 'Tencent'],
   'oceania': ['Australia', 'New Zealand', 'Papua New Guinea', 'Fiji', 'Solomon Islands', 'Vanuatu', 'Samoa', 'Tonga', 'Pacific'],
   'global': [],
 };
@@ -1071,11 +1081,20 @@ function scoreArticle(article, region, userProfile, activeSectors) {
     score += 10;
   }
   // Penalty: wrong region source + no country match
-  if (countryMatches === 0 && region !== 'global' && article.region && article.region !== region) {
+  // BUT skip penalty if article strongly matches user's industry/focus (globally relevant)
+  let skipRegionPenalty = false;
+  if (userProfile) {
+    const profileText = ((userProfile.industry || '') + ' ' + (userProfile.focus || '')).toLowerCase();
+    const profileWords = profileText.split(/[\s&\/,]+/).filter(w => w.length > 2);
+    for (const word of profileWords) {
+      if (headline.includes(word)) { skipRegionPenalty = true; break; }
+    }
+  }
+  if (countryMatches === 0 && region !== 'global' && article.region && article.region !== region && !skipRegionPenalty) {
     score -= 15;
   }
 
-  // ── Sector relevance (0-30) ──
+  // ── Sector relevance (0-35) ──
   if (activeSectors && activeSectors.length > 0) {
     const activeKws = activeSectors
       .map(s => SECTOR_KEYWORDS[s])
@@ -1083,26 +1102,47 @@ function scoreArticle(article, region, userProfile, activeSectors) {
       .flat()
       .map(k => k.toLowerCase());
 
-    // Multi-word phrases first (more precise), then single words
     const multiWord = activeKws.filter(k => k.includes(' '));
     const singleWord = activeKws.filter(k => !k.includes(' '));
 
     let matchScore = 0;
-    // Multi-word matches are worth more (precision)
+    let matchedSectors = new Set();
+    // Multi-word matches worth more (precision)
     for (const phrase of multiWord) {
-      if (headline.includes(phrase)) matchScore += 12;
+      if (headline.includes(phrase)) {
+        matchScore += 12;
+        // Track which sector this phrase belongs to
+        for (const s of activeSectors) {
+          if ((SECTOR_KEYWORDS[s] || []).some(k => k.toLowerCase() === phrase)) matchedSectors.add(s);
+        }
+      }
     }
-    // Single word matches
     for (const word of singleWord) {
-      if (headline.includes(word)) matchScore += 5;
+      if (headline.includes(word)) {
+        matchScore += 5;
+        for (const s of activeSectors) {
+          if ((SECTOR_KEYWORDS[s] || []).some(k => k.toLowerCase() === word)) matchedSectors.add(s);
+        }
+      }
     }
-    score += Math.min(matchScore, 30);
+    // Cross-sector bonus: article relevant to 2+ selected sectors
+    if (matchedSectors.size >= 2) matchScore += 10;
+    score += Math.min(matchScore, 35);
   } else {
     const allKeywords = Object.values(SECTOR_KEYWORDS).flat();
     for (const keyword of allKeywords) {
       if (headline.includes(keyword.toLowerCase())) { score += 8; break; }
     }
   }
+
+  // ── Headline quality signals ──
+  // Named entities (proper nouns, specific events) indicate substantive news
+  const hasQuotes = (article.title || '').includes('"') || (article.title || '').includes("'");
+  const hasNumbers = /\d/.test(article.title || '');
+  const titleWords = (article.title || '').split(/\s+/).length;
+  if (hasNumbers) score += 3; // Specific figures = substantive
+  if (titleWords >= 8 && titleWords <= 20) score += 2; // Good headline length
+  if (hasQuotes) score += 2; // Direct quotes = real reporting
 
   // ── Recency (0-25) ──
   if (article.publishedAt) {
