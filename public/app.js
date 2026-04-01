@@ -162,8 +162,8 @@ let governmentCaveat = '';
 
 // Convert numeric score to relevance label
 function scoreToRelevance(score) {
-  if (score >= 40) return 'HIGH';
-  if (score >= 20) return 'MEDIUM';
+  if (score >= 50) return 'HIGH';
+  if (score >= 25) return 'MEDIUM';
   return 'LOW';
 }
 

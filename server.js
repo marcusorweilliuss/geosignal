@@ -326,6 +326,7 @@ app.get('/api/news', async (req, res) => {
     const { region, sectors, sourceTypes, profile: profileStr, search } = req.query;
     const regionSlug = regionSlugMap[region] || 'global';
     const typeList = sourceTypes ? sourceTypes.split(',') : ['Mainstream news', 'Independent journalism', 'Think tanks & academic'];
+    const activeSectors = sectors ? sectors.split(',') : [];
     const searchTerms = search ? search.toLowerCase().trim().split(/\s+/).filter(w => w.length > 1) : [];
 
     // Get filtered sources from registry
@@ -385,9 +386,27 @@ app.get('/api/news', async (req, res) => {
       });
     }
 
-    // Score and sort
+    // Apply sector filter — article must match at least one active sector's keywords
+    if (activeSectors.length > 0 && activeSectors.length < 8) {
+      // Build keyword list from only the active sectors
+      const { SECTOR_KEYWORDS: sectorKw } = require('./sources');
+      const activeSectorKeywords = activeSectors
+        .map(s => sectorKw[s])
+        .filter(Boolean)
+        .flat()
+        .map(k => k.toLowerCase());
+
+      if (activeSectorKeywords.length > 0) {
+        unique = unique.filter(a => {
+          const text = ((a.title || '') + ' ' + (a.description || '')).toLowerCase();
+          return activeSectorKeywords.some(kw => text.includes(kw));
+        });
+      }
+    }
+
+    // Score and sort — pass active sectors so scoring weights them
     unique.forEach(a => {
-      a.score = scoreArticle(a, regionSlug, userProfile);
+      a.score = scoreArticle(a, regionSlug, userProfile, activeSectors);
       // Boost score for search matches in title
       if (searchTerms.length > 0) {
         const titleLower = (a.title || '').toLowerCase();

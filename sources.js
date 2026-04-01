@@ -1029,11 +1029,12 @@ function getSourcesForRegion(region, sourceTypeFilters) {
  * @param {object|null} userProfile - { role, industry, location, focus } or null
  * @returns {number} Relevance score (0-100)
  */
-function scoreArticle(article, region, userProfile) {
+function scoreArticle(article, region, userProfile, activeSectors) {
   let score = 0;
   const headline = ((article.title || '') + ' ' + (article.description || '')).toLowerCase();
 
-  // +25 if headline mentions a country from the selected region
+  // ── Region relevance (0-30) ──
+  // Strong reward for matching the selected region's countries
   const countries = REGION_COUNTRIES[region] || [];
   let countryMatches = 0;
   for (const country of countries) {
@@ -1041,25 +1042,44 @@ function scoreArticle(article, region, userProfile) {
       countryMatches++;
     }
   }
-  if (countryMatches >= 2) score += 25; // Multiple countries = very relevant
+  if (countryMatches >= 3) score += 30;
+  else if (countryMatches >= 2) score += 25;
   else if (countryMatches === 1) score += 15;
+  // Penalty: if source is from a different region and no country match, -10
+  if (countryMatches === 0 && region !== 'global' && article.region && article.region !== region) {
+    score -= 10;
+  }
 
-  // +15 if the source country matches the user profile location
-  if (userProfile && userProfile.location) {
-    const loc = userProfile.location.toLowerCase();
-    const sourceCountries = (article.sourceCountry || []).map(c => c.toLowerCase());
-    for (const c of sourceCountries) {
-      if (loc.includes(c) || c.includes(loc)) {
-        score += 15;
+  // ── Sector relevance (0-25) ──
+  // Strong reward for matching the USER'S SELECTED sectors specifically
+  if (activeSectors && activeSectors.length > 0) {
+    const activeKws = activeSectors
+      .map(s => SECTOR_KEYWORDS[s])
+      .filter(Boolean)
+      .flat()
+      .map(k => k.toLowerCase());
+    let activeMatches = 0;
+    for (const kw of activeKws) {
+      if (headline.includes(kw)) {
+        activeMatches++;
+        if (activeMatches >= 3) break;
+      }
+    }
+    if (activeMatches >= 3) score += 25;
+    else if (activeMatches >= 2) score += 20;
+    else if (activeMatches === 1) score += 10;
+  } else {
+    // No sector filter — score against all sectors
+    const allKeywords = Object.values(SECTOR_KEYWORDS).flat();
+    for (const keyword of allKeywords) {
+      if (headline.includes(keyword.toLowerCase())) {
+        score += 10;
         break;
       }
     }
-    if (headline.includes(loc)) {
-      score += 10;
-    }
   }
 
-  // Recency — strong weight for freshness
+  // ── Recency (0-25) ──
   if (article.publishedAt) {
     const pubDate = new Date(article.publishedAt);
     const hoursAgo = (Date.now() - pubDate.getTime()) / (1000 * 60 * 60);
@@ -1067,26 +1087,30 @@ function scoreArticle(article, region, userProfile) {
     else if (hoursAgo <= 12) score += 20;
     else if (hoursAgo <= 24) score += 12;
     else if (hoursAgo <= 48) score += 5;
-    // Older than 48h gets no recency bonus
   }
 
-  // +10 per sector keyword match (up to +20 for multiple sectors)
-  const allKeywords = Object.values(SECTOR_KEYWORDS).flat();
-  let sectorMatches = 0;
-  for (const keyword of allKeywords) {
-    if (headline.includes(keyword.toLowerCase())) {
-      sectorMatches++;
-      if (sectorMatches >= 2) break;
-    }
-  }
-  score += Math.min(sectorMatches * 10, 20);
-
-  // +10 if source tier is mainstream or think-tank (higher credibility)
+  // ── Source credibility (0-5) ──
   if (article.sourceTier === 'mainstream' || article.sourceTier === 'think-tank-academic') {
     score += 5;
   }
 
-  // +15 if user industry keywords appear in headline
+  // ── User profile match (0-30) ──
+  if (userProfile && userProfile.location) {
+    const loc = userProfile.location.toLowerCase();
+    // Source country matches user location
+    const sourceCountries = (article.sourceCountry || []).map(c => c.toLowerCase());
+    for (const c of sourceCountries) {
+      if (loc.includes(c) || c.includes(loc)) {
+        score += 15;
+        break;
+      }
+    }
+    // Headline mentions user's location
+    if (headline.includes(loc)) {
+      score += 10;
+    }
+  }
+
   if (userProfile && userProfile.industry) {
     const industryWords = userProfile.industry.toLowerCase().split(/[\s&\/]+/);
     for (const word of industryWords) {
@@ -1097,18 +1121,18 @@ function scoreArticle(article, region, userProfile) {
     }
   }
 
-  // +15 if user focus areas appear in headline
   if (userProfile && userProfile.focus) {
     const focusWords = userProfile.focus.toLowerCase().split(/[\s,]+/);
+    let focusMatches = 0;
     for (const word of focusWords) {
       if (word.length > 3 && headline.includes(word)) {
-        score += 15;
-        break;
+        focusMatches++;
       }
     }
+    score += Math.min(focusMatches * 10, 20);
   }
 
-  return Math.min(score, 100);
+  return Math.max(Math.min(score, 100), 0);
 }
 
 const GOVERNMENT_CAVEAT = 'This is an official government statement. The analysis below summarises the content as presented by the issuing government. It does not reflect independent verification or editorial judgment. Read alongside independent sources for full context.';
