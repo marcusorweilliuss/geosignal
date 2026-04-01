@@ -5,6 +5,8 @@ const sourcePills = document.getElementById('source-pills');
 const refreshBtn = document.getElementById('refresh-btn');
 const feedCount = document.getElementById('feed-count');
 const feedTimestamp = document.getElementById('feed-timestamp');
+const searchInput = document.getElementById('search-input');
+const searchClear = document.getElementById('search-clear');
 
 const profileBtn = document.getElementById('profile-btn');
 const profileBtnText = document.getElementById('profile-btn-text');
@@ -156,16 +158,21 @@ async function fetchStories() {
     return;
   }
 
+  const searchVal = searchInput.value.trim();
+  const loadingMsg = searchVal
+    ? 'Searching for &ldquo;' + escapeHtml(searchVal) + '&rdquo;&hellip;'
+    : 'Scanning RSS feeds&hellip;';
   feed.innerHTML =
     '<div class="loading-feed">' +
       '<div class="loading-pulse"></div>' +
-      '<span>Scanning RSS feeds&hellip;</span>' +
+      '<span>' + loadingMsg + '</span>' +
     '</div>';
   feedCount.textContent = '';
   feedTimestamp.textContent = '';
 
   try {
     const profile = getProfile();
+    const searchQuery = searchInput.value.trim();
     const params = new URLSearchParams({
       region,
       sectors: sectors.join(','),
@@ -173,6 +180,9 @@ async function fetchStories() {
     });
     if (profile) {
       params.set('profile', JSON.stringify(profile));
+    }
+    if (searchQuery) {
+      params.set('search', searchQuery);
     }
 
     const res = await fetch('/api/news?' + params);
@@ -822,5 +832,26 @@ document.addEventListener('mousedown', (e) => {
 
 refreshBtn.addEventListener('click', fetchStories);
 regionSelect.addEventListener('change', fetchStories);
+
+// Search: trigger on Enter key
+let searchDebounce = null;
+searchInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    fetchStories();
+  }
+});
+
+// Show/hide clear button
+searchInput.addEventListener('input', () => {
+  searchClear.style.display = searchInput.value.length > 0 ? 'block' : 'none';
+});
+
+// Clear search
+searchClear.addEventListener('click', () => {
+  searchInput.value = '';
+  searchClear.style.display = 'none';
+  fetchStories();
+});
 
 fetchStories();

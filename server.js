@@ -323,9 +323,10 @@ const regionSlugMap = {
 
 app.get('/api/news', async (req, res) => {
   try {
-    const { region, sectors, sourceTypes, profile: profileStr } = req.query;
+    const { region, sectors, sourceTypes, profile: profileStr, search } = req.query;
     const regionSlug = regionSlugMap[region] || 'global';
     const typeList = sourceTypes ? sourceTypes.split(',') : ['Mainstream news', 'Independent journalism', 'Think tanks & academic'];
+    const searchTerms = search ? search.toLowerCase().trim().split(/\s+/).filter(w => w.length > 1) : [];
 
     // Get filtered sources from registry
     const sources = getSourcesForRegion(regionSlug, typeList);
@@ -352,7 +353,14 @@ app.get('/api/news', async (req, res) => {
       console.log(`Serving ${cachedArticles.length} cached articles for ${region}`);
     }
 
-    const allArticles = [...cachedArticles, ...freshArticles];
+    let allArticles = [...cachedArticles, ...freshArticles];
+
+    // If searching, also pull from ALL cached feeds across every region
+    if (searchTerms.length > 0) {
+      Object.values(feedCache).forEach(cached => {
+        if (cached.articles) allArticles.push(...cached.articles);
+      });
+    }
 
     // Parse user profile for scoring
     let userProfile = null;
@@ -362,16 +370,30 @@ app.get('/api/news', async (req, res) => {
 
     // Deduplicate by title
     const seen = new Set();
-    const unique = allArticles.filter(a => {
+    let unique = allArticles.filter(a => {
       const key = a.title?.toLowerCase().trim();
       if (!key || key.length < 10 || key === '[removed]' || seen.has(key)) return false;
       seen.add(key);
       return true;
     });
 
+    // Apply search filter if present
+    if (searchTerms.length > 0) {
+      unique = unique.filter(a => {
+        const text = ((a.title || '') + ' ' + (a.description || '') + ' ' + (a.source || '')).toLowerCase();
+        return searchTerms.every(term => text.includes(term));
+      });
+    }
+
     // Score and sort
     unique.forEach(a => {
       a.score = scoreArticle(a, regionSlug, userProfile);
+      // Boost score for search matches in title
+      if (searchTerms.length > 0) {
+        const titleLower = (a.title || '').toLowerCase();
+        const titleMatches = searchTerms.filter(t => titleLower.includes(t)).length;
+        a.score += titleMatches * 10;
+      }
     });
     unique.sort((a, b) => b.score - a.score);
 
