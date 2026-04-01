@@ -525,7 +525,7 @@ WHY THIS MATTERS:
 
 app.post('/api/impact', async (req, res) => {
   try {
-    const { title, source, description, content, profile, url } = req.body;
+    const { title, source, description, content, profile, url, region } = req.body;
 
     if (!profile || !profile.role) {
       return res.status(400).json({ error: 'Profile required' });
@@ -535,6 +535,18 @@ app.post('/api/impact', async (req, res) => {
     const fullText = url ? await fetchFullArticleText(url) : '';
     const articleContent = fullText || content || description || '';
 
+    // Find related think tank analysis for this region
+    const regionSlug = regionSlugMap[region] || 'global';
+    const expertArticles = findRelatedThinkTankArticles(title, regionSlug);
+
+    let expertContext = '';
+    if (expertArticles.length > 0) {
+      expertContext = '\n\nRELATED EXPERT ANALYSIS (use these to inform your impact assessment):\n';
+      expertArticles.forEach((ea, i) => {
+        expertContext += `${i + 1}. "${ea.title}" — ${ea.source}: ${ea.description}\n`;
+      });
+    }
+
     const profileDesc = [
       profile.role && `Role: ${profile.role}`,
       profile.industry && `Industry: ${profile.industry}`,
@@ -542,7 +554,7 @@ app.post('/api/impact', async (req, res) => {
       profile.focus && `Focus areas: ${profile.focus}`
     ].filter(Boolean).join(' | ');
 
-    const prompt = `You are an expert analyst providing personalized intelligence briefings. A professional is reading a news article. Based on their profile, explain how this news could impact them specifically.
+    const prompt = `You are a senior analyst providing a personalized intelligence assessment. A professional is reading a news article. Based on their specific profile, explain concretely how this development could affect them, their organisation, and their industry.
 
 READER PROFILE:
 ${profileDesc}
@@ -551,22 +563,22 @@ ARTICLE:
 Headline: ${title}
 Source: ${source}
 Full article text:
-${articleContent}
+${articleContent}${expertContext}
 
-Provide a concise, personalized impact analysis in EXACTLY this format. Use plain text, no markdown:
+Provide a personalized impact analysis in EXACTLY this format. Use plain text, no markdown:
 
 RELEVANCE:
-[One word: HIGH, MEDIUM, or LOW]
+[One word: HIGH, MEDIUM, or LOW — based on how directly this affects their specific role, industry, and location]
 
 IMPACT SUMMARY:
-[2-3 sentences explaining specifically how this development could affect someone in their role, industry, and location. Be concrete and actionable, not generic.]
+[3-4 sentences. Be extremely specific to their profile. For example, if they are a VP in Finance based in Singapore, explain exactly how this development could affect financial markets they care about, regulatory changes they would face, or business decisions they should reconsider. Reference specific mechanisms — not vague statements like "this could affect the economy." If expert analysis is available above, reference what think tanks are saying about the implications for their sector.]
 
 WHAT TO WATCH:
-[1-2 specific things they should monitor or actions they might consider based on their profile]`;
+[2-3 concrete, actionable items. Not generic "monitor the situation" — instead give specific triggers, dates, upcoming events, policy decisions, or data releases they should track. If their industry has specific exposure to this development, name it.]`;
 
     const chatCompletion = await groqChat(
       [{ role: 'user', content: prompt }],
-      { temperature: 0.4, max_tokens: 400 }
+      { temperature: 0.4, max_tokens: 500 }
     );
 
     const impact = chatCompletion.choices[0]?.message?.content || 'Unable to generate impact analysis.';

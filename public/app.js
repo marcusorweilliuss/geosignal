@@ -261,7 +261,7 @@ async function fetchImpact(article, container) {
       body: JSON.stringify({
         title: article.title, source: article.source,
         description: article.description, content: article.content,
-        profile, url: article.url
+        profile, url: article.url, region: article.region
       })
     });
 
@@ -559,6 +559,11 @@ async function fetchBriefing(article, container) {
 
     if (article.url) {
       html += '<a class="card-link" href="' + escapeHtml(article.url) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">Read original source &rarr;</a>';
+    }
+
+    // Annotate hint when mode is active
+    if (isAnnotateActive()) {
+      html += '<div class="annotate-hint">Annotate mode is on — highlight any term above for a plain-English explanation</div>';
     }
 
     html += '</div>';
