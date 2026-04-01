@@ -410,15 +410,22 @@ app.post('/api/tldr', async (req, res) => {
       return `[${i}] "${a.title}"${officialNote} — ${a.description || 'No description'}`;
     }).join('\n');
 
-    const prompt = `You are a geopolitical intelligence analyst. For each article below, write a single-sentence TL;DR summary (max 25 words). Be direct, factual, and analytical. Focus on the geopolitical significance.
+    const prompt = `You are a senior geopolitical intelligence analyst writing single-line briefing summaries for decision-makers.
 
-For articles marked [OFFICIAL GOVERNMENT SOURCE], prepend "OFFICIAL:" to your summary and note that this is a government claim, not independently verified.
+RULES:
+- ONE sentence per article. No exceptions. Never two sentences.
+- Maximum 30 words. Cut ruthlessly.
+- Lead with the most important fact or consequence, not background.
+- Be specific: use country names, actor names, numbers, concrete outcomes.
+- Do NOT say "amid tensions" or "raises concerns" — say what actually happened or will happen.
+- For articles marked [OFFICIAL GOVERNMENT SOURCE], prepend "OFFICIAL:" and frame as a government claim.
+- If the headline is vague, still extract the core signal and state it clearly.
 
 Articles:
 ${articleList}
 
 Respond with ONLY a JSON array of strings, one summary per article, in the same order. Example: ["Summary 1", "OFFICIAL: Summary 2"]
-Do not include any other text, markdown, or formatting. Just the JSON array.`;
+No other text, no markdown, no formatting. Just the JSON array.`;
 
     const chatCompletion = await groqChat(
       [{ role: 'user', content: prompt }],
@@ -621,8 +628,12 @@ app.get('/api/sentiment/reddit', async (req, res) => {
       return res.json(cached.data);
     }
 
-    // Build search query — keep it focused
-    const query = encodeURIComponent(topic.substring(0, 150));
+    // Extract 3-5 key terms from the headline for better Reddit search
+    const stopWords = new Set(['the','a','an','and','or','but','in','on','at','to','for','of','with','by','from','is','are','was','were','has','have','had','not','as','its','says','said','new','over','after','will','could','may','been','into','about','more','than']);
+    const keywords = topic.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/)
+      .filter(w => w.length > 2 && !stopWords.has(w))
+      .slice(0, 5);
+    const query = encodeURIComponent(keywords.join(' '));
 
     // Search across geopolitics-relevant subreddits
     const subreddits = [
@@ -635,11 +646,12 @@ app.get('/api/sentiment/reddit', async (req, res) => {
     // Search Reddit's JSON API (no auth needed)
     for (const sub of subreddits) {
       try {
-        const url = `https://www.reddit.com/r/${sub}/search.json?q=${query}&sort=relevance&t=week&limit=5&restrict_sr=on`;
+        const url = `https://www.reddit.com/r/${sub}/search.json?q=${query}&sort=relevance&t=month&limit=5&restrict_sr=on`;
         const response = await fetch(url, {
-          timeout: 5000,
+          timeout: 6000,
           headers: {
-            'User-Agent': 'GeoSignal/1.0 (geopolitical news aggregator)'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'application/json'
           }
         });
 
@@ -717,8 +729,14 @@ app.get('/api/sentiment/bluesky', async (req, res) => {
       return res.json(cached.data);
     }
 
+    // Extract key terms for better search results
+    const stopWords = new Set(['the','a','an','and','or','but','in','on','at','to','for','of','with','by','from','is','are','was','were','has','have','had','not','as','its','says','said','new','over','after','will','could','may','been','into','about','more','than']);
+    const keywords = topic.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/)
+      .filter(w => w.length > 2 && !stopWords.has(w))
+      .slice(0, 5);
+    const query = encodeURIComponent(keywords.join(' '));
+
     // Bluesky public search API — no auth needed
-    const query = encodeURIComponent(topic.substring(0, 150));
     const url = `https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts?q=${query}&sort=top&limit=25`;
 
     const response = await fetch(url, {
