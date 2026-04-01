@@ -762,6 +762,35 @@ app.get('/api/sentiment/bluesky', async (req, res) => {
   }
 });
 
+// ── Annotate Mode — Term Explainer ──────────────────────────────
+
+app.post('/api/annotate', async (req, res) => {
+  try {
+    const { term, headline, briefingText } = req.body;
+    if (!term || term.length < 2) {
+      return res.status(400).json({ error: 'Term too short' });
+    }
+
+    const prompt = `You are a plain-English explainer for a smart general audience. The user has highlighted a term while reading a news briefing. Explain that term in 1-2 sentences maximum, in the specific context of this article. Do not give a generic definition. Make it feel like a knowledgeable friend is explaining it. Never use jargon in your explanation. If the term is straightforward, keep it to one sentence.
+
+Article headline: ${headline}
+Briefing context: ${(briefingText || '').substring(0, 800)}
+
+Term to explain: "${term}"`;
+
+    const chatCompletion = await groqChat(
+      [{ role: 'user', content: prompt }],
+      { temperature: 0.3, max_tokens: 100 }
+    );
+
+    const explanation = chatCompletion.choices[0]?.message?.content || 'Could not explain this term.';
+    res.json({ term, explanation: explanation.trim() });
+  } catch (err) {
+    console.error('Annotate error:', err.message);
+    res.status(500).json({ error: 'Failed to generate explanation' });
+  }
+});
+
 app.listen(PORT, () => {
   const totalSources = Object.values(SOURCES).reduce((a, b) => a + b.length, 0);
   console.log(`GeoSignal running at http://localhost:${PORT}`);

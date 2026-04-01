@@ -597,6 +597,146 @@ function parseBriefing(text, isOfficial) {
   return sections;
 }
 
+// ── Annotate Mode ───────────────────────────────────────────────
+
+const annotateToggle = document.getElementById('annotate-toggle');
+const annotatePopup = document.getElementById('annotate-popup');
+const annotatePopupBody = document.getElementById('annotate-popup-body');
+const annotatePopupClose = document.getElementById('annotate-popup-close');
+
+// Session cache: term+headline → explanation
+const annotateCache = {};
+
+function isAnnotateActive() {
+  return annotateToggle && annotateToggle.checked;
+}
+
+function hideAnnotatePopup() {
+  annotatePopup.classList.remove('visible');
+}
+
+function showAnnotatePopup(x, y) {
+  annotatePopup.classList.add('visible');
+
+  // Position near cursor, but keep on screen
+  const popupWidth = 340;
+  const popupHeight = 120;
+  let left = x + 10;
+  let top = y + 10;
+
+  if (left + popupWidth > window.innerWidth - 20) {
+    left = window.innerWidth - popupWidth - 20;
+  }
+  if (top + popupHeight > window.innerHeight - 20) {
+    top = y - popupHeight - 10;
+  }
+  if (left < 10) left = 10;
+  if (top < 10) top = 10;
+
+  annotatePopup.style.left = left + 'px';
+  annotatePopup.style.top = top + 'px';
+}
+
+function getExpandedBriefingContext(selectionNode) {
+  // Walk up from selection to find the .briefing container and extract text + headline
+  let el = selectionNode;
+  while (el && !el.classList?.contains('card')) {
+    el = el.parentElement;
+  }
+  if (!el) return { headline: '', briefingText: '' };
+
+  const titleEl = el.querySelector('.card-title');
+  const briefingEl = el.querySelector('.briefing-content');
+  return {
+    headline: titleEl ? titleEl.textContent : '',
+    briefingText: briefingEl ? briefingEl.textContent : ''
+  };
+}
+
+async function explainTerm(term, headline, briefingText, x, y) {
+  // Check cache
+  const cacheKey = (term + '||' + headline).toLowerCase();
+  if (annotateCache[cacheKey]) {
+    annotatePopupBody.innerHTML =
+      '<div class="annotate-popup-term">' + escapeHtml(term) + '</div>' +
+      '<div class="annotate-popup-text">' + escapeHtml(annotateCache[cacheKey]) + '</div>';
+    showAnnotatePopup(x, y);
+    return;
+  }
+
+  // Show loading
+  annotatePopupBody.innerHTML =
+    '<div class="annotate-popup-term">' + escapeHtml(term) + '</div>' +
+    '<div class="annotate-popup-loading"><div class="spinner"></div><span>Explaining&hellip;</span></div>';
+  showAnnotatePopup(x, y);
+
+  try {
+    const res = await fetch('/api/annotate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ term, headline, briefingText })
+    });
+
+    const data = await res.json();
+
+    if (data.explanation) {
+      annotateCache[cacheKey] = data.explanation;
+      annotatePopupBody.innerHTML =
+        '<div class="annotate-popup-term">' + escapeHtml(term) + '</div>' +
+        '<div class="annotate-popup-text">' + escapeHtml(data.explanation) + '</div>';
+    } else {
+      annotatePopupBody.innerHTML =
+        '<div class="annotate-popup-term">' + escapeHtml(term) + '</div>' +
+        '<div class="annotate-popup-text" style="color:#999;">Could not explain this term.</div>';
+    }
+  } catch (err) {
+    annotatePopupBody.innerHTML =
+      '<div class="annotate-popup-term">' + escapeHtml(term) + '</div>' +
+      '<div class="annotate-popup-text" style="color:#999;">Failed to load explanation.</div>';
+  }
+}
+
+// Listen for text selection (mouseup) when annotate mode is on
+document.addEventListener('mouseup', (e) => {
+  if (!isAnnotateActive()) return;
+
+  // Don't trigger on popup itself
+  if (e.target.closest('.annotate-popup')) return;
+  if (e.target.closest('.annotate-toggle')) return;
+
+  const selection = window.getSelection();
+  const term = selection.toString().trim();
+
+  // Minimum 2 characters
+  if (term.length < 2 || term.length > 80) {
+    return;
+  }
+
+  // Only trigger within briefing content areas
+  const anchorNode = selection.anchorNode;
+  if (!anchorNode) return;
+  const parentEl = anchorNode.parentElement || anchorNode;
+  if (!parentEl.closest('.briefing') && !parentEl.closest('.impact-section') && !parentEl.closest('.sentiment-section')) {
+    return;
+  }
+
+  const { headline, briefingText } = getExpandedBriefingContext(anchorNode);
+  explainTerm(term, headline, briefingText, e.clientX, e.clientY);
+});
+
+// Close popup
+annotatePopupClose.addEventListener('click', (e) => {
+  e.stopPropagation();
+  hideAnnotatePopup();
+});
+
+// Close popup when clicking outside
+document.addEventListener('mousedown', (e) => {
+  if (!e.target.closest('.annotate-popup')) {
+    hideAnnotatePopup();
+  }
+});
+
 // ── Event Listeners ─────────────────────────────────────────────
 
 refreshBtn.addEventListener('click', fetchStories);
