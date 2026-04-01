@@ -647,13 +647,16 @@ app.get('/api/sentiment/reddit', async (req, res) => {
     for (const sub of subreddits) {
       try {
         const url = `https://www.reddit.com/r/${sub}/search.json?q=${query}&sort=relevance&t=month&limit=5&restrict_sr=on`;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
         const response = await fetch(url, {
-          timeout: 6000,
+          signal: controller.signal,
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'application/json'
+            'Accept': 'text/html, application/json'
           }
         });
+        clearTimeout(timeoutId);
 
         if (!response.ok) continue;
 
@@ -739,14 +742,17 @@ app.get('/api/sentiment/bluesky', async (req, res) => {
     // Bluesky public search API — no auth needed
     const url = `https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts?q=${query}&sort=top&limit=25`;
 
+    const bskyController = new AbortController();
+    const bskyTimeout = setTimeout(() => bskyController.abort(), 10000);
     const response = await fetch(url, {
-      timeout: 8000,
+      signal: bskyController.signal,
       headers: {
-        'User-Agent': 'GeoSignal/1.0',
+        'User-Agent': 'Mozilla/5.0 (compatible; GeoSignal/1.0)',
         'Accept': 'application/json'
       }
     });
 
+    clearTimeout(bskyTimeout);
     if (!response.ok) {
       console.error('Bluesky API error:', response.status);
       return res.json({ platform: 'bluesky', query: topic, posts: [], note: 'Bluesky API unavailable.' });

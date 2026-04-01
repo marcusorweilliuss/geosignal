@@ -330,13 +330,19 @@ async function fetchSentiment(article, container) {
       '<div class="sentiment-loading"><div class="spinner"></div><span>Searching public discussions&hellip;</span></div>' +
     '</div>';
 
-  // Build a short topic from the headline
-  const topic = article.title.substring(0, 120);
+  // Extract key terms from headline for better search
+  const stopWords = ['the','a','an','and','or','but','in','on','at','to','for','of','with','by','from','is','are','was','were','has','have','had','not','as','its','says','said','new','over','after','will','could','may','been','into','about','more','than'];
+  const keywords = article.title.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/)
+    .filter(w => w.length > 2 && !stopWords.includes(w))
+    .slice(0, 4);
+  const topic = keywords.join(' ');
 
   try {
     // Fetch Reddit and Bluesky in parallel
     const [redditRes, blueskyRes] = await Promise.all([
-      fetch('/api/sentiment/reddit?topic=' + encodeURIComponent(topic)).then(r => r.json()).catch(() => ({ posts: [] })),
+      fetch('/api/sentiment/reddit?topic=' + encodeURIComponent(topic)).then(r => r.json()).catch(e => { console.log('Reddit failed:', e); return { posts: [], error: true }; }),
+      fetch('/api/sentiment/bluesky?topic=' + encodeURIComponent(topic)).then(r => r.json()).catch(e => { console.log('Bluesky failed:', e); return { posts: [], error: true }; })
+    ]);
       fetch('/api/sentiment/bluesky?topic=' + encodeURIComponent(topic)).then(r => r.json()).catch(() => ({ posts: [] }))
     ]);
 
@@ -344,10 +350,13 @@ async function fetchSentiment(article, container) {
     const blueskyPosts = blueskyRes.posts || [];
 
     if (redditPosts.length === 0 && blueskyPosts.length === 0) {
+      const hasError = redditRes.error || blueskyRes.error;
       container.innerHTML =
         '<div class="sentiment-section">' +
           '<div class="sentiment-header"><span class="sentiment-title">Public Discourse</span></div>' +
-          '<div class="sentiment-empty">No public discussions found for this topic.</div>' +
+          '<div class="sentiment-empty">' +
+            (hasError ? 'Could not reach Reddit/Bluesky. Check your internet connection or try again.' : 'No public discussions found for "' + escapeHtml(topic) + '".') +
+          '</div>' +
         '</div>';
       return;
     }
@@ -561,13 +570,13 @@ async function fetchBriefing(article, container) {
       html += '<a class="card-link" href="' + escapeHtml(article.url) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">Read original source &rarr;</a>';
     }
 
-    // Annotate hint when mode is active
-    if (isAnnotateActive()) {
-      html += '<div class="annotate-hint">Annotate mode is on — highlight any term above for a plain-English explanation</div>';
-    }
-
     html += '</div>';
     container.innerHTML = html;
+
+    // Auto-highlight terms when annotate mode is on
+    if (isAnnotateActive()) {
+      highlightTermsInElement(container);
+    }
   } catch (err) {
     console.error('Briefing error:', err);
     container.innerHTML = '<div class="briefing-error">Failed to generate briefing.</div>';
@@ -609,8 +618,49 @@ const annotatePopup = document.getElementById('annotate-popup');
 const annotatePopupBody = document.getElementById('annotate-popup-body');
 const annotatePopupClose = document.getElementById('annotate-popup-close');
 
-// Session cache: term+headline → explanation
 const annotateCache = {};
+
+// Terms that non-experts might need explained — auto-highlighted when annotate is on
+const ANNOTATE_TERMS = [
+  // Geopolitics & IR
+  'sanctions', 'bilateral', 'multilateral', 'sovereignty', 'annexation', 'territorial integrity',
+  'non-aligned', 'deterrence', 'escalation', 'de-escalation', 'proxy war', 'frozen conflict',
+  'diplomatic immunity', 'ceasefire', 'armistice', 'détente', 'rapprochement', 'realpolitik',
+  'soft power', 'hard power', 'balance of power', 'hegemon', 'hegemony', 'sphere of influence',
+  'containment', 'appeasement', 'brinkmanship', 'geopolitical', 'non-proliferation', 'NATO',
+  'ASEAN', 'BRICS', 'G7', 'G20', 'UN Security Council', 'veto power', 'peacekeeping',
+  'humanitarian corridor', 'no-fly zone', 'freedom of navigation', 'exclusive economic zone',
+  'maritime dispute', 'belt and road', 'quad', 'AUKUS', 'five eyes', 'two-state solution',
+  'right of return', 'occupied territories', 'settler colonialism', 'regime change',
+  'failed state', 'rogue state', 'axis of resistance', 'abraham accords',
+  // Economics & Finance
+  'GDP', 'quantitative easing', 'fiscal policy', 'monetary policy', 'inflation', 'deflation',
+  'stagflation', 'recession', 'austerity', 'stimulus', 'bond yields', 'sovereign debt',
+  'default', 'IMF', 'World Bank', 'trade deficit', 'trade surplus', 'current account',
+  'tariff', 'subsidy', 'embargo', 'capital flight', 'foreign direct investment', 'FDI',
+  'reserve currency', 'petrodollar', 'de-dollarisation', 'central bank', 'interest rate',
+  'basis points', 'yield curve', 'credit rating', 'forex', 'devaluation', 'supply chain',
+  'decoupling', 'reshoring', 'nearshoring', 'PPP', 'per capita', 'gini coefficient',
+  // Defence & Security
+  'ICBM', 'hypersonic', 'nuclear triad', 'first strike', 'second strike', 'MAD',
+  'mutual assured destruction', 'arms race', 'defence spending', 'military-industrial complex',
+  'counterinsurgency', 'COIN', 'asymmetric warfare', 'hybrid warfare', 'cyber warfare',
+  'intelligence community', 'SIGINT', 'HUMINT', 'covert operations', 'drone strike',
+  'rules of engagement', 'force projection', 'aircraft carrier', 'theatre', 'sortie',
+  // Climate & Energy
+  'COP', 'paris agreement', 'net zero', 'carbon neutral', 'carbon credit', 'carbon tax',
+  'emissions trading', 'renewable energy', 'fossil fuels', 'energy transition', 'energy security',
+  'LNG', 'OPEC', 'peak oil', 'stranded assets', 'green bond', 'ESG', 'just transition',
+  // Tech
+  'semiconductor', 'chip fab', 'AI regulation', 'artificial general intelligence', 'AGI',
+  'surveillance state', 'data sovereignty', 'cyber espionage', 'zero-day', 'deepfake',
+  'disinformation', 'information warfare', 'tech decoupling', 'rare earth minerals',
+  // Society
+  'diaspora', 'refugee', 'internally displaced', 'asylum', 'extradition', 'rule of law',
+  'authoritarian', 'autocracy', 'democracy index', 'press freedom', 'civil society',
+  'ethnic cleansing', 'genocide', 'crimes against humanity', 'ICC', 'ICJ',
+  'universal jurisdiction', 'state of emergency', 'martial law', 'coup', 'junta'
+];
 
 function isAnnotateActive() {
   return annotateToggle && annotateToggle.checked;
@@ -622,36 +672,24 @@ function hideAnnotatePopup() {
 
 function showAnnotatePopup(x, y) {
   annotatePopup.classList.add('visible');
-
-  // Position near cursor, but keep on screen
   const popupWidth = 340;
   const popupHeight = 120;
   let left = x + 10;
   let top = y + 10;
-
-  if (left + popupWidth > window.innerWidth - 20) {
-    left = window.innerWidth - popupWidth - 20;
-  }
-  if (top + popupHeight > window.innerHeight - 20) {
-    top = y - popupHeight - 10;
-  }
+  if (left + popupWidth > window.innerWidth - 20) left = window.innerWidth - popupWidth - 20;
+  if (top + popupHeight > window.innerHeight - 20) top = y - popupHeight - 10;
   if (left < 10) left = 10;
   if (top < 10) top = 10;
-
   annotatePopup.style.left = left + 'px';
   annotatePopup.style.top = top + 'px';
 }
 
-function getExpandedBriefingContext(selectionNode) {
-  // Walk up from selection to find the .briefing container and extract text + headline
-  let el = selectionNode;
-  while (el && !el.classList?.contains('card')) {
-    el = el.parentElement;
-  }
-  if (!el) return { headline: '', briefingText: '' };
-
-  const titleEl = el.querySelector('.card-title');
-  const briefingEl = el.querySelector('.briefing-content');
+function getBriefingContext(el) {
+  let card = el;
+  while (card && !card.classList?.contains('card')) card = card.parentElement;
+  if (!card) return { headline: '', briefingText: '' };
+  const titleEl = card.querySelector('.card-title');
+  const briefingEl = card.querySelector('.briefing-content');
   return {
     headline: titleEl ? titleEl.textContent : '',
     briefingText: briefingEl ? briefingEl.textContent : ''
@@ -659,7 +697,6 @@ function getExpandedBriefingContext(selectionNode) {
 }
 
 async function explainTerm(term, headline, briefingText, x, y) {
-  // Check cache
   const cacheKey = (term + '||' + headline).toLowerCase();
   if (annotateCache[cacheKey]) {
     annotatePopupBody.innerHTML =
@@ -669,7 +706,6 @@ async function explainTerm(term, headline, briefingText, x, y) {
     return;
   }
 
-  // Show loading
   annotatePopupBody.innerHTML =
     '<div class="annotate-popup-term">' + escapeHtml(term) + '</div>' +
     '<div class="annotate-popup-loading"><div class="spinner"></div><span>Explaining&hellip;</span></div>';
@@ -681,9 +717,7 @@ async function explainTerm(term, headline, briefingText, x, y) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ term, headline, briefingText })
     });
-
     const data = await res.json();
-
     if (data.explanation) {
       annotateCache[cacheKey] = data.explanation;
       annotatePopupBody.innerHTML =
@@ -694,50 +728,92 @@ async function explainTerm(term, headline, briefingText, x, y) {
         '<div class="annotate-popup-term">' + escapeHtml(term) + '</div>' +
         '<div class="annotate-popup-text" style="color:#999;">Could not explain this term.</div>';
     }
-  } catch (err) {
+  } catch {
     annotatePopupBody.innerHTML =
       '<div class="annotate-popup-term">' + escapeHtml(term) + '</div>' +
       '<div class="annotate-popup-text" style="color:#999;">Failed to load explanation.</div>';
   }
 }
 
-// Listen for text selection (mouseup) when annotate mode is on
+// Auto-highlight known terms in briefing text elements
+function highlightTermsInElement(el) {
+  if (!el) return;
+  const textEls = el.querySelectorAll('.briefing-text, .impact-body .briefing-text');
+  textEls.forEach(textEl => {
+    let html = textEl.innerHTML;
+    // Only process if no highlights yet
+    if (html.includes('annotate-keyword')) return;
+
+    // Sort terms by length (longest first) to avoid partial matches
+    const sorted = [...ANNOTATE_TERMS].sort((a, b) => b.length - a.length);
+    for (const term of sorted) {
+      const regex = new RegExp('\\b(' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')\\b', 'gi');
+      html = html.replace(regex, '<span class="annotate-keyword" data-term="$1">$1</span>');
+    }
+    textEl.innerHTML = html;
+  });
+}
+
+// Remove highlights from an element
+function removeHighlightsFromElement(el) {
+  if (!el) return;
+  const keywords = el.querySelectorAll('.annotate-keyword');
+  keywords.forEach(kw => {
+    const text = document.createTextNode(kw.textContent);
+    kw.parentNode.replaceChild(text, kw);
+  });
+}
+
+// When annotate toggle changes, highlight/unhighlight all open briefings
+annotateToggle.addEventListener('change', () => {
+  const briefings = document.querySelectorAll('.briefing');
+  if (isAnnotateActive()) {
+    briefings.forEach(b => highlightTermsInElement(b));
+  } else {
+    briefings.forEach(b => removeHighlightsFromElement(b));
+    hideAnnotatePopup();
+  }
+});
+
+// Click handler for highlighted keywords
+document.addEventListener('click', (e) => {
+  const keyword = e.target.closest('.annotate-keyword');
+  if (!keyword || !isAnnotateActive()) return;
+
+  e.stopPropagation();
+  const term = keyword.dataset.term || keyword.textContent;
+  const { headline, briefingText } = getBriefingContext(keyword);
+  const rect = keyword.getBoundingClientRect();
+  explainTerm(term, headline, briefingText, rect.left, rect.bottom + window.scrollY);
+});
+
+// Also support text selection for terms not in the dictionary
 document.addEventListener('mouseup', (e) => {
   if (!isAnnotateActive()) return;
-
-  // Don't trigger on popup itself
   if (e.target.closest('.annotate-popup')) return;
   if (e.target.closest('.annotate-toggle')) return;
+  if (e.target.closest('.annotate-keyword')) return; // handled by click
 
   const selection = window.getSelection();
   const term = selection.toString().trim();
+  if (term.length < 2 || term.length > 80) return;
 
-  // Minimum 2 characters
-  if (term.length < 2 || term.length > 80) {
-    return;
-  }
-
-  // Only trigger within briefing content areas
   const anchorNode = selection.anchorNode;
   if (!anchorNode) return;
   const parentEl = anchorNode.parentElement || anchorNode;
-  if (!parentEl.closest('.briefing') && !parentEl.closest('.impact-section') && !parentEl.closest('.sentiment-section')) {
-    return;
-  }
+  if (!parentEl.closest('.briefing') && !parentEl.closest('.impact-section') && !parentEl.closest('.sentiment-section')) return;
 
-  const { headline, briefingText } = getExpandedBriefingContext(anchorNode);
+  const { headline, briefingText } = getBriefingContext(anchorNode);
   explainTerm(term, headline, briefingText, e.clientX, e.clientY);
 });
 
-// Close popup
 annotatePopupClose.addEventListener('click', (e) => {
   e.stopPropagation();
   hideAnnotatePopup();
 });
 
-// Close popup when clicking outside
 document.addEventListener('mousedown', (e) => {
-  if (!e.target.closest('.annotate-popup')) {
+  if (!e.target.closest('.annotate-popup') && !e.target.closest('.annotate-keyword')) {
     hideAnnotatePopup();
   }
 });
