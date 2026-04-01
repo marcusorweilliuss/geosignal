@@ -581,6 +581,102 @@ app.get('/api/sources/stats', (req, res) => {
   res.json({ regions: stats, total, cachedFeeds: Object.keys(feedCache).length });
 });
 
+// ── Reddit Sentiment Search ─────────────────────────────────────
+// Searches Reddit for recent discussions related to a topic
+
+const redditCache = {};
+const REDDIT_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+
+app.get('/api/sentiment/reddit', async (req, res) => {
+  try {
+    const { topic } = req.query;
+    if (!topic) return res.status(400).json({ error: 'topic parameter required' });
+
+    // Check cache
+    const cacheKey = topic.toLowerCase().trim();
+    const cached = redditCache[cacheKey];
+    if (cached && (Date.now() - cached.fetchedAt) < REDDIT_CACHE_TTL) {
+      return res.json(cached.data);
+    }
+
+    // Build search query — keep it focused
+    const query = encodeURIComponent(topic.substring(0, 150));
+
+    // Search across geopolitics-relevant subreddits
+    const subreddits = [
+      'worldnews', 'geopolitics', 'internationalpolitics',
+      'economics', 'energy', 'technology', 'news'
+    ];
+
+    const allPosts = [];
+
+    // Search Reddit's JSON API (no auth needed)
+    for (const sub of subreddits) {
+      try {
+        const url = `https://www.reddit.com/r/${sub}/search.json?q=${query}&sort=relevance&t=week&limit=5&restrict_sr=on`;
+        const response = await fetch(url, {
+          timeout: 5000,
+          headers: {
+            'User-Agent': 'GeoSignal/1.0 (geopolitical news aggregator)'
+          }
+        });
+
+        if (!response.ok) continue;
+
+        const data = await response.json();
+        const posts = (data?.data?.children || []).map(child => {
+          const post = child.data;
+          return {
+            title: post.title || '',
+            subreddit: post.subreddit_name_prefixed || `r/${sub}`,
+            score: post.score || 0,
+            numComments: post.num_comments || 0,
+            url: `https://reddit.com${post.permalink}`,
+            created: post.created_utc ? new Date(post.created_utc * 1000).toISOString() : '',
+            selftext: (post.selftext || '').substring(0, 200)
+          };
+        });
+
+        allPosts.push(...posts);
+      } catch {
+        // Skip failed subreddit, continue with others
+        continue;
+      }
+
+      // Brief pause to avoid rate limiting
+      await new Promise(r => setTimeout(r, 200));
+    }
+
+    // Deduplicate by title
+    const seen = new Set();
+    const unique = allPosts.filter(p => {
+      const key = p.title.toLowerCase().trim();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    // Sort by engagement (score + comments) and take top 5
+    unique.sort((a, b) => (b.score + b.numComments * 2) - (a.score + a.numComments * 2));
+    const topPosts = unique.slice(0, 5);
+
+    const result = {
+      platform: 'reddit',
+      query: topic,
+      posts: topPosts,
+      note: 'Reddit skews younger, male, and left-of-centre in English-speaking subreddits. Weigh accordingly.'
+    };
+
+    // Cache the result
+    redditCache[cacheKey] = { data: result, fetchedAt: Date.now() };
+
+    res.json(result);
+  } catch (err) {
+    console.error('Reddit sentiment error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch Reddit discussions', posts: [] });
+  }
+});
+
 app.listen(PORT, () => {
   const totalSources = Object.values(SOURCES).reduce((a, b) => a + b.length, 0);
   console.log(`GeoSignal running at http://localhost:${PORT}`);
