@@ -980,7 +980,32 @@ const JUNK_PATTERNS = [
   /watch live stream/i,
 ];
 
-// Country lists per region for scoring
+// Significance/urgency words — articles with these are likely high-impact
+const SIGNIFICANCE_WORDS = [
+  'unprecedented', 'historic', 'breaking', 'first time', 'emergency',
+  'crisis', 'war', 'invasion', 'collapsed', 'assassination', 'coup',
+  'martial law', 'state of emergency', 'nuclear', 'escalation',
+  'ceasefire', 'peace deal', 'landmark', 'record high', 'record low',
+  'surge', 'plunge', 'crashed', 'soared', 'ban', 'banned',
+  'expelled', 'recalled ambassador', 'severed ties', 'declared war',
+  'mobilization', 'blockade', 'shutdown', 'default', 'bailout',
+  'impeach', 'resign', 'overthrow', 'revolution', 'massacre',
+  'genocide', 'famine', 'catastroph', 'devastating', 'deadliest',
+  'largest ever', 'biggest', 'worst', 'all-time', 'new law',
+  'executive order', 'veto', 'unanimous', 'indicted', 'arrested',
+  'extradited', 'tribunal', 'ruling', 'verdict', 'deployed',
+  'retaliatory', 'retaliation', 'ultimatum', 'threat', 'warns'
+];
+
+// Low-value patterns — score penalty for opinion/fluff
+const LOW_VALUE_PATTERNS = [
+  /^opinion:/i, /^editorial:/i, /^column:/i, /^review:/i,
+  /^podcast:/i, /^video:/i, /^photos:/i, /^gallery:/i,
+  /what we know so far/i, /everything you need to know/i,
+  /here'?s what/i, /a guide to/i,
+];
+
+// Country lists + key cities, leaders, institutions, alternate names
 // Country lists + key cities, leaders, institutions, alternate names
 const REGION_COUNTRIES = {
   'south-asia': ['India', 'Pakistan', 'Bangladesh', 'Sri Lanka', 'Nepal', 'Bhutan', 'Afghanistan', 'Maldives', 'Myanmar', 'Modi', 'Delhi', 'New Delhi', 'Mumbai', 'Islamabad', 'Karachi', 'Dhaka', 'Colombo', 'Kathmandu', 'Kabul', 'Kashmir', 'Indian', 'Pakistani', 'Taliban', 'Rohingya', 'Bengali'],
@@ -1135,14 +1160,31 @@ function scoreArticle(article, region, userProfile, activeSectors) {
     }
   }
 
-  // ── Headline quality signals ──
-  // Named entities (proper nouns, specific events) indicate substantive news
-  const hasQuotes = (article.title || '').includes('"') || (article.title || '').includes("'");
+  // ── Headline quality & significance (−5 to +15) ──
   const hasNumbers = /\d/.test(article.title || '');
   const titleWords = (article.title || '').split(/\s+/).length;
-  if (hasNumbers) score += 3; // Specific figures = substantive
-  if (titleWords >= 8 && titleWords <= 20) score += 2; // Good headline length
-  if (hasQuotes) score += 2; // Direct quotes = real reporting
+  if (hasNumbers) score += 3;
+  if (titleWords >= 8 && titleWords <= 20) score += 2;
+
+  // Significance boost — breaking/urgent/high-impact language
+  let sigMatches = 0;
+  for (const word of SIGNIFICANCE_WORDS) {
+    if (headline.includes(word.toLowerCase())) {
+      sigMatches++;
+      if (sigMatches >= 3) break;
+    }
+  }
+  if (sigMatches >= 3) score += 15;
+  else if (sigMatches >= 2) score += 10;
+  else if (sigMatches === 1) score += 5;
+
+  // Low-value penalty — opinion, editorials, explainers
+  for (const pattern of LOW_VALUE_PATTERNS) {
+    if (pattern.test(article.title || '')) {
+      score -= 5;
+      break;
+    }
+  }
 
   // ── Recency (0-25) ──
   if (article.publishedAt) {
@@ -1203,4 +1245,4 @@ function scoreArticle(article, region, userProfile, activeSectors) {
 
 const GOVERNMENT_CAVEAT = 'This is an official government statement. The analysis below summarises the content as presented by the issuing government. It does not reflect independent verification or editorial judgment. Read alongside independent sources for full context.';
 
-module.exports = { SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT, SECTOR_KEYWORDS, REGION_COUNTRIES, JUNK_PATTERNS };
+module.exports = { SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT, SECTOR_KEYWORDS, REGION_COUNTRIES, JUNK_PATTERNS, SIGNIFICANCE_WORDS };

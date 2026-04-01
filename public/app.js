@@ -227,9 +227,80 @@ async function fetchStories() {
 
     renderFeed(currentArticles);
     generateTldrs(currentArticles);
+
+    // Generate cross-sector analysis if profile exists
+    const crossProfile = getProfile();
+    if (crossProfile && crossProfile.role && currentArticles.length >= 3) {
+      fetchCrossSectorInsights(currentArticles, crossProfile, region);
+    }
   } catch (err) {
     console.error('Fetch error:', err);
     feed.innerHTML = '<div class="empty-feed">Connection failed. Try again.</div>';
+  }
+}
+
+// ── Cross-Sector Analysis ───────────────────────────────────────
+
+async function fetchCrossSectorInsights(articles, profile, region) {
+  // Insert container at top of feed
+  let container = document.getElementById('cross-sector-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'cross-sector-container';
+    feed.insertBefore(container, feed.firstChild);
+  }
+
+  container.innerHTML =
+    '<div class="cross-sector-bubble loading">' +
+      '<div class="cross-sector-header">' +
+        '<span class="cross-sector-icon">&#9670;</span>' +
+        '<span class="cross-sector-title">Cross-Sector Signals</span>' +
+      '</div>' +
+      '<div class="cross-sector-loading"><div class="spinner"></div><span>Detecting patterns across sectors&hellip;</span></div>' +
+    '</div>';
+
+  try {
+    const res = await fetch('/api/cross-sector', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        articles: articles.slice(0, 15).map(a => ({ title: a.title, source: a.source })),
+        profile,
+        region
+      })
+    });
+
+    const data = await res.json();
+
+    if (!data.insights || data.insights.length === 0) {
+      container.innerHTML = '';
+      return;
+    }
+
+    let html =
+      '<div class="cross-sector-bubble">' +
+        '<div class="cross-sector-header">' +
+          '<span class="cross-sector-icon">&#9670;</span>' +
+          '<span class="cross-sector-title">Cross-Sector Signals</span>' +
+          '<span class="cross-sector-subtitle">Patterns detected across today\'s stories for your profile</span>' +
+        '</div>';
+
+    data.insights.forEach(insight => {
+      html +=
+        '<div class="cross-sector-pattern">' +
+          '<div class="cross-sector-pattern-title">' + escapeHtml(insight.title) + '</div>' +
+          '<ul class="cross-sector-bullets">';
+      insight.bullets.forEach(b => {
+        html += '<li>' + escapeHtml(b) + '</li>';
+      });
+      html += '</ul></div>';
+    });
+
+    html += '</div>';
+    container.innerHTML = html;
+  } catch (err) {
+    console.error('Cross-sector error:', err);
+    container.innerHTML = '';
   }
 }
 

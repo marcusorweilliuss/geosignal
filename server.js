@@ -875,6 +875,81 @@ Term to explain: "${term}"`;
   }
 });
 
+// ── Cross-Sector Analysis ───────────────────────────────────────
+// Detects patterns across articles from different sectors and generates insight
+
+app.post('/api/cross-sector', async (req, res) => {
+  try {
+    const { articles, profile, region } = req.body;
+    if (!articles || articles.length < 3) {
+      return res.json({ insights: [] });
+    }
+
+    // Build a compact summary of top articles for the AI
+    const topArticles = articles.slice(0, 15).map((a, i) =>
+      `[${i + 1}] "${a.title}" (${a.source})`
+    ).join('\n');
+
+    const profileDesc = profile ? [
+      profile.role && `Role: ${profile.role}`,
+      profile.industry && `Industry: ${profile.industry}`,
+      profile.location && `Based in: ${profile.location}`,
+      profile.focus && `Focus areas: ${profile.focus}`
+    ].filter(Boolean).join(' | ') : 'General reader';
+
+    const prompt = `You are a senior intelligence analyst. Look at these news headlines from ${region || 'around the world'} and identify cross-sector patterns — connections between stories that span different domains (e.g., a geopolitical event affecting energy markets affecting trade routes).
+
+READER PROFILE: ${profileDesc}
+
+TODAY'S HEADLINES:
+${topArticles}
+
+Identify 2-3 cross-sector patterns. For each, explain in 1-2 bullet points how multiple stories connect and what it means for the reader's profile specifically.
+
+Respond in EXACTLY this format, no markdown:
+
+PATTERN 1: [Short title, max 8 words]
+- [Which headlines connect and how, one line]
+- [What it means for this reader specifically, one line]
+
+PATTERN 2: [Short title, max 8 words]
+- [Which headlines connect and how, one line]
+- [What it means for this reader specifically, one line]
+
+PATTERN 3: [Short title, max 8 words]
+- [Which headlines connect and how, one line]
+- [What it means for this reader specifically, one line]
+
+Only include patterns where there is a genuine cross-sector connection. If fewer than 2 real patterns exist, return fewer. Never force a connection.`;
+
+    const chatCompletion = await groqChat(
+      [{ role: 'user', content: prompt }],
+      { temperature: 0.4, max_tokens: 400 }
+    );
+
+    const raw = chatCompletion.choices[0]?.message?.content || '';
+
+    // Parse patterns
+    const patterns = [];
+    const patternRegex = /PATTERN \d+:\s*(.+?)(?=PATTERN \d+:|$)/gs;
+    let match;
+    while ((match = patternRegex.exec(raw)) !== null) {
+      const block = match[1].trim();
+      const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+      const title = lines[0] || '';
+      const bullets = lines.slice(1).filter(l => l.startsWith('-')).map(l => l.substring(1).trim());
+      if (title && bullets.length > 0) {
+        patterns.push({ title, bullets });
+      }
+    }
+
+    res.json({ insights: patterns });
+  } catch (err) {
+    console.error('Cross-sector analysis error:', err.message);
+    res.json({ insights: [] });
+  }
+});
+
 app.listen(PORT, () => {
   const totalSources = Object.values(SOURCES).reduce((a, b) => a + b.length, 0);
   console.log(`GeoSignal running at http://localhost:${PORT}`);
