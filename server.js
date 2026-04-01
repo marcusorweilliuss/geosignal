@@ -677,6 +677,81 @@ app.get('/api/sentiment/reddit', async (req, res) => {
   }
 });
 
+// ── Bluesky Sentiment Search ────────────────────────────────────
+// Searches Bluesky's public API for posts related to a topic
+
+const blueskyCache = {};
+const BLUESKY_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+
+app.get('/api/sentiment/bluesky', async (req, res) => {
+  try {
+    const { topic } = req.query;
+    if (!topic) return res.status(400).json({ error: 'topic parameter required' });
+
+    // Check cache
+    const cacheKey = topic.toLowerCase().trim();
+    const cached = blueskyCache[cacheKey];
+    if (cached && (Date.now() - cached.fetchedAt) < BLUESKY_CACHE_TTL) {
+      return res.json(cached.data);
+    }
+
+    // Bluesky public search API — no auth needed
+    const query = encodeURIComponent(topic.substring(0, 150));
+    const url = `https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts?q=${query}&sort=top&limit=25`;
+
+    const response = await fetch(url, {
+      timeout: 8000,
+      headers: {
+        'User-Agent': 'GeoSignal/1.0',
+        'Accept': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      console.error('Bluesky API error:', response.status);
+      return res.json({ platform: 'bluesky', query: topic, posts: [], note: 'Bluesky API unavailable.' });
+    }
+
+    const data = await response.json();
+    const posts = (data.posts || []).map(post => {
+      const record = post.record || {};
+      const author = post.author || {};
+      return {
+        text: (record.text || '').substring(0, 300),
+        username: author.handle || 'unknown',
+        displayName: author.displayName || author.handle || 'Unknown',
+        likes: post.likeCount || 0,
+        reposts: post.repostCount || 0,
+        replies: post.replyCount || 0,
+        url: author.handle && post.uri
+          ? `https://bsky.app/profile/${author.handle}/post/${post.uri.split('/').pop()}`
+          : '',
+        created: record.createdAt || ''
+      };
+    });
+
+    // Filter out very short posts and sort by engagement
+    const meaningful = posts.filter(p => p.text.length > 30);
+    meaningful.sort((a, b) => (b.likes + b.reposts * 2 + b.replies) - (a.likes + a.reposts * 2 + a.replies));
+    const topPosts = meaningful.slice(0, 5);
+
+    const result = {
+      platform: 'bluesky',
+      query: topic,
+      posts: topPosts,
+      note: 'Bluesky skews toward journalists, academics, and tech-adjacent users. Growing but not yet representative of general public opinion.'
+    };
+
+    // Cache the result
+    blueskyCache[cacheKey] = { data: result, fetchedAt: Date.now() };
+
+    res.json(result);
+  } catch (err) {
+    console.error('Bluesky sentiment error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch Bluesky posts', posts: [] });
+  }
+});
+
 app.listen(PORT, () => {
   const totalSources = Object.values(SOURCES).reduce((a, b) => a + b.length, 0);
   console.log(`GeoSignal running at http://localhost:${PORT}`);
