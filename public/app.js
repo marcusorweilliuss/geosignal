@@ -414,7 +414,8 @@ async function fetchBriefing(article, container) {
       body: JSON.stringify({
         title: article.title, source: article.source,
         description: article.description, content: article.content,
-        isOfficial: article.isOfficial, url: article.url
+        isOfficial: article.isOfficial, url: article.url,
+        region: article.region
       })
     });
 
@@ -439,6 +440,17 @@ async function fetchBriefing(article, container) {
       html += '<div class="briefing-section"><div class="briefing-label">' + escapeHtml(section.label) + '</div><div class="briefing-text">' + escapeHtml(section.text) + '</div></div>';
     });
 
+    // Expert source links from think tank cross-referencing
+    if (data.expertSources && data.expertSources.length > 0) {
+      html += '<div class="expert-sources">';
+      html += '<div class="briefing-label">Sources Referenced</div>';
+      data.expertSources.forEach(es => {
+        html += '<a class="expert-source-link" href="' + escapeHtml(es.url) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">' +
+          escapeHtml(es.source) + ': ' + escapeHtml(es.title) + ' &rarr;</a>';
+      });
+      html += '</div>';
+    }
+
     if (article.url) {
       html += '<a class="card-link" href="' + escapeHtml(article.url) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">Read original source &rarr;</a>';
     }
@@ -452,7 +464,7 @@ async function fetchBriefing(article, container) {
 }
 
 function parseBriefing(text, isOfficial) {
-  const standardLabels = ['WHAT HAPPENED', 'WHAT LED TO THIS', 'WHAT EXPERTS ARE SAYING', 'WHY THIS MATTERS'];
+  const standardLabels = ['WHAT HAPPENED', 'WHAT LED TO THIS', 'WHAT REGIONAL EXPERTS ARE SAYING', 'WHY THIS MATTERS'];
   const officialLabels = ['WHAT HAPPENED', 'WHAT LED TO THIS', 'WHAT THE GOVERNMENT IS CLAIMING AND ITS LIKELY STRATEGIC INTENT', 'WHY THIS MATTERS'];
   const labels = isOfficial ? officialLabels : standardLabels;
   const sections = [];

@@ -148,6 +148,83 @@ async function fetchFullArticleText(url) {
   }
 }
 
+// ── Think Tank Cross-Referencing ────────────────────────────────
+// Searches cached think-tank-academic articles for content related to a given article
+
+function extractKeywords(title) {
+  const stopWords = new Set([
+    'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+    'of', 'with', 'by', 'from', 'is', 'are', 'was', 'were', 'be', 'been',
+    'has', 'have', 'had', 'do', 'does', 'did', 'will', 'would', 'could',
+    'should', 'may', 'might', 'can', 'this', 'that', 'these', 'those',
+    'it', 'its', 'not', 'no', 'as', 'if', 'so', 'up', 'out', 'about',
+    'into', 'over', 'after', 'before', 'between', 'under', 'again', 'more',
+    'most', 'other', 'some', 'such', 'than', 'too', 'very', 'just', 'new',
+    'says', 'said', 'also', 'how', 'why', 'what', 'when', 'where', 'who',
+    'which', 'all', 'each', 'every', 'both', 'few', 'many', 'much', 'own',
+    'being', 'amid', 'per', 'via', 'news', 'report', 'update', 'latest'
+  ]);
+
+  return (title || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, '')
+    .split(/\s+/)
+    .filter(w => w.length > 2 && !stopWords.has(w));
+}
+
+function findRelatedThinkTankArticles(articleTitle, regionSlug, limit = 3) {
+  const keywords = extractKeywords(articleTitle);
+  if (keywords.length === 0) return [];
+
+  // Get all think-tank-academic sources for this region (and global)
+  const thinkTankSources = [
+    ...(SOURCES[regionSlug] || []),
+    ...(SOURCES['global'] || [])
+  ].filter(s => s.tier === 'think-tank-academic');
+
+  // Collect cached articles from these sources
+  const candidates = [];
+  for (const source of thinkTankSources) {
+    const cached = feedCache[source.rssUrl];
+    if (!cached) continue;
+    for (const article of cached.articles) {
+      // Don't match against the same article
+      if (article.title?.toLowerCase().trim() === articleTitle.toLowerCase().trim()) continue;
+
+      const articleWords = extractKeywords(article.title + ' ' + (article.description || ''));
+      // Count keyword overlap
+      let matches = 0;
+      for (const kw of keywords) {
+        if (articleWords.includes(kw)) matches++;
+      }
+
+      if (matches >= 2) {
+        candidates.push({
+          title: article.title,
+          source: article.source,
+          description: (article.description || '').substring(0, 200),
+          url: article.url,
+          matchScore: matches
+        });
+      }
+    }
+  }
+
+  // Sort by match score descending, return top N
+  candidates.sort((a, b) => b.matchScore - a.matchScore);
+
+  // Deduplicate by title
+  const seen = new Set();
+  const unique = candidates.filter(c => {
+    const key = c.title?.toLowerCase().trim();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  return unique.slice(0, limit);
+}
+
 // ── RSS Feed Fetching with Cache ────────────────────────────────
 
 const rssParser = new Parser({
@@ -368,17 +445,30 @@ Do not include any other text, markdown, or formatting. Just the JSON array.`;
 
 app.post('/api/briefing', async (req, res) => {
   try {
-    const { title, source, description, content, isOfficial, url } = req.body;
+    const { title, source, description, content, isOfficial, url, region } = req.body;
 
     // Fetch full article text for richer analysis
     const fullText = url ? await fetchFullArticleText(url) : '';
     const articleContent = fullText || content || description || '';
 
+    // Find related think tank articles from this region
+    const regionSlug = regionSlugMap[region] || 'global';
+    const expertArticles = findRelatedThinkTankArticles(title, regionSlug);
+
+    // Build expert context from real think tank articles
+    let expertContext = '';
+    if (expertArticles.length > 0 && !isOfficial) {
+      expertContext = '\n\nRELATED EXPERT ANALYSIS (from regional think tanks — reference these in your expert section):\n';
+      expertArticles.forEach((ea, i) => {
+        expertContext += `${i + 1}. "${ea.title}" — ${ea.source}\n   ${ea.description}\n`;
+      });
+    }
+
     const expertSection = isOfficial
       ? `WHAT THE GOVERNMENT IS CLAIMING AND ITS LIKELY STRATEGIC INTENT:
 [Analyse what the government is asserting, why it is making this statement now, and what strategic objective it likely serves. Note any contradictions with independent reporting.]`
-      : `WHAT EXPERTS ARE SAYING:
-[Summarise likely expert perspectives and analysis based on the coverage]`;
+      : `WHAT REGIONAL EXPERTS ARE SAYING:
+[Summarise expert perspectives on this topic. ${expertArticles.length > 0 ? 'Use the related expert analysis provided above — cite the think tank or source name when referencing their views.' : 'Based on your knowledge of how regional analysts and think tanks would view this development.'}]`;
 
     const officialNote = isOfficial
       ? '\nIMPORTANT: This is an official government source. Frame your analysis accordingly — distinguish between claims and verified facts.'
@@ -389,7 +479,7 @@ app.post('/api/briefing', async (req, res) => {
 Article headline: ${title}
 Source: ${source}
 Full article text:
-${articleContent}
+${articleContent}${expertContext}
 
 Respond in EXACTLY this format with these four sections. Use plain text, no markdown formatting:
 
@@ -406,11 +496,15 @@ WHY THIS MATTERS:
 
     const chatCompletion = await groqChat(
       [{ role: 'user', content: prompt }],
-      { temperature: 0.4, max_tokens: 600 }
+      { temperature: 0.4, max_tokens: 800 }
     );
 
     const briefing = chatCompletion.choices[0]?.message?.content || 'Unable to generate briefing.';
-    res.json({ briefing, isOfficial: !!isOfficial });
+    res.json({
+      briefing,
+      isOfficial: !!isOfficial,
+      expertSources: expertArticles.map(ea => ({ title: ea.title, source: ea.source, url: ea.url }))
+    });
   } catch (err) {
     console.error('Briefing generation error:', err);
     res.status(500).json({ error: 'Failed to generate briefing' });

@@ -557,6 +557,28 @@ select:focus {
   opacity: 1;
 }
 
+/* Expert source links in briefings */
+.expert-sources {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.expert-source-link {
+  display: block;
+  font-size: 11px;
+  color: var(--accent);
+  text-decoration: none;
+  padding: 4px 0;
+  opacity: 0.75;
+  transition: opacity 0.2s;
+  line-height: 1.5;
+}
+
+.expert-source-link:hover {
+  opacity: 1;
+}
+
 /* Impact Analysis Section */
 .impact-section {
   margin-top: 16px;
