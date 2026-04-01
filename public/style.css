@@ -259,6 +259,15 @@ select:focus {
   border-left: 2px solid rgba(245, 158, 11, 0.4);
 }
 
+.briefing-quality-note {
+  margin-bottom: 10px;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--green);
+  letter-spacing: 0.5px;
+  opacity: 0.8;
+}
+
 .government-caveat {
   margin-top: 12px;
   padding: 10px 14px;

@@ -531,6 +531,14 @@ async function fetchBriefing(article, container) {
       html += '<div class="government-caveat">' + escapeHtml(governmentCaveat) + '</div>';
     }
 
+    // Source quality indicator
+    const indicators = [];
+    if (data.fullTextAvailable) indicators.push('Full article analysed');
+    if (data.expertSources && data.expertSources.length > 0) indicators.push(data.expertSources.length + ' think tank source' + (data.expertSources.length > 1 ? 's' : '') + ' referenced');
+    if (indicators.length > 0) {
+      html += '<div class="briefing-quality-note">' + indicators.join(' · ') + '</div>';
+    }
+
     const sections = parseBriefing(data.briefing, article.isOfficial);
     html += '<div class="briefing-content">';
 

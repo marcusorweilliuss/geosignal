@@ -457,53 +457,63 @@ app.post('/api/briefing', async (req, res) => {
 
     // Build expert context from real think tank articles
     let expertContext = '';
-    if (expertArticles.length > 0 && !isOfficial) {
-      expertContext = '\n\nRELATED EXPERT ANALYSIS (from regional think tanks — reference these in your expert section):\n';
+    const hasExperts = expertArticles.length > 0;
+
+    if (hasExperts && !isOfficial) {
+      expertContext = '\n\nRELATED ANALYSIS FROM REGIONAL THINK TANKS AND RESEARCH INSTITUTIONS:\n';
       expertArticles.forEach((ea, i) => {
-        expertContext += `${i + 1}. "${ea.title}" — ${ea.source}\n   ${ea.description}\n`;
+        expertContext += `\n[Expert Source ${i + 1}]\nOrganisation: ${ea.source}\nTitle: "${ea.title}"\nSummary: ${ea.description}\n`;
       });
+      expertContext += '\nYou MUST reference these expert sources by name in your "WHAT REGIONAL EXPERTS ARE SAYING" section. Cite the organisation name (e.g. "According to Brookings..." or "Carnegie India notes that..."). Do not invent quotes but you may paraphrase their position based on the title and summary.\n';
     }
 
-    const expertSection = isOfficial
-      ? `WHAT THE GOVERNMENT IS CLAIMING AND ITS LIKELY STRATEGIC INTENT:
-[Analyse what the government is asserting, why it is making this statement now, and what strategic objective it likely serves. Note any contradictions with independent reporting.]`
-      : `WHAT REGIONAL EXPERTS ARE SAYING:
-[Summarise expert perspectives on this topic. ${expertArticles.length > 0 ? 'Use the related expert analysis provided above — cite the think tank or source name when referencing their views.' : 'Based on your knowledge of how regional analysts and think tanks would view this development.'}]`;
+    let expertSection, officialNote;
 
-    const officialNote = isOfficial
-      ? '\nIMPORTANT: This is an official government source. Frame your analysis accordingly — distinguish between claims and verified facts.'
-      : '';
+    if (isOfficial) {
+      officialNote = '\nIMPORTANT: This is an official government source. Frame your analysis accordingly — distinguish between government claims and independently verified facts. Be skeptical of framing.';
+      expertSection = `WHAT THE GOVERNMENT IS CLAIMING AND ITS LIKELY STRATEGIC INTENT:
+[Analyse what the government is asserting in this statement. Why is it making this statement now? What domestic or international audience is it targeting? What strategic, diplomatic, or political objective does this likely serve? Note any tensions with independent reporting on the same topic.]`;
+    } else if (hasExperts) {
+      officialNote = '';
+      expertSection = `WHAT REGIONAL EXPERTS ARE SAYING:
+[Summarise the perspectives of the regional think tanks and research institutions listed above. You must cite them by organisation name (e.g. "Brookings argues...", "According to Carnegie India...", "The Crisis Group has noted..."). Explain where expert views converge and where they diverge. If experts highlight risks or opportunities not covered in the article, include those.]`;
+    } else {
+      officialNote = '';
+      expertSection = `WHAT REGIONAL EXPERTS ARE SAYING:
+[Based on your knowledge of how regional analysts, think tanks, and policy researchers would view this development, summarise the likely expert consensus and any notable dissenting views. Reference the types of institutions that would weigh in (e.g. "Regional security analysts would likely view this as...", "Economic policy researchers have generally argued that...")]`;
+    }
 
-    const prompt = `You are a geopolitical analyst. Based on the following news article, produce a structured intelligence briefing. Be concise, factual, and analytical.${officialNote}
+    const prompt = `You are a senior geopolitical intelligence analyst producing a structured briefing. Your analysis must be grounded in the article text provided. Be precise, factual, and avoid speculation beyond what the evidence supports.${officialNote}
 
-Article headline: ${title}
-Source: ${source}
-Full article text:
+ARTICLE HEADLINE: ${title}
+SOURCE: ${source}
+FULL ARTICLE TEXT:
 ${articleContent}${expertContext}
 
-Respond in EXACTLY this format with these four sections. Use plain text, no markdown formatting:
+Produce your briefing in EXACTLY this format. Use plain text only, no markdown, no bullet points, no asterisks:
 
 WHAT HAPPENED:
-[2-3 sentences summarising the key development]
+[2-3 sentences. State the key facts of what occurred. Who did what, when, and where. Be specific — use names, dates, and figures from the article.]
 
 WHAT LED TO THIS:
-[Brief background context explaining the conditions or events that preceded this]
+[2-3 sentences. Explain the immediate context and conditions that preceded this development. What chain of events or structural factors made this happen now?]
 
 ${expertSection}
 
 WHY THIS MATTERS:
-[1-2 sentences on the broader significance and potential implications]`;
+[2-3 sentences. Explain the broader geopolitical significance. What are the second-order consequences? Who else is affected? What should analysts watch for next?]`;
 
     const chatCompletion = await groqChat(
       [{ role: 'user', content: prompt }],
-      { temperature: 0.4, max_tokens: 800 }
+      { temperature: 0.4, max_tokens: 1000 }
     );
 
     const briefing = chatCompletion.choices[0]?.message?.content || 'Unable to generate briefing.';
     res.json({
       briefing,
       isOfficial: !!isOfficial,
-      expertSources: expertArticles.map(ea => ({ title: ea.title, source: ea.source, url: ea.url }))
+      expertSources: expertArticles.map(ea => ({ title: ea.title, source: ea.source, url: ea.url })),
+      fullTextAvailable: !!fullText
     });
   } catch (err) {
     console.error('Briefing generation error:', err);
