@@ -353,8 +353,6 @@ async function fetchSentiment(article, container) {
       fetch('/api/sentiment/reddit?topic=' + encodeURIComponent(topic)).then(r => r.json()).catch(e => { console.log('Reddit failed:', e); return { posts: [], error: true }; }),
       fetch('/api/sentiment/bluesky?topic=' + encodeURIComponent(topic)).then(r => r.json()).catch(e => { console.log('Bluesky failed:', e); return { posts: [], error: true }; })
     ]);
-      fetch('/api/sentiment/bluesky?topic=' + encodeURIComponent(topic)).then(r => r.json()).catch(() => ({ posts: [] }))
-    ]);
 
     const redditPosts = redditRes.posts || [];
     const blueskyPosts = blueskyRes.posts || [];
