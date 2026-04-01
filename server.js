@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const fetch = require('node-fetch');
 const Groq = require('groq-sdk');
 const Parser = require('rss-parser');
 
@@ -52,6 +53,99 @@ async function groqChat(messages, options = {}) {
   }
 
   throw new Error('All Groq API keys and models are rate limited. Try again later.');
+}
+
+// ── Full Article Text Fetching ──────────────────────────────────
+// Fetches the full article body from a URL, strips HTML, returns plain text
+
+const articleTextCache = {};
+const ARTICLE_CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
+function stripHtml(html) {
+  // Remove script/style blocks entirely
+  let text = html.replace(/<script[\s\S]*?<\/script>/gi, '');
+  text = text.replace(/<style[\s\S]*?<\/style>/gi, '');
+  text = text.replace(/<nav[\s\S]*?<\/nav>/gi, '');
+  text = text.replace(/<header[\s\S]*?<\/header>/gi, '');
+  text = text.replace(/<footer[\s\S]*?<\/footer>/gi, '');
+  // Replace common block tags with newlines
+  text = text.replace(/<\/?(p|div|br|h[1-6]|li|blockquote)[^>]*>/gi, '\n');
+  // Strip all remaining HTML tags
+  text = text.replace(/<[^>]+>/g, '');
+  // Decode common HTML entities
+  text = text.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&nbsp;/g, ' ')
+    .replace(/&#\d+;/g, '');
+  // Collapse whitespace
+  text = text.replace(/[ \t]+/g, ' ').replace(/\n\s*\n/g, '\n\n').trim();
+  return text;
+}
+
+function extractArticleBody(html) {
+  // Try to find <article> tag first (most news sites use this)
+  let match = html.match(/<article[\s\S]*?>([\s\S]*?)<\/article>/i);
+  if (match) return stripHtml(match[1]);
+
+  // Try common content div patterns
+  const patterns = [
+    /<div[^>]*class="[^"]*(?:article-body|story-body|post-content|entry-content|article-content|article__body|story-content)[^"]*"[^>]*>([\s\S]*?)<\/div>/i,
+    /<main[^>]*>([\s\S]*?)<\/main>/i
+  ];
+  for (const pattern of patterns) {
+    match = html.match(pattern);
+    if (match) return stripHtml(match[1]);
+  }
+
+  // Fallback: find the largest cluster of <p> tags
+  const paragraphs = html.match(/<p[^>]*>[\s\S]*?<\/p>/gi);
+  if (paragraphs && paragraphs.length > 0) {
+    return stripHtml(paragraphs.join('\n'));
+  }
+
+  // Last resort: strip entire page
+  return stripHtml(html);
+}
+
+async function fetchFullArticleText(url) {
+  if (!url) return '';
+
+  // Check cache
+  const cached = articleTextCache[url];
+  if (cached && (Date.now() - cached.fetchedAt) < ARTICLE_CACHE_TTL) {
+    return cached.text;
+  }
+
+  try {
+    const response = await fetch(url, {
+      timeout: 8000,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; GeoSignal/1.0)',
+        'Accept': 'text/html'
+      },
+      redirect: 'follow'
+    });
+
+    if (!response.ok) return '';
+
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.includes('text/html')) return '';
+
+    const html = await response.text();
+    let text = extractArticleBody(html);
+
+    // Cap at 2000 characters
+    if (text.length > 2000) {
+      text = text.substring(0, 2000);
+      // Cut at last complete sentence
+      const lastPeriod = text.lastIndexOf('.');
+      if (lastPeriod > 1500) text = text.substring(0, lastPeriod + 1);
+    }
+
+    articleTextCache[url] = { text, fetchedAt: Date.now() };
+    return text;
+  } catch (err) {
+    return '';
+  }
 }
 
 // ── RSS Feed Fetching with Cache ────────────────────────────────
@@ -274,7 +368,11 @@ Do not include any other text, markdown, or formatting. Just the JSON array.`;
 
 app.post('/api/briefing', async (req, res) => {
   try {
-    const { title, source, description, content, isOfficial } = req.body;
+    const { title, source, description, content, isOfficial, url } = req.body;
+
+    // Fetch full article text for richer analysis
+    const fullText = url ? await fetchFullArticleText(url) : '';
+    const articleContent = fullText || content || description || '';
 
     const expertSection = isOfficial
       ? `WHAT THE GOVERNMENT IS CLAIMING AND ITS LIKELY STRATEGIC INTENT:
@@ -290,8 +388,8 @@ app.post('/api/briefing', async (req, res) => {
 
 Article headline: ${title}
 Source: ${source}
-Description: ${description}
-Content: ${content}
+Full article text:
+${articleContent}
 
 Respond in EXACTLY this format with these four sections. Use plain text, no markdown formatting:
 
@@ -323,11 +421,15 @@ WHY THIS MATTERS:
 
 app.post('/api/impact', async (req, res) => {
   try {
-    const { title, source, description, content, profile } = req.body;
+    const { title, source, description, content, profile, url } = req.body;
 
     if (!profile || !profile.role) {
       return res.status(400).json({ error: 'Profile required' });
     }
+
+    // Fetch full article text for richer analysis
+    const fullText = url ? await fetchFullArticleText(url) : '';
+    const articleContent = fullText || content || description || '';
 
     const profileDesc = [
       profile.role && `Role: ${profile.role}`,
@@ -344,8 +446,8 @@ ${profileDesc}
 ARTICLE:
 Headline: ${title}
 Source: ${source}
-Description: ${description}
-Content: ${content}
+Full article text:
+${articleContent}
 
 Provide a concise, personalized impact analysis in EXACTLY this format. Use plain text, no markdown:
 

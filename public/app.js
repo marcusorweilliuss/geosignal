@@ -260,7 +260,8 @@ async function fetchImpact(article, container) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         title: article.title, source: article.source,
-        description: article.description, content: article.content, profile
+        description: article.description, content: article.content,
+        profile, url: article.url
       })
     });
 
@@ -413,7 +414,7 @@ async function fetchBriefing(article, container) {
       body: JSON.stringify({
         title: article.title, source: article.source,
         description: article.description, content: article.content,
-        isOfficial: article.isOfficial
+        isOfficial: article.isOfficial, url: article.url
       })
     });
 
