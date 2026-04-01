@@ -697,6 +697,21 @@ select:focus {
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 20px 22px;
+  cursor: text;
+}
+
+.briefing-content .briefing-text {
+  cursor: text;
+  user-select: text;
+}
+
+.impact-section {
+  cursor: text;
+}
+
+.impact-section .briefing-text {
+  cursor: text;
+  user-select: text;
 }
 
 .briefing-section {
@@ -721,6 +736,35 @@ select:focus {
   font-size: 13px;
   color: var(--text-secondary);
   line-height: 1.7;
+}
+
+.briefing-bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.briefing-bullets li {
+  position: relative;
+  padding-left: 16px;
+  margin-bottom: 6px;
+  line-height: 1.6;
+}
+
+.briefing-bullets li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 9px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.6;
+}
+
+.briefing-text p {
+  margin: 0 0 6px 0;
 }
 
 .briefing-loading {

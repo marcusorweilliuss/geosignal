@@ -132,6 +132,28 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
 
+// Convert lines starting with - into clean bullet list HTML
+function formatBullets(text) {
+  if (!text) return '';
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const hasBullets = lines.some(l => l.startsWith('- ') || l.startsWith('* '));
+  if (!hasBullets) return escapeHtml(text);
+
+  let html = '';
+  let inList = false;
+  for (const line of lines) {
+    if (line.startsWith('- ') || line.startsWith('* ')) {
+      if (!inList) { html += '<ul class="briefing-bullets">'; inList = true; }
+      html += '<li>' + escapeHtml(line.substring(2)) + '</li>';
+    } else {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += '<p>' + escapeHtml(line) + '</p>';
+    }
+  }
+  if (inList) html += '</ul>';
+  return html;
+}
+
 // ── Store ───────────────────────────────────────────────────────
 
 let currentArticles = [];
@@ -293,7 +315,7 @@ async function fetchImpact(article, container) {
         '</div><div class="impact-body">';
 
     sections.forEach(s => {
-      html += '<div class="briefing-section"><div class="briefing-label">' + escapeHtml(s.label) + '</div><div class="briefing-text">' + escapeHtml(s.text) + '</div></div>';
+      html += '<div class="briefing-section"><div class="briefing-label">' + escapeHtml(s.label) + '</div><div class="briefing-text">' + formatBullets(s.text) + '</div></div>';
     });
 
     html += '</div></div>';
@@ -485,6 +507,13 @@ function renderFeed(articles) {
     card.addEventListener('click', async (e) => {
       if (e.target.closest('.card-link')) return;
       if (e.target.closest('.no-profile-hint button')) return;
+      if (e.target.closest('.annotate-keyword')) return;
+
+      // If clicking inside the expanded briefing/impact/sentiment area, do nothing
+      // Only the card header, meta, and TL;DR should toggle expand/collapse
+      if (e.target.closest('.briefing') || e.target.closest('.impact-section') || e.target.closest('.sentiment-section')) {
+        return;
+      }
 
       if (expanded) {
         if (briefingEl) { briefingEl.remove(); briefingEl = null; }
@@ -560,7 +589,7 @@ async function fetchBriefing(article, container) {
     html += '<div class="briefing-content">';
 
     sections.forEach(section => {
-      html += '<div class="briefing-section"><div class="briefing-label">' + escapeHtml(section.label) + '</div><div class="briefing-text">' + escapeHtml(section.text) + '</div></div>';
+      html += '<div class="briefing-section"><div class="briefing-label">' + escapeHtml(section.label) + '</div><div class="briefing-text">' + formatBullets(section.text) + '</div></div>';
     });
 
     // Expert source links from think tank cross-referencing

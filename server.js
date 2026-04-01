@@ -499,42 +499,48 @@ app.post('/api/briefing', async (req, res) => {
     let expertSection, officialNote;
 
     if (isOfficial) {
-      officialNote = '\nIMPORTANT: This is an official government source. Frame your analysis accordingly — distinguish between government claims and independently verified facts. Be skeptical of framing.';
-      expertSection = `WHAT THE GOVERNMENT IS CLAIMING AND ITS LIKELY STRATEGIC INTENT:
-[Analyse what the government is asserting in this statement. Why is it making this statement now? What domestic or international audience is it targeting? What strategic, diplomatic, or political objective does this likely serve? Note any tensions with independent reporting on the same topic.]`;
+      officialNote = '\nThis is an official government source. Distinguish claims from verified facts.';
+      expertSection = `GOVERNMENT CLAIM & STRATEGIC INTENT:
+- [What the government is asserting and why now.]
+- [Target audience and likely strategic objective.]
+- [Any tension with independent reporting.]`;
     } else if (hasExperts) {
       officialNote = '';
       expertSection = `WHAT REGIONAL EXPERTS ARE SAYING:
-[Summarise the perspectives of the regional think tanks and research institutions listed above. You must cite them by organisation name (e.g. "Brookings argues...", "According to Carnegie India...", "The Crisis Group has noted..."). Explain where expert views converge and where they diverge. If experts highlight risks or opportunities not covered in the article, include those.]`;
+- [Cite expert source by name: "According to [Organisation]..." Key argument.]
+- [Second expert view or where experts diverge. Cite by name.]`;
     } else {
       officialNote = '';
       expertSection = `WHAT REGIONAL EXPERTS ARE SAYING:
-[Based on your knowledge of how regional analysts, think tanks, and policy researchers would view this development, summarise the likely expert consensus and any notable dissenting views. Reference the types of institutions that would weigh in (e.g. "Regional security analysts would likely view this as...", "Economic policy researchers have generally argued that...")]`;
+- [How regional analysts and think tanks would likely view this.]
+- [Any notable dissenting or contrarian view.]`;
     }
 
-    const prompt = `You are a senior geopolitical intelligence analyst producing a structured briefing. Your analysis must be grounded in the article text provided. Be precise, factual, and avoid speculation beyond what the evidence supports.${officialNote}
+    const prompt = `You are a senior geopolitical intelligence analyst. Produce a tight, scannable briefing using bullet points. Every bullet must deliver a concrete insight — no filler, no vague language.${officialNote}
 
-ARTICLE HEADLINE: ${title}
+ARTICLE: ${title}
 SOURCE: ${source}
-FULL ARTICLE TEXT:
-${articleContent}${expertContext}
+TEXT: ${articleContent}${expertContext}
 
-Produce your briefing in EXACTLY this format. Use plain text only, no markdown, no bullet points, no asterisks:
+Use EXACTLY this format. Each section: 2-3 bullet points, each bullet ONE line max. Use a dash (-) for bullets:
 
 WHAT HAPPENED:
-[2-3 sentences. State the key facts of what occurred. Who did what, when, and where. Be specific — use names, dates, and figures from the article.]
+- [Key fact: who, what, when, where. Use specific names and figures.]
+- [Second key fact or consequence.]
 
 WHAT LED TO THIS:
-[2-3 sentences. Explain the immediate context and conditions that preceded this development. What chain of events or structural factors made this happen now?]
+- [Most important preceding event or structural cause.]
+- [Second factor, if relevant.]
 
 ${expertSection}
 
 WHY THIS MATTERS:
-[2-3 sentences. Explain the broader geopolitical significance. What are the second-order consequences? Who else is affected? What should analysts watch for next?]`;
+- [Biggest implication or second-order effect.]
+- [Who else is affected and what to watch next.]`;
 
     const chatCompletion = await groqChat(
       [{ role: 'user', content: prompt }],
-      { temperature: 0.4, max_tokens: 1000 }
+      { temperature: 0.4, max_tokens: 600 }
     );
 
     const briefing = chatCompletion.choices[0]?.message?.content || 'Unable to generate briefing.';
@@ -583,31 +589,28 @@ app.post('/api/impact', async (req, res) => {
       profile.focus && `Focus areas: ${profile.focus}`
     ].filter(Boolean).join(' | ');
 
-    const prompt = `You are a senior analyst providing a personalized intelligence assessment. A professional is reading a news article. Based on their specific profile, explain concretely how this development could affect them, their organisation, and their industry.
+    const prompt = `You are an analyst providing a personalized impact assessment. Be specific to this person's role, industry, and location. Use bullet points — no filler.
 
-READER PROFILE:
-${profileDesc}
+PROFILE: ${profileDesc}
+ARTICLE: ${title} (${source})
+TEXT: ${articleContent}${expertContext}
 
-ARTICLE:
-Headline: ${title}
-Source: ${source}
-Full article text:
-${articleContent}${expertContext}
-
-Provide a personalized impact analysis in EXACTLY this format. Use plain text, no markdown:
+Use EXACTLY this format. Bullets with dashes (-), each ONE line max:
 
 RELEVANCE:
-[One word: HIGH, MEDIUM, or LOW — based on how directly this affects their specific role, industry, and location]
+[One word: HIGH, MEDIUM, or LOW]
 
 IMPACT SUMMARY:
-[3-4 sentences. Be extremely specific to their profile. For example, if they are a VP in Finance based in Singapore, explain exactly how this development could affect financial markets they care about, regulatory changes they would face, or business decisions they should reconsider. Reference specific mechanisms — not vague statements like "this could affect the economy." If expert analysis is available above, reference what think tanks are saying about the implications for their sector.]
+- [How this specifically affects their role/industry. Name the mechanism.]
+- [Financial, regulatory, or operational consequence for their sector.]
 
 WHAT TO WATCH:
-[2-3 concrete, actionable items. Not generic "monitor the situation" — instead give specific triggers, dates, upcoming events, policy decisions, or data releases they should track. If their industry has specific exposure to this development, name it.]`;
+- [Specific trigger, date, policy decision, or data release to monitor.]
+- [Second actionable item relevant to their profile.]`;
 
     const chatCompletion = await groqChat(
       [{ role: 'user', content: prompt }],
-      { temperature: 0.4, max_tokens: 500 }
+      { temperature: 0.4, max_tokens: 300 }
     );
 
     const impact = chatCompletion.choices[0]?.message?.content || 'Unable to generate impact analysis.';
@@ -665,10 +668,10 @@ app.get('/api/sentiment/reddit', async (req, res) => {
 
     const allPosts = [];
 
-    // Search Reddit's JSON API (no auth needed)
+    // Search Reddit using old.reddit.com (more reliable for JSON API)
     for (const sub of subreddits) {
       try {
-        const url = `https://www.reddit.com/r/${sub}/search.json?q=${query}&sort=relevance&t=month&limit=5&restrict_sr=on`;
+        const url = `https://old.reddit.com/r/${sub}/search.json?q=${query}&sort=relevance&t=month&limit=5&restrict_sr=on`;
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
         const response = await fetch(url, {
@@ -680,7 +683,10 @@ app.get('/api/sentiment/reddit', async (req, res) => {
         });
         clearTimeout(timeoutId);
 
-        if (!response.ok) continue;
+        if (!response.ok) {
+          console.log(`Reddit r/${sub}: HTTP ${response.status}`);
+          continue;
+        }
 
         const data = await response.json();
         const posts = (data?.data?.children || []).map(child => {
