@@ -319,6 +319,101 @@ function parseImpact(text) {
   return sections;
 }
 
+// ── Public Discourse (Reddit + Bluesky) ─────────────────────────
+
+async function fetchSentiment(article, container) {
+  container.innerHTML =
+    '<div class="sentiment-section">' +
+      '<div class="sentiment-header">' +
+        '<span class="sentiment-title">Public Discourse</span>' +
+      '</div>' +
+      '<div class="sentiment-loading"><div class="spinner"></div><span>Searching public discussions&hellip;</span></div>' +
+    '</div>';
+
+  // Build a short topic from the headline
+  const topic = article.title.substring(0, 120);
+
+  try {
+    // Fetch Reddit and Bluesky in parallel
+    const [redditRes, blueskyRes] = await Promise.all([
+      fetch('/api/sentiment/reddit?topic=' + encodeURIComponent(topic)).then(r => r.json()).catch(() => ({ posts: [] })),
+      fetch('/api/sentiment/bluesky?topic=' + encodeURIComponent(topic)).then(r => r.json()).catch(() => ({ posts: [] }))
+    ]);
+
+    const redditPosts = redditRes.posts || [];
+    const blueskyPosts = blueskyRes.posts || [];
+
+    if (redditPosts.length === 0 && blueskyPosts.length === 0) {
+      container.innerHTML =
+        '<div class="sentiment-section">' +
+          '<div class="sentiment-header"><span class="sentiment-title">Public Discourse</span></div>' +
+          '<div class="sentiment-empty">No public discussions found for this topic.</div>' +
+        '</div>';
+      return;
+    }
+
+    let html =
+      '<div class="sentiment-section">' +
+        '<div class="sentiment-header"><span class="sentiment-title">Public Discourse</span></div>';
+
+    // Reddit results
+    if (redditPosts.length > 0) {
+      html += '<div class="sentiment-platform">' +
+        '<div class="sentiment-platform-label">Reddit</div>' +
+        '<div class="sentiment-platform-note">' + escapeHtml(redditRes.note || '') + '</div>';
+
+      redditPosts.forEach(post => {
+        html +=
+          '<a class="sentiment-post" href="' + escapeHtml(post.url) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">' +
+            '<div class="sentiment-post-title">' + escapeHtml(post.title) + '</div>' +
+            '<div class="sentiment-post-meta">' +
+              '<span class="sentiment-subreddit">' + escapeHtml(post.subreddit) + '</span>' +
+              '<span class="sentiment-dot"></span>' +
+              '<span>' + post.score + ' pts</span>' +
+              '<span class="sentiment-dot"></span>' +
+              '<span>' + post.numComments + ' comments</span>' +
+            '</div>' +
+          '</a>';
+      });
+
+      html += '</div>';
+    }
+
+    // Bluesky results
+    if (blueskyPosts.length > 0) {
+      html += '<div class="sentiment-platform">' +
+        '<div class="sentiment-platform-label">Bluesky</div>' +
+        '<div class="sentiment-platform-note">' + escapeHtml(blueskyRes.note || '') + '</div>';
+
+      blueskyPosts.forEach(post => {
+        html +=
+          '<a class="sentiment-post" href="' + escapeHtml(post.url) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">' +
+            '<div class="sentiment-post-text">' + escapeHtml(post.text) + '</div>' +
+            '<div class="sentiment-post-meta">' +
+              '<span class="sentiment-username">@' + escapeHtml(post.username) + '</span>' +
+              '<span class="sentiment-dot"></span>' +
+              '<span>' + post.likes + ' likes</span>' +
+              '<span class="sentiment-dot"></span>' +
+              '<span>' + post.reposts + ' reposts</span>' +
+            '</div>' +
+          '</a>';
+      });
+
+      html += '</div>';
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
+  } catch (err) {
+    console.error('Sentiment fetch error:', err);
+    container.innerHTML =
+      '<div class="sentiment-section">' +
+        '<div class="sentiment-header"><span class="sentiment-title">Public Discourse</span></div>' +
+        '<div class="sentiment-empty">Could not load public discussions.</div>' +
+      '</div>';
+  }
+}
+
 // ── Render Feed ─────────────────────────────────────────────────
 
 function renderFeed(articles) {
@@ -389,14 +484,17 @@ function renderFeed(articles) {
         '<div class="briefing-loading"><div class="spinner"></div><span>Generating intelligence briefing&hellip;</span></div>';
 
       const impactContent = document.createElement('div');
+      const sentimentContent = document.createElement('div');
 
       briefingEl.appendChild(briefingContent);
       briefingEl.appendChild(impactContent);
+      briefingEl.appendChild(sentimentContent);
       card.appendChild(briefingEl);
 
       await Promise.all([
         fetchBriefing(article, briefingContent),
-        fetchImpact(article, impactContent)
+        fetchImpact(article, impactContent),
+        fetchSentiment(article, sentimentContent)
       ]);
     });
 
