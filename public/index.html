@@ -42,7 +42,7 @@
           <span class="live-text">LIVE</span>
         </div>
         <label class="annotate-toggle" title="Highlight any term in a briefing to get a plain-English explanation">
-          <input type="checkbox" id="annotate-toggle">
+          <input type="checkbox" id="annotate-toggle" checked>
           <span class="annotate-slider"></span>
           <span class="annotate-label" id="annotate-label">Annotate</span>
         </label>
@@ -65,7 +65,15 @@
       <button id="search-clear" class="search-clear" style="display:none">&times;</button>
     </div>
 
-    <div class="filters">
+    <div class="filters" id="filters-container">
+      <button class="filters-toggle" id="filters-toggle" type="button">
+        <span class="filters-toggle-label">Filters</span>
+        <span class="filters-toggle-summary" id="filters-summary">All sectors · All sources</span>
+        <svg class="filters-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M3 5l3 3 3-3"/>
+        </svg>
+      </button>
+      <div class="filters-body" id="filters-body">
       <div class="filter-group">
         <label for="region-select">Region</label>
         <select id="region-select">
@@ -105,6 +113,7 @@
           <button class="pill active" data-value="Independent journalism">Independent</button>
           <button class="pill pill-official" data-value="Official statements">Official</button>
         </div>
+      </div>
       </div>
     </div>
 

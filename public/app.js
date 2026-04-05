@@ -7,6 +7,9 @@ const feedCount = document.getElementById('feed-count');
 const feedTimestamp = document.getElementById('feed-timestamp');
 const searchInput = document.getElementById('search-input');
 const searchClear = document.getElementById('search-clear');
+const filtersContainer = document.getElementById('filters-container');
+const filtersToggle = document.getElementById('filters-toggle');
+const filtersSummary = document.getElementById('filters-summary');
 
 const profileBtn = document.getElementById('profile-btn');
 const profileBtnText = document.getElementById('profile-btn-text');
@@ -104,6 +107,38 @@ function getActivePills(container) {
   return Array.from(container.querySelectorAll('.pill.active'))
     .map(p => p.dataset.value);
 }
+
+// Collapsible filters
+filtersToggle.addEventListener('click', () => {
+  filtersContainer.classList.toggle('expanded');
+});
+
+function updateFiltersSummary() {
+  const region = regionSelect.value;
+  const activeSectors = getActivePills(sectorPills);
+  const activeSources = getActivePills(sourcePills);
+  const totalSectors = sectorPills.querySelectorAll('.pill').length;
+  const totalSources = sourcePills.querySelectorAll('.pill').length;
+
+  const sectorText = activeSectors.length === totalSectors
+    ? 'All sectors'
+    : activeSectors.length === 0
+      ? 'No sectors'
+      : activeSectors.length + ' sectors';
+  const sourceText = activeSources.length === totalSources
+    ? 'All sources'
+    : activeSources.length === 0
+      ? 'No sources'
+      : activeSources.length + ' source' + (activeSources.length > 1 ? 's' : '');
+
+  filtersSummary.textContent = region + ' · ' + sectorText + ' · ' + sourceText;
+}
+
+// Update summary when filters change
+regionSelect.addEventListener('change', updateFiltersSummary);
+sectorPills.addEventListener('click', (e) => { if (e.target.classList.contains('pill')) setTimeout(updateFiltersSummary, 0); });
+sourcePills.addEventListener('click', (e) => { if (e.target.classList.contains('pill')) setTimeout(updateFiltersSummary, 0); });
+updateFiltersSummary();
 
 // ── Utilities ───────────────────────────────────────────────────
 
@@ -323,13 +358,16 @@ async function fetchCrossSectorInsights(articles, profile, region) {
       'CONTRADICTION': { cls: 'type-contradiction', label: 'Contradiction' }
     };
 
+    const count = data.insights.length;
     let html =
-      '<div class="cross-sector-bubble">' +
-        '<div class="cross-sector-header">' +
+      '<div class="cross-sector-bubble collapsed">' +
+        '<button class="cross-sector-header" type="button" onclick="this.parentElement.classList.toggle(\'collapsed\')">' +
           '<span class="cross-sector-icon">&#9670;</span>' +
           '<span class="cross-sector-title">Cross-Sector Signals</span>' +
-          '<span class="cross-sector-subtitle">Patterns detected across today\'s stories for your profile</span>' +
-        '</div>';
+          '<span class="cross-sector-subtitle">' + count + ' pattern' + (count > 1 ? 's' : '') + ' detected — click to expand</span>' +
+          '<svg class="cross-sector-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 5l3 3 3-3"/></svg>' +
+        '</button>' +
+        '<div class="cross-sector-body">';
 
     data.insights.forEach(insight => {
       const style = typeStyles[insight.type] || { cls: 'type-default', label: insight.type };
@@ -360,7 +398,7 @@ async function fetchCrossSectorInsights(articles, profile, region) {
       html += '</ul></div>';
     });
 
-    html += '</div>';
+    html += '</div></div>'; // close cross-sector-body and cross-sector-bubble
     container.innerHTML = html;
 
     // Auto-highlight annotate terms if mode is on
