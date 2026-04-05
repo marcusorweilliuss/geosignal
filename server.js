@@ -281,6 +281,49 @@ function extractThumbnail(item) {
 const feedCache = {};
 const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 
+// ── Generic Groq Response Cache ─────────────────────────────────
+// Persistent cache (until server restart) for AI-generated content
+// keyed by stable content hashes. Drastically cuts Groq token usage
+// since the same articles are seen repeatedly across page loads.
+
+const GROQ_CACHE_TTL = 6 * 60 * 60 * 1000; // 6 hours
+const groqCaches = {
+  tldr: new Map(),       // key: article URL → { text, fetchedAt }
+  briefing: new Map(),   // key: article URL → { data, fetchedAt }
+  impact: new Map(),     // key: URL + profile hash → { data, fetchedAt }
+  crossSector: new Map() // key: profile + article set hash → { data, fetchedAt }
+};
+
+function cacheGet(bucket, key) {
+  const entry = groqCaches[bucket]?.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.fetchedAt > GROQ_CACHE_TTL) {
+    groqCaches[bucket].delete(key);
+    return null;
+  }
+  return entry.value;
+}
+
+function cacheSet(bucket, key, value) {
+  const map = groqCaches[bucket];
+  if (!map) return;
+  map.set(key, { value, fetchedAt: Date.now() });
+  // Keep each bucket bounded to prevent memory growth
+  if (map.size > 500) {
+    const oldestKey = map.keys().next().value;
+    map.delete(oldestKey);
+  }
+}
+
+// Cheap stable hash for profile + article set cache keys
+function hashString(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+  }
+  return h.toString(36);
+}
+
 async function fetchFeed(source) {
   const cached = feedCache[source.rssUrl];
   if (cached && (Date.now() - cached.fetchedAt) < CACHE_TTL) {
@@ -500,7 +543,27 @@ app.post('/api/tldr', async (req, res) => {
       return res.json({ summaries: [] });
     }
 
-    const articleList = articles.map((a, i) => {
+    // Check cache for each article — only hit Groq for ones we haven't seen
+    const summaries = new Array(articles.length);
+    const uncachedIndices = [];
+    const uncachedArticles = [];
+
+    articles.forEach((a, i) => {
+      const key = a.url || a.title;
+      const cached = cacheGet('tldr', key);
+      if (cached) {
+        summaries[i] = cached;
+      } else {
+        uncachedIndices.push(i);
+        uncachedArticles.push(a);
+      }
+    });
+
+    if (uncachedArticles.length === 0) {
+      return res.json({ summaries });
+    }
+
+    const articleList = uncachedArticles.map((a, i) => {
       const officialNote = a.isOfficial ? ' [OFFICIAL GOVERNMENT SOURCE]' : '';
       return `[${i}] "${a.title}"${officialNote} — ${a.description || 'No description'}`;
     }).join('\n');
@@ -528,13 +591,24 @@ No other text, no markdown, no formatting. Just the JSON array.`;
     );
 
     const raw = chatCompletion.choices[0]?.message?.content || '[]';
-    let summaries;
+    let freshSummaries;
     try {
       const jsonMatch = raw.match(/\[[\s\S]*\]/);
-      summaries = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
+      freshSummaries = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
     } catch {
-      summaries = [];
+      freshSummaries = [];
     }
+
+    // Merge fresh results back into the original order and cache each one
+    freshSummaries.forEach((text, i) => {
+      const originalIndex = uncachedIndices[i];
+      const article = uncachedArticles[i];
+      if (originalIndex !== undefined && text) {
+        summaries[originalIndex] = text;
+        const key = article.url || article.title;
+        cacheSet('tldr', key, text);
+      }
+    });
 
     res.json({ summaries });
   } catch (err) {
@@ -548,6 +622,11 @@ No other text, no markdown, no formatting. Just the JSON array.`;
 app.post('/api/briefing', async (req, res) => {
   try {
     const { title, source, description, content, isOfficial, url, region } = req.body;
+
+    // Return cached briefing if we've seen this article before
+    const cacheKey = url || title;
+    const cached = cacheGet('briefing', cacheKey);
+    if (cached) return res.json(cached);
 
     // Fetch full article text for richer analysis
     const fullText = url ? await fetchFullArticleText(url) : '';
@@ -640,13 +719,15 @@ WHY THIS MATTERS:
       if (ea.source && ea.url) citationMap[ea.source] = ea.url;
     });
 
-    res.json({
+    const responsePayload = {
       briefing,
       isOfficial: !!isOfficial,
       expertSources: expertArticles.map(ea => ({ title: ea.title, source: ea.source, url: ea.url })),
       citationMap,
       fullTextAvailable: !!fullText
-    });
+    };
+    cacheSet('briefing', cacheKey, responsePayload);
+    res.json(responsePayload);
   } catch (err) {
     console.error('Briefing generation error:', err);
     res.status(500).json({ error: 'Failed to generate briefing' });
@@ -662,6 +743,16 @@ app.post('/api/impact', async (req, res) => {
     if (!profile || !profile.role) {
       return res.status(400).json({ error: 'Profile required' });
     }
+
+    // Cache key combines article URL with profile hash so different
+    // profiles get different impact analyses for the same article
+    const profileHash = hashString(JSON.stringify({
+      role: profile.role, industry: profile.industry,
+      location: profile.location, focus: profile.focus
+    }));
+    const impactCacheKey = (url || title) + '::' + profileHash;
+    const cachedImpact = cacheGet('impact', impactCacheKey);
+    if (cachedImpact) return res.json(cachedImpact);
 
     // Fetch full article text for richer analysis
     const fullText = url ? await fetchFullArticleText(url) : '';
@@ -733,7 +824,9 @@ WHAT TO WATCH:
       if (ea.source && ea.url) citationMap[ea.source] = ea.url;
     });
 
-    res.json({ impact, relevance, citationMap });
+    const impactResponse = { impact, relevance, citationMap };
+    cacheSet('impact', impactCacheKey, impactResponse);
+    res.json(impactResponse);
   } catch (err) {
     console.error('Impact analysis error:', err);
     res.status(500).json({ error: 'Failed to generate impact analysis' });
@@ -984,6 +1077,16 @@ app.post('/api/cross-sector', async (req, res) => {
 
     const topArticles = articles.slice(0, 20);
 
+    // Cache key: profile + region + sorted top article URLs. Same inputs
+    // return the same insights without re-hitting Groq.
+    const csKey = hashString(
+      (region || 'global') + '|' +
+      JSON.stringify(profile || {}) + '|' +
+      topArticles.map(a => a.url || a.title).sort().join('||')
+    );
+    const cachedCs = cacheGet('crossSector', csKey);
+    if (cachedCs) return res.json(cachedCs);
+
     // Build a pool of think tank articles cached from the region's experts
     const regionSlug = (region || 'global').toLowerCase().replace(/\s+&?\s*/g, '-').replace('central-asia-caucasus', 'central-asia-caucasus');
     const regionKey = regionSlugMap[region] || 'global';
@@ -1132,7 +1235,9 @@ CRITICAL RULES:
       if (!citationMap[e.source]) citationMap[e.source] = e.url;
     });
 
-    res.json({ insights, citationMap });
+    const csResponse = { insights, citationMap };
+    cacheSet('crossSector', csKey, csResponse);
+    res.json(csResponse);
   } catch (err) {
     console.error('Cross-sector analysis error:', err.message);
     res.json({ insights: [] });

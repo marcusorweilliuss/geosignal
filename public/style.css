@@ -212,6 +212,65 @@ h1 {
   font-weight: 600;
 }
 
+.icon-btn.has-saved {
+  color: var(--text-primary);
+}
+
+.icon-btn.has-saved .icon-btn-label {
+  display: inline;
+  font-family: var(--mono, var(--sans));
+  font-size: 10px;
+  font-weight: 600;
+  padding: 0 5px;
+  margin-left: 2px;
+  background: var(--bg-secondary);
+  border-radius: 999px;
+  min-width: 16px;
+  text-align: center;
+}
+
+.icon-btn.saved-view-active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--accent-soft);
+}
+
+.icon-btn.saved-view-active .icon-btn-label {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* Card save button (bookmark toggle inside each card) */
+.card-save-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.card-save-btn:hover {
+  background: var(--bg-secondary);
+  color: var(--accent);
+  border-color: var(--border);
+}
+
+.card-save-btn.saved {
+  color: var(--accent);
+}
+
+.card-save-btn.saved:hover {
+  color: var(--accent-hover);
+}
+
 /* Annotate toggle — pill style, tactile */
 .annotate-toggle {
   display: flex;

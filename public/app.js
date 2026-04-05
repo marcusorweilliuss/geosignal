@@ -11,6 +11,8 @@ const filtersContainer = document.getElementById('filters-container');
 const filtersToggle = document.getElementById('filters-toggle');
 const filtersSummary = document.getElementById('filters-summary');
 
+const savedBtn = document.getElementById('saved-btn');
+const savedBtnCount = document.getElementById('saved-btn-count');
 const profileBtn = document.getElementById('profile-btn');
 const profileBtnText = document.getElementById('profile-btn-text');
 const profileModal = document.getElementById('profile-modal');
@@ -36,6 +38,102 @@ function clearProfile() {
   localStorage.removeItem('geosignal-profile');
   updateProfileButton();
 }
+
+// ── Saved Articles ──────────────────────────────────────────────
+
+const SAVED_KEY = 'geosignal-saved';
+const SAVED_MAX = 100;
+let savedViewActive = false;
+
+function getSavedArticles() {
+  try {
+    return JSON.parse(localStorage.getItem(SAVED_KEY) || '[]');
+  } catch { return []; }
+}
+
+function isArticleSaved(article) {
+  const id = article.url || article.title;
+  return getSavedArticles().some(a => (a.url || a.title) === id);
+}
+
+function toggleSavedArticle(article) {
+  const saved = getSavedArticles();
+  const id = article.url || article.title;
+  const existingIdx = saved.findIndex(a => (a.url || a.title) === id);
+
+  if (existingIdx >= 0) {
+    saved.splice(existingIdx, 1);
+  } else {
+    // Store only the fields needed to render a card later
+    saved.unshift({
+      title: article.title,
+      source: article.source,
+      sourceTier: article.sourceTier,
+      publishedAt: article.publishedAt,
+      description: article.description,
+      url: article.url,
+      region: article.region,
+      isOfficial: article.isOfficial,
+      thumbnail: article.thumbnail,
+      savedAt: Date.now()
+    });
+    if (saved.length > SAVED_MAX) saved.length = SAVED_MAX;
+  }
+
+  localStorage.setItem(SAVED_KEY, JSON.stringify(saved));
+  return existingIdx < 0; // returns true if newly saved
+}
+
+function updateSavedButton() {
+  if (!savedBtn) return;
+  const count = getSavedArticles().length;
+  savedBtn.classList.toggle('has-saved', count > 0);
+  savedBtn.classList.toggle('saved-view-active', savedViewActive);
+  if (savedBtnCount) {
+    savedBtnCount.textContent = count > 0 ? String(count) : '';
+    savedBtnCount.style.display = count > 0 ? 'inline' : 'none';
+  }
+  savedBtn.title = savedViewActive
+    ? 'Showing saved (click to return to feed)'
+    : (count > 0 ? count + ' saved articles' : 'No saved articles yet');
+}
+
+function renderSavedFeed() {
+  const saved = getSavedArticles();
+  // Hide the dispatch/stats chrome when viewing saved
+  const dispatchEl = document.getElementById('dispatch-header');
+  const statsEl = document.getElementById('stats-strip');
+  if (dispatchEl) dispatchEl.style.display = savedViewActive ? 'none' : '';
+  if (statsEl) statsEl.style.display = savedViewActive ? 'none' : '';
+
+  if (saved.length === 0) {
+    feed.innerHTML = '<div class="empty-feed">You haven\u2019t saved any articles yet. Tap the bookmark icon on a card to save it for later.</div>';
+    return;
+  }
+
+  // Attach a score so they sort cleanly, then render through the normal path
+  const articlesForRender = saved.map(a => ({ ...a, score: 0 }));
+  renderFeed(articlesForRender);
+}
+
+savedBtn.addEventListener('click', () => {
+  savedViewActive = !savedViewActive;
+  updateSavedButton();
+  if (savedViewActive) {
+    renderSavedFeed();
+  } else {
+    // Return to the live feed
+    if (currentArticles.length > 0) {
+      updateDispatchHeader(currentArticles);
+      renderFeed(currentArticles);
+      generateTldrs(currentArticles);
+    } else {
+      fetchStories();
+    }
+  }
+});
+
+updateSavedButton();
 
 function updateProfileButton() {
   const profile = getProfile();
@@ -784,8 +882,18 @@ function renderFeed(articles) {
         ? article.sourceTier.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
         : '';
 
-      const badges = (officialBadge || regionPill)
-        ? '<div class="card-badges">' + officialBadge + regionPill + '</div>'
+      const saved = isArticleSaved(article);
+      const saveBtn =
+        '<button class="card-save-btn' + (saved ? ' saved' : '') + '" ' +
+        'aria-label="' + (saved ? 'Remove from saved' : 'Save for later') + '" ' +
+        'title="' + (saved ? 'Saved' : 'Save for later') + '">' +
+          '<svg width="16" height="16" viewBox="0 0 16 16" fill="' + (saved ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">' +
+            '<path d="M3.5 2.5h9v11l-4.5-3-4.5 3v-11z"/>' +
+          '</svg>' +
+        '</button>';
+
+      const badges = (officialBadge || regionPill || saveBtn)
+        ? '<div class="card-badges">' + officialBadge + regionPill + saveBtn + '</div>'
         : '';
 
       const eyebrow = isFeatured ? '<div class="card-eyebrow">Lead Story</div>' : '';
@@ -933,6 +1041,21 @@ function renderFeed(articles) {
         if (e.target.closest('.annotate-keyword')) return;
         if (e.target.closest('.more-section-toggle')) return;
         if (e.target.closest('.briefing') || e.target.closest('.impact-section') || e.target.closest('.sentiment-section')) return;
+
+        // Save button toggles saved state without expanding the card
+        const saveClick = e.target.closest('.card-save-btn');
+        if (saveClick) {
+          e.stopPropagation();
+          const nowSaved = toggleSavedArticle(article);
+          saveClick.classList.toggle('saved', nowSaved);
+          saveClick.title = nowSaved ? 'Saved' : 'Save for later';
+          saveClick.setAttribute('aria-label', nowSaved ? 'Remove from saved' : 'Save for later');
+          const svg = saveClick.querySelector('svg');
+          if (svg) svg.setAttribute('fill', nowSaved ? 'currentColor' : 'none');
+          updateSavedButton();
+          return;
+        }
+
         toggleExpand();
       });
 
