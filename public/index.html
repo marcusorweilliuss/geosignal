@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GeoSignal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header>
+      <div class="header-left">
+        <div class="logo-mark">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+            <circle cx="10" cy="10" r="8" stroke="url(#grad)" stroke-width="1.5" fill="none"/>
+            <circle cx="10" cy="10" r="3" fill="url(#grad)"/>
+            <ellipse cx="10" cy="10" rx="8" ry="4" stroke="url(#grad)" stroke-width="0.8" fill="none" opacity="0.5"/>
+            <defs>
+              <linearGradient id="grad" x1="0" y1="0" x2="20" y2="20">
+                <stop offset="0%" stop-color="#4a9eff"/>
+                <stop offset="100%" stop-color="#a855f7"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <h1>GeoSignal</h1>
+        <span class="live-dot" title="Live feed"></span>
+      </div>
+      <div class="header-right">
+        <button id="profile-btn" class="icon-btn" title="Your profile">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="7.5" cy="5" r="2.5"/>
+            <path d="M2.5 13c0-2.5 2-4 5-4s5 1.5 5 4"/>
+          </svg>
+          <span id="profile-btn-text" class="icon-btn-label"></span>
+        </button>
+        <label class="annotate-toggle" title="Annotate mode — click highlighted terms for explanations">
+          <input type="checkbox" id="annotate-toggle" checked>
+          <span class="annotate-slider"></span>
+        </label>
+        <button id="refresh-btn" class="icon-btn" title="Refresh feed">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M1.5 7.5a6 6 0 1 1 1.2 3.6"/>
+            <path d="M1 4v3.5h3.5"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="control-bar">
+      <div class="search-bar">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="6" cy="6" r="4.5"/>
+          <path d="M9.5 9.5L13 13"/>
+        </svg>
+        <input type="text" id="search-input" placeholder="Search topics, people, sources..." />
+        <button id="search-clear" class="search-clear" style="display:none">&times;</button>
+      </div>
+
+      <button class="filters-toggle" id="filters-toggle" type="button">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M1 3h12M3 7h8M5 11h4"/>
+        </svg>
+        <span id="filters-summary">Global</span>
+      </button>
+    </div>
+
+    <div class="filters" id="filters-container">
+      <div class="filters-body" id="filters-body">
+      <div class="filter-group">
+        <label for="region-select">Region</label>
+        <select id="region-select">
+          <option value="Global">Global</option>
+          <option value="Middle East">Middle East</option>
+          <option value="South Asia">South Asia</option>
+          <option value="Southeast Asia">Southeast Asia</option>
+          <option value="Europe">Europe</option>
+          <option value="Africa">Africa</option>
+          <option value="Latin America">Latin America</option>
+          <option value="East Asia">East Asia</option>
+          <option value="North America">North America</option>
+          <option value="Central Asia & Caucasus">Central Asia & Caucasus</option>
+          <option value="Oceania">Oceania</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Sectors</label>
+        <div class="pill-group" id="sector-pills">
+          <button class="pill active" data-value="Geopolitics">Geopolitics</button>
+          <button class="pill active" data-value="Economy & Trade">Economy & Trade</button>
+          <button class="pill active" data-value="Technology & AI">Technology & AI</button>
+          <button class="pill active" data-value="Climate & Energy">Climate & Energy</button>
+          <button class="pill active" data-value="Defence & Security">Defence & Security</button>
+          <button class="pill active" data-value="Society & Culture">Society & Culture</button>
+          <button class="pill active" data-value="Space & Frontier">Space & Frontier</button>
+          <button class="pill active" data-value="Health & Biotech">Health & Biotech</button>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label>Sources</label>
+        <div class="pill-group" id="source-pills">
+          <button class="pill active" data-value="Mainstream news">Mainstream</button>
+          <button class="pill active" data-value="Think tanks & academic">Think Tanks</button>
+          <button class="pill active" data-value="Independent journalism">Independent</button>
+          <button class="pill pill-official" data-value="Official statements">Official</button>
+        </div>
+      </div>
+      </div>
+    </div>
+
+    <main id="feed">
+      <div class="loading-feed">
+        <div class="loading-pulse"></div>
+        <span>Scanning global signals&hellip;</span>
+      </div>
+    </main>
+
+    <footer>
+      <span id="feed-count"></span>
+      <span id="feed-timestamp"></span>
+    </footer>
+  </div>
+
+  <!-- Profile Setup Modal -->
+  <div class="modal-overlay" id="profile-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Your Profile</h2>
+        <p class="modal-subtitle">Personalize your intelligence feed. GeoSignal will analyze how each story impacts you specifically.</p>
+        <button class="modal-close" id="modal-close">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="profile-role">What's your role?</label>
+          <select id="profile-role">
+            <option value="">Select your role...</option>
+            <option value="Analyst">Analyst</option>
+            <option value="Entrepreneur">Entrepreneur / Founder</option>
+            <option value="Investor">Investor / VC / PE</option>
+            <option value="Executive">Executive / C-Suite</option>
+            <option value="VP">VP / Director</option>
+            <option value="Consultant">Consultant / Advisor</option>
+            <option value="Journalist">Journalist / Reporter</option>
+            <option value="Researcher">Researcher / Academic</option>
+            <option value="Policy Maker">Policy Maker / Government</option>
+            <option value="Engineer">Engineer / Developer</option>
+            <option value="Student">Student</option>
+            <option value="Personal">Personal Use</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="profile-industry">Industry / Sector</label>
+          <select id="profile-industry">
+            <option value="">Select your industry...</option>
+            <option value="Finance & Banking">Finance & Banking</option>
+            <option value="Oil & Gas / Energy">Oil & Gas / Energy</option>
+            <option value="Technology">Technology</option>
+            <option value="Healthcare & Pharma">Healthcare & Pharma</option>
+            <option value="Defense & Aerospace">Defense & Aerospace</option>
+            <option value="Real Estate">Real Estate</option>
+            <option value="Agriculture & Food">Agriculture & Food</option>
+            <option value="Manufacturing">Manufacturing</option>
+            <option value="Logistics & Supply Chain">Logistics & Supply Chain</option>
+            <option value="Media & Communications">Media & Communications</option>
+            <option value="Government & Public Sector">Government & Public Sector</option>
+            <option value="Education">Education</option>
+            <option value="Consulting">Consulting</option>
+            <option value="Legal">Legal</option>
+            <option value="Retail & Consumer">Retail & Consumer</option>
+            <option value="General / Multiple">General / Multiple</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="profile-location">Where are you based?</label>
+          <input type="text" id="profile-location" placeholder="e.g., Singapore, New York, London..." />
+        </div>
+
+        <div class="form-group">
+          <label for="profile-focus">What do you focus on? <span class="optional">(optional)</span></label>
+          <input type="text" id="profile-focus" placeholder="e.g., emerging markets, supply chain risk, ESG..." />
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" id="profile-clear">Clear Profile</button>
+        <button class="btn-primary" id="profile-save">Save Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="annotate-popup" id="annotate-popup">
+    <button class="annotate-popup-close" id="annotate-popup-close">&times;</button>
+    <div class="annotate-popup-body" id="annotate-popup-body"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
