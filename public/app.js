@@ -116,22 +116,17 @@ filtersToggle.addEventListener('click', () => {
 function updateFiltersSummary() {
   const region = regionSelect.value;
   const activeSectors = getActivePills(sectorPills);
-  const activeSources = getActivePills(sourcePills);
   const totalSectors = sectorPills.querySelectorAll('.pill').length;
-  const totalSources = sourcePills.querySelectorAll('.pill').length;
 
-  const sectorText = activeSectors.length === totalSectors
-    ? 'All sectors'
-    : activeSectors.length === 0
-      ? 'No sectors'
-      : activeSectors.length + ' sectors';
-  const sourceText = activeSources.length === totalSources
-    ? 'All sources'
-    : activeSources.length === 0
-      ? 'No sources'
-      : activeSources.length + ' source' + (activeSources.length > 1 ? 's' : '');
+  // Build a compact summary: region + any non-default sector info
+  let parts = [region];
+  if (activeSectors.length === 0) {
+    parts.push('no sectors');
+  } else if (activeSectors.length < totalSectors) {
+    parts.push(activeSectors.length + '/' + totalSectors);
+  }
 
-  filtersSummary.textContent = region + ' · ' + sectorText + ' · ' + sourceText;
+  filtersSummary.textContent = parts.join(' · ');
 }
 
 // Update summary when filters change
@@ -295,8 +290,8 @@ async function fetchStories() {
 
     currentArticles = data.articles;
     governmentCaveat = data.governmentCaveat || '';
-    feedCount.textContent = data.articles.length + ' signals detected';
-    feedTimestamp.textContent = 'Updated ' + formatTimestamp();
+    feedCount.textContent = data.articles.length + ' signals';
+    feedTimestamp.textContent = formatTimestamp();
 
     renderFeed(currentArticles);
     generateTldrs(currentArticles);
@@ -432,15 +427,12 @@ async function generateTldrs(articles) {
     if (data.summaries && data.summaries.length > 0) {
       data.summaries.forEach((summary, i) => {
         if (tldrElements[i] && summary) {
-          // Ensure TL;DR ends with proper punctuation
           let cleaned = summary.trim();
           if (cleaned && !/[.!?]$/.test(cleaned)) {
             cleaned += '.';
           }
           tldrElements[i].classList.remove('loading');
-          tldrElements[i].innerHTML =
-            '<div class="card-tldr-label">TL;DR</div>' +
-            '<div>' + escapeHtml(cleaned) + '</div>';
+          tldrElements[i].textContent = cleaned;
         }
       });
     }
@@ -644,25 +636,25 @@ function renderFeed(articles) {
 
   articles.forEach((article, index) => {
     const card = document.createElement('div');
-    card.className = 'card' + (article.isOfficial ? ' card-is-official' : '');
+
+    // Relevance via left border color instead of a badge
+    let relevanceClass = '';
+    if (article.score !== undefined) {
+      const rel = scoreToRelevance(article.score).toLowerCase();
+      relevanceClass = ' relevance-' + rel;
+    }
+    card.className = 'card' + relevanceClass + (article.isOfficial ? ' card-is-official' : '');
 
     const tldrFallback = article.description
       ? escapeHtml(article.description)
-      : 'Generating summary&hellip;';
+      : '';
 
-    // Badges
-    let badgesHtml = '';
-    if (article.score !== undefined) {
-      const rel = scoreToRelevance(article.score);
-      const relLower = rel.toLowerCase();
-      badgesHtml += '<span class="card-relevance-badge ' + relLower + '">' + rel + '</span>';
-    }
-    if (article.isOfficial) {
-      badgesHtml += '<span class="card-official-badge">OFFICIAL</span>';
-    }
-    badgesHtml += '<span class="card-region">' + escapeHtml(article.region) + '</span>';
+    // Only show official badge — everything else is hidden or in card border
+    const officialBadge = article.isOfficial
+      ? '<span class="card-official-badge">OFFICIAL</span>'
+      : '';
 
-    // Source tier label
+    // Source tier label (hidden by default, shown on hover)
     const tierLabel = article.sourceTier
       ? article.sourceTier.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
       : '';
@@ -670,18 +662,15 @@ function renderFeed(articles) {
     card.innerHTML =
       '<div class="card-header">' +
         '<div class="card-title">' + escapeHtml(article.title) + '</div>' +
-        '<div class="card-badges">' + badgesHtml + '</div>' +
+        (officialBadge ? '<div class="card-badges">' + officialBadge + '</div>' : '') +
       '</div>' +
       '<div class="card-meta">' +
         '<span class="card-source">' + escapeHtml(article.source) + '</span>' +
         '<span class="card-dot"></span>' +
         '<span>' + timeAgo(article.publishedAt) + '</span>' +
-        (tierLabel ? '<span class="card-dot"></span><span>' + escapeHtml(tierLabel) + '</span>' : '') +
+        (tierLabel ? '<span class="card-dot card-tier-meta"></span><span class="card-tier-meta">' + escapeHtml(tierLabel) + '</span>' : '') +
       '</div>' +
-      '<div class="card-tldr loading" data-index="' + index + '">' +
-        '<div class="card-tldr-label">TL;DR</div>' +
-        '<div>' + tldrFallback + '</div>' +
-      '</div>';
+      (tldrFallback ? '<div class="card-tldr loading" data-index="' + index + '">' + tldrFallback + '</div>' : '<div class="card-tldr loading" data-index="' + index + '"></div>');
 
     const tldrEl = card.querySelector('.card-tldr');
     tldrElements.push(tldrEl);
