@@ -588,46 +588,85 @@ select:focus {
 }
 
 .cross-sector-pattern {
-  margin-bottom: 12px;
-  padding-left: 4px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 8px;
 }
 
 .cross-sector-pattern:last-child {
   margin-bottom: 0;
 }
 
+.cross-sector-pattern-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.cross-sector-type-badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.cross-sector-type-badge.type-causal {
+  background: rgba(74, 158, 255, 0.15);
+  color: var(--accent);
+  border: 1px solid rgba(74, 158, 255, 0.3);
+}
+
+.cross-sector-type-badge.type-entity {
+  background: rgba(168, 85, 247, 0.15);
+  color: var(--purple);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.cross-sector-type-badge.type-second-order {
+  background: rgba(52, 211, 153, 0.15);
+  color: var(--green);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+.cross-sector-type-badge.type-contradiction {
+  background: rgba(248, 113, 113, 0.15);
+  color: var(--red);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+}
+
+.cross-sector-type-badge.type-default {
+  background: var(--bg-glass);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
 .cross-sector-pattern-title {
   font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 4px;
+  line-height: 1.4;
 }
 
-.cross-sector-bullets {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.cross-sector-bullets li {
-  position: relative;
-  padding-left: 14px;
-  margin-bottom: 3px;
-  font-size: 12px;
-  color: var(--text-secondary);
+.cross-sector-stories {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-style: italic;
+  margin-bottom: 6px;
   line-height: 1.5;
 }
 
-.cross-sector-bullets li::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 7px;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--purple);
-  opacity: 0.5;
+.cross-sector-analysis {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.6;
 }
 
 /* Story Cards */

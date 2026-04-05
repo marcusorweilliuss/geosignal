@@ -277,6 +277,14 @@ async function fetchCrossSectorInsights(articles, profile, region) {
       return;
     }
 
+    // Map insight types to colors and short labels
+    const typeStyles = {
+      'CAUSAL CHAIN': { cls: 'type-causal', label: 'Causal Chain' },
+      'SHARED ENTITY': { cls: 'type-entity', label: 'Shared Entity' },
+      'SECOND-ORDER EFFECT': { cls: 'type-second-order', label: 'Second-Order Effect' },
+      'CONTRADICTION': { cls: 'type-contradiction', label: 'Contradiction' }
+    };
+
     let html =
       '<div class="cross-sector-bubble">' +
         '<div class="cross-sector-header">' +
@@ -286,14 +294,20 @@ async function fetchCrossSectorInsights(articles, profile, region) {
         '</div>';
 
     data.insights.forEach(insight => {
+      const style = typeStyles[insight.type] || { cls: 'type-default', label: insight.type };
       html +=
         '<div class="cross-sector-pattern">' +
-          '<div class="cross-sector-pattern-title">' + escapeHtml(insight.title) + '</div>' +
-          '<ul class="cross-sector-bullets">';
-      insight.bullets.forEach(b => {
-        html += '<li>' + escapeHtml(b) + '</li>';
-      });
-      html += '</ul></div>';
+          '<div class="cross-sector-pattern-header">' +
+            '<span class="cross-sector-type-badge ' + style.cls + '">' + escapeHtml(style.label) + '</span>' +
+            '<span class="cross-sector-pattern-title">' + escapeHtml(insight.topic) + '</span>' +
+          '</div>';
+
+      if (insight.stories) {
+        html += '<div class="cross-sector-stories">Connecting: ' + escapeHtml(insight.stories) + '</div>';
+      }
+
+      html += '<div class="cross-sector-analysis">' + escapeHtml(insight.analysis) + '</div>' +
+        '</div>';
     });
 
     html += '</div>';

@@ -876,7 +876,8 @@ Term to explain: "${term}"`;
 });
 
 // ── Cross-Sector Analysis ───────────────────────────────────────
-// Detects patterns across articles from different sectors and generates insight
+// Detects causal chains, shared entities, second-order effects, and
+// contradictions across articles — personalized to the user's profile
 
 app.post('/api/cross-sector', async (req, res) => {
   try {
@@ -885,10 +886,11 @@ app.post('/api/cross-sector', async (req, res) => {
       return res.json({ insights: [] });
     }
 
-    // Build a compact summary of top articles for the AI
-    const topArticles = articles.slice(0, 15).map((a, i) =>
-      `[${i + 1}] "${a.title}" (${a.source})`
-    ).join('\n');
+    // Give the AI short topic labels it can reference back by name
+    const topArticles = articles.slice(0, 20).map((a, i) => {
+      const shortTitle = (a.title || '').substring(0, 120);
+      return `<story id="${i + 1}" source="${a.source}">${shortTitle}</story>`;
+    }).join('\n');
 
     const profileDesc = profile ? [
       profile.role && `Role: ${profile.role}`,
@@ -897,53 +899,73 @@ app.post('/api/cross-sector', async (req, res) => {
       profile.focus && `Focus areas: ${profile.focus}`
     ].filter(Boolean).join(' | ') : 'General reader';
 
-    const prompt = `You are a senior intelligence analyst. Look at these news headlines from ${region || 'around the world'} and identify cross-sector patterns — connections between stories that span different domains (e.g., a geopolitical event affecting energy markets affecting trade routes).
+    const prompt = `You are a senior intelligence analyst doing cross-sector pattern detection. Your job is to find NON-OBVIOUS connections between today's stories that a regular reader would miss. Be specific and rigorous — never force a connection.
 
 READER PROFILE: ${profileDesc}
+REGION FOCUS: ${region || 'Global'}
 
-TODAY'S HEADLINES:
+TODAY'S STORIES:
 ${topArticles}
 
-Identify 2-3 cross-sector patterns. For each, explain in 1-2 bullet points how multiple stories connect and what it means for the reader's profile specifically.
+Look for FOUR types of patterns across these stories:
 
-Respond in EXACTLY this format, no markdown:
+1. CAUSAL CHAINS — An event in one sector is driving an event in another sector. Example: "Red Sea shipping attacks (security) → higher LNG prices (energy) → Japan trade deficit widens (economy)."
 
-PATTERN 1: [Short title, max 8 words]
-- [Which headlines connect and how, one line]
-- [What it means for this reader specifically, one line]
+2. SHARED ENTITIES — Multiple stories reference the same country, company, person, or organisation across different sectors, revealing a bigger picture. Example: "Iran appears in stories about sanctions, oil production, and nuclear talks — suggests coordinated pressure campaign."
 
-PATTERN 2: [Short title, max 8 words]
-- [Which headlines connect and how, one line]
-- [What it means for this reader specifically, one line]
+3. SECOND-ORDER EFFECTS — Stories that seem unrelated to the reader's role but have indirect consequences specifically for their industry/location/focus. Be concrete about the mechanism.
 
-PATTERN 3: [Short title, max 8 words]
-- [Which headlines connect and how, one line]
-- [What it means for this reader specifically, one line]
+4. CONTRADICTIONS — Two or more stories tell conflicting narratives about the same event or actor. Flag which sources disagree and why this matters.
 
-Only include patterns where there is a genuine cross-sector connection. If fewer than 2 real patterns exist, return fewer. Never force a connection.`;
+Produce 2-4 insights TOTAL (not per category — pick the strongest). Use this EXACT format, no markdown, no asterisks:
+
+INSIGHT 1
+TYPE: [CAUSAL CHAIN | SHARED ENTITY | SECOND-ORDER EFFECT | CONTRADICTION]
+TOPIC: [Short descriptive topic name, max 10 words — NOT "Headline 1" or "Story A". Use the actual subject, e.g. "Iran Oil Sanctions Ripple Effect" or "China-Taiwan Tech Supply Chain Risk"]
+STORIES: [Comma-separated list of story topics being referenced, e.g. "Red Sea attacks, EU gas prices, Suez shipping delays" — use the ACTUAL subject matter from the headlines, not numbers]
+ANALYSIS: [2 sentences max. State the connection clearly and why it matters for THIS reader's profile specifically. Name mechanisms, not generalities.]
+
+INSIGHT 2
+TYPE: ...
+TOPIC: ...
+STORIES: ...
+ANALYSIS: ...
+
+Rules:
+- Use REAL topic names from the stories, never "Headline 1" or "Story 2"
+- Each TOPIC must be self-explanatory without reading the headlines
+- STORIES must name the actual subject matter so a reader understands what's being connected
+- If you can't find 2 genuine patterns, return only what exists — better to show one strong insight than three weak ones
+- Prioritize CAUSAL CHAINS and SECOND-ORDER EFFECTS relevant to the reader's role`;
 
     const chatCompletion = await groqChat(
       [{ role: 'user', content: prompt }],
-      { temperature: 0.4, max_tokens: 400 }
+      { temperature: 0.35, max_tokens: 700 }
     );
 
     const raw = chatCompletion.choices[0]?.message?.content || '';
 
-    // Parse patterns
-    const patterns = [];
-    const patternRegex = /PATTERN \d+:\s*(.+?)(?=PATTERN \d+:|$)/gs;
-    let match;
-    while ((match = patternRegex.exec(raw)) !== null) {
-      const block = match[1].trim();
-      const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
-      const title = lines[0] || '';
-      const bullets = lines.slice(1).filter(l => l.startsWith('-')).map(l => l.substring(1).trim());
-      if (title && bullets.length > 0) {
-        patterns.push({ title, bullets });
+    // Parse INSIGHT blocks
+    const insights = [];
+    const blocks = raw.split(/INSIGHT\s+\d+/i).slice(1);
+    for (const block of blocks) {
+      const typeMatch = block.match(/TYPE:\s*(.+?)(?:\n|$)/i);
+      const topicMatch = block.match(/TOPIC:\s*(.+?)(?:\n|$)/i);
+      const storiesMatch = block.match(/STORIES:\s*(.+?)(?:\n|$)/i);
+      const analysisMatch = block.match(/ANALYSIS:\s*([\s\S]+?)(?:\n\s*(?:TYPE|TOPIC|STORIES|ANALYSIS|INSIGHT)|$)/i);
+
+      if (topicMatch && analysisMatch) {
+        const type = (typeMatch?.[1] || 'PATTERN').trim().toUpperCase();
+        insights.push({
+          type,
+          topic: topicMatch[1].trim(),
+          stories: (storiesMatch?.[1] || '').trim(),
+          analysis: analysisMatch[1].trim().replace(/\n+/g, ' ')
+        });
       }
     }
 
-    res.json({ insights: patterns });
+    res.json({ insights });
   } catch (err) {
     console.error('Cross-sector analysis error:', err.message);
     res.json({ insights: [] });
