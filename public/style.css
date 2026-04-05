@@ -676,6 +676,47 @@ select:focus {
   letter-spacing: 0.2px;
 }
 
+.cross-sector-bullets {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0 0;
+}
+
+.cross-sector-bullets li {
+  position: relative;
+  padding-left: 14px;
+  margin-bottom: 5px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.cross-sector-bullets li:last-child {
+  margin-bottom: 0;
+}
+
+.cross-sector-bullets li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--purple);
+  opacity: 0.55;
+}
+
+.cs-bullet-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--purple);
+  margin-right: 6px;
+}
+
 .cross-sector-analysis {
   font-size: 12.5px;
   color: var(--text-secondary);

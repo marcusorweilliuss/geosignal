@@ -909,33 +909,35 @@ ${topArticles}
 
 Look for FOUR types of patterns:
 
-1. CAUSAL CHAIN — Event in sector A drives event in sector B. Use arrows (→) to show the chain visually.
+1. CAUSAL CHAIN — Event in sector A drives event in sector B. Show the chain with arrows.
 2. SHARED ENTITY — Same country/company/person appears across sectors, revealing a coordinated campaign or shifting strategy.
-3. SECOND-ORDER EFFECT — Indirect downstream consequence the reader's work will feel, even if not obvious from the headlines.
+3. SECOND-ORDER EFFECT — Indirect downstream consequence the reader's work will feel.
 4. CONTRADICTION — Two or more sources tell conflicting stories about the same thing.
 
 Produce 2-4 insights TOTAL. Use this EXACT format, no markdown, no asterisks:
 
 INSIGHT 1
 TYPE: [CAUSAL CHAIN | SHARED ENTITY | SECOND-ORDER EFFECT | CONTRADICTION]
-TOPIC: [Short descriptive topic, max 8 words. Use the actual subject matter, NOT "Headline 1" or "Story A"]
-STORIES: [Comma-separated actual subjects being connected, e.g. "Red Sea attacks, EU gas prices, Suez delays"]
-CHAIN: [For CAUSAL CHAIN only — show the event flow with arrows, e.g. "Red Sea attacks → Suez shipping delays → LNG spot prices up 12% → EU winter fuel costs rise". Leave blank for other types.]
-ANALYSIS: [2 sentences. First sentence: the specific mechanism — name actors, numbers, timing, or concrete effect. Second sentence: the actionable takeaway for the reader's work — what they should track, adjust, or reconsider. Use "you" or omit subject — NEVER echo the reader's profile fields back.]
+TOPIC: [Short topic, max 8 words. Actual subject matter — NEVER "Headline 1" or "Story A"]
+STORIES: [Comma-separated actual subjects being connected]
+CHAIN: [ONLY for CAUSAL CHAIN type — the event flow with arrows. e.g. "Red Sea attacks → Suez delays → LNG prices +12% → EU fuel costs rise". Leave empty for other types. This must be JUST the chain, no prose.]
+MECHANISM: [ONE sentence naming the specific mechanism: actors, numbers, dates, percentages, or concrete effect. NOT a restatement of the chain.]
+TAKEAWAY: [ONE sentence on what you should track, adjust, or reconsider. Must be actionable and specific — not "monitor the situation".]
 
 INSIGHT 2
-TYPE: ...
 ...
 
 CRITICAL RULES:
-- BAD (shallow, vague): "This shows that trade tensions could affect markets."
-- GOOD (specific): "EU tightened Russian oil cap to $50 this week while India boosted Russian crude imports 18%, suggesting Delhi is arbitraging the price gap. Watch Indian refinery capacity announcements — this arbitrage will likely end when refiners hit maximum throughput in Q2."
-- Name real actors, numbers, dates, or mechanisms in every ANALYSIS
-- Never write generic phrases like "could impact", "may affect", "worth monitoring" without specifying what to monitor and why
-- Causal chains MUST include the CHAIN field with arrow notation
+- MECHANISM and TAKEAWAY must NEVER repeat each other or the CHAIN — each field adds new information
+- MECHANISM = the "why/how" with real numbers and names
+- TAKEAWAY = what to DO about it (watch X, reconsider Y, adjust Z)
+- CHAIN is ONLY for CAUSAL CHAIN type — leave blank for SHARED ENTITY, SECOND-ORDER EFFECT, CONTRADICTION
 - Never write phrases like "for the [role] in [location]" — the reader knows who they are
-- Use REAL topic names from the stories, never "Headline 1"
-- If you can't find 2 genuinely substantive patterns, return only 1 — quality over quantity`;
+- Use "you" or omit the subject entirely
+- Use REAL topic names, never "Headline 1"
+- BAD (vague): "Trade tensions could affect markets — monitor closely"
+- GOOD (specific): MECHANISM: "EU cut Russian oil cap to \$50 while India boosted imports 18%, arbitraging the gap." TAKEAWAY: "Watch Indian refinery throughput reports — arbitrage ends when capacity maxes out in Q2."
+- If you can't find 2 genuinely substantive patterns, return only 1`;
 
     const chatCompletion = await groqChat(
       [{ role: 'user', content: prompt }],
@@ -947,22 +949,27 @@ CRITICAL RULES:
     // Parse INSIGHT blocks
     const insights = [];
     const blocks = raw.split(/INSIGHT\s+\d+/i).slice(1);
+    const clean = (s) => (s || '').trim().replace(/\n+/g, ' ').replace(/^\[|\]$/g, '').trim();
+    const isEmpty = (s) => !s || s.toLowerCase() === 'blank' || s.toLowerCase() === 'n/a' || s === '';
+
     for (const block of blocks) {
       const typeMatch = block.match(/TYPE:\s*(.+?)(?:\n|$)/i);
       const topicMatch = block.match(/TOPIC:\s*(.+?)(?:\n|$)/i);
       const storiesMatch = block.match(/STORIES:\s*(.+?)(?:\n|$)/i);
       const chainMatch = block.match(/CHAIN:\s*(.+?)(?:\n|$)/i);
-      const analysisMatch = block.match(/ANALYSIS:\s*([\s\S]+?)(?:\n\s*(?:TYPE|TOPIC|STORIES|CHAIN|ANALYSIS|INSIGHT)|$)/i);
+      const mechanismMatch = block.match(/MECHANISM:\s*([\s\S]+?)(?:\n\s*(?:TYPE|TOPIC|STORIES|CHAIN|MECHANISM|TAKEAWAY|ANALYSIS|INSIGHT)|$)/i);
+      const takeawayMatch = block.match(/TAKEAWAY:\s*([\s\S]+?)(?:\n\s*(?:TYPE|TOPIC|STORIES|CHAIN|MECHANISM|TAKEAWAY|ANALYSIS|INSIGHT)|$)/i);
 
-      if (topicMatch && analysisMatch) {
+      if (topicMatch && (mechanismMatch || takeawayMatch)) {
         const type = (typeMatch?.[1] || 'PATTERN').trim().toUpperCase();
-        const chain = (chainMatch?.[1] || '').trim();
+        const chain = clean(chainMatch?.[1]);
         insights.push({
           type,
-          topic: topicMatch[1].trim(),
-          stories: (storiesMatch?.[1] || '').trim(),
-          chain: chain && chain.toLowerCase() !== 'blank' && chain !== '' ? chain : '',
-          analysis: analysisMatch[1].trim().replace(/\n+/g, ' ')
+          topic: clean(topicMatch[1]),
+          stories: clean(storiesMatch?.[1]),
+          chain: isEmpty(chain) ? '' : chain,
+          mechanism: clean(mechanismMatch?.[1]),
+          takeaway: clean(takeawayMatch?.[1])
         });
       }
     }

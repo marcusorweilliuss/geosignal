@@ -306,12 +306,20 @@ async function fetchCrossSectorInsights(articles, profile, region) {
         html += '<div class="cross-sector-stories">Connecting: ' + escapeHtml(insight.stories) + '</div>';
       }
 
+      // Show the arrow chain only for causal type
       if (insight.chain) {
         html += '<div class="cross-sector-chain">' + escapeHtml(insight.chain) + '</div>';
       }
 
-      html += '<div class="cross-sector-analysis">' + escapeHtml(insight.analysis) + '</div>' +
-        '</div>';
+      // Mechanism and takeaway as separate labeled bullets
+      html += '<ul class="cross-sector-bullets">';
+      if (insight.mechanism) {
+        html += '<li><span class="cs-bullet-label">Why:</span> ' + escapeHtml(insight.mechanism) + '</li>';
+      }
+      if (insight.takeaway) {
+        html += '<li><span class="cs-bullet-label">Watch:</span> ' + escapeHtml(insight.takeaway) + '</li>';
+      }
+      html += '</ul></div>';
     });
 
     html += '</div>';
