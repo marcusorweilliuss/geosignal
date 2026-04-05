@@ -243,7 +243,7 @@ async function fetchStories() {
   const sourceTypes = getActivePills(sourcePills);
 
   if (sectors.length === 0 || sourceTypes.length === 0) {
-    feed.innerHTML = '<div class="empty-feed">Select at least one sector and source type.</div>';
+    feed.innerHTML = '<div class="empty-feed">You haven\u2019t selected anything to read. Pick a sector or a source type to get started.</div>';
     feedCount.textContent = '';
     return;
   }
@@ -251,7 +251,7 @@ async function fetchStories() {
   const searchVal = searchInput.value.trim();
   const loadingMsg = searchVal
     ? 'Searching for &ldquo;' + escapeHtml(searchVal) + '&rdquo;'
-    : 'Scanning 587 sources';
+    : 'Gathering today\u2019s stories';
   feed.innerHTML =
     '<div class="loading-feed">' +
       '<div class="loading-pulse"></div>' +
@@ -279,12 +279,12 @@ async function fetchStories() {
     const data = await res.json();
 
     if (!res.ok) {
-      feed.innerHTML = '<div class="empty-feed">Failed to load signals.</div>';
+      feed.innerHTML = '<div class="empty-feed">Something went wrong while fetching the feed. Give it another moment and try again.</div>';
       return;
     }
 
     if (!data.articles || data.articles.length === 0) {
-      feed.innerHTML = '<div class="empty-feed">No signals match your filters.<br><br>Try broadening your region, enabling more sectors, or clearing your search.</div>';
+      feed.innerHTML = '<div class="empty-feed">Nothing matches this combination just yet. Try a wider region, turn on more sectors, or clear your search to see what\u2019s moving.</div>';
       return;
     }
 
@@ -303,7 +303,7 @@ async function fetchStories() {
     }
   } catch (err) {
     console.error('Fetch error:', err);
-    feed.innerHTML = '<div class="empty-feed">Connection failed. Try again.</div>';
+    feed.innerHTML = '<div class="empty-feed">Couldn\u2019t reach the feed. Check your connection and try again.</div>';
   }
 }
 
@@ -324,7 +324,7 @@ async function fetchCrossSectorInsights(articles, profile, region) {
         '<span class="cross-sector-icon">&#9670;</span>' +
         '<span class="cross-sector-title">Cross-Sector Signals</span>' +
       '</div>' +
-      '<div class="cross-sector-loading"><div class="spinner"></div><span>Detecting patterns across sectors&hellip;</span></div>' +
+      '<div class="cross-sector-loading"><div class="spinner"></div><span>Reading across the day\u2019s stories&hellip;</span></div>' +
     '</div>';
 
   try {
@@ -458,7 +458,7 @@ async function fetchImpact(article, container) {
   container.innerHTML =
     '<div class="impact-section">' +
       '<div class="impact-header"><span class="impact-title">Personalized Impact</span></div>' +
-      '<div class="impact-loading"><div class="spinner"></div><span>Analyzing impact&hellip;</span></div>' +
+      '<div class="impact-loading"><div class="spinner"></div><span>Thinking about how this lands for you&hellip;</span></div>' +
     '</div>';
 
   try {
@@ -534,7 +534,7 @@ async function fetchSentiment(article, container) {
       '<div class="sentiment-header">' +
         '<span class="sentiment-title">Public Discourse</span>' +
       '</div>' +
-      '<div class="sentiment-loading"><div class="spinner"></div><span>Searching public discussions&hellip;</span></div>' +
+      '<div class="sentiment-loading"><div class="spinner"></div><span>Listening to what people are saying&hellip;</span></div>' +
     '</div>';
 
   // Extract key terms from headline for better search
@@ -738,7 +738,12 @@ function renderFeed(articles) {
 
         const briefingContent = document.createElement('div');
         briefingContent.innerHTML =
-          '<div class="briefing-loading"><div class="spinner"></div><span>Generating intelligence briefing&hellip;</span></div>';
+          '<div class="briefing-loading"><div class="spinner"></div><span>Composing the briefing&hellip;</span></div>' +
+          '<div class="skeleton-block">' +
+            '<div class="skeleton-shimmer skeleton-line long"></div>' +
+            '<div class="skeleton-shimmer skeleton-line medium"></div>' +
+            '<div class="skeleton-shimmer skeleton-line short"></div>' +
+          '</div>';
 
         // Progressive disclosure: Impact and Discourse are collapsed by default
         const moreSections = document.createElement('div');
