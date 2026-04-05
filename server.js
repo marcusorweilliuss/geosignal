@@ -899,7 +899,7 @@ app.post('/api/cross-sector', async (req, res) => {
       profile.focus && `Focus areas: ${profile.focus}`
     ].filter(Boolean).join(' | ') : 'General reader';
 
-    const prompt = `You are a senior intelligence analyst doing cross-sector pattern detection. Your job is to find NON-OBVIOUS connections between today's stories that a regular reader would miss. Be specific and rigorous — never force a connection.
+    const prompt = `You are a senior intelligence analyst doing cross-sector pattern detection. Find NON-OBVIOUS connections between today's stories that a regular reader would miss. Be terse and rigorous.
 
 READER PROFILE: ${profileDesc}
 REGION FOCUS: ${region || 'Global'}
@@ -907,23 +907,20 @@ REGION FOCUS: ${region || 'Global'}
 TODAY'S STORIES:
 ${topArticles}
 
-Look for FOUR types of patterns across these stories:
+Look for FOUR types of patterns:
 
-1. CAUSAL CHAINS — An event in one sector is driving an event in another sector. Example: "Red Sea shipping attacks (security) → higher LNG prices (energy) → Japan trade deficit widens (economy)."
+1. CAUSAL CHAIN — Event in sector A drives event in sector B. Use arrows (→) to show the chain.
+2. SHARED ENTITY — Same country/company/person appears across sectors, revealing a bigger picture.
+3. SECOND-ORDER EFFECT — Indirect consequence for the reader's work.
+4. CONTRADICTION — Two or more sources tell conflicting stories about the same thing.
 
-2. SHARED ENTITIES — Multiple stories reference the same country, company, person, or organisation across different sectors, revealing a bigger picture. Example: "Iran appears in stories about sanctions, oil production, and nuclear talks — suggests coordinated pressure campaign."
-
-3. SECOND-ORDER EFFECTS — Stories that seem unrelated to the reader's role but have indirect consequences specifically for their industry/location/focus. Be concrete about the mechanism.
-
-4. CONTRADICTIONS — Two or more stories tell conflicting narratives about the same event or actor. Flag which sources disagree and why this matters.
-
-Produce 2-4 insights TOTAL (not per category — pick the strongest). Use this EXACT format, no markdown, no asterisks:
+Produce 2-4 insights TOTAL. Use this EXACT format, no markdown, no asterisks:
 
 INSIGHT 1
 TYPE: [CAUSAL CHAIN | SHARED ENTITY | SECOND-ORDER EFFECT | CONTRADICTION]
-TOPIC: [Short descriptive topic name, max 10 words — NOT "Headline 1" or "Story A". Use the actual subject, e.g. "Iran Oil Sanctions Ripple Effect" or "China-Taiwan Tech Supply Chain Risk"]
-STORIES: [Comma-separated list of story topics being referenced, e.g. "Red Sea attacks, EU gas prices, Suez shipping delays" — use the ACTUAL subject matter from the headlines, not numbers]
-ANALYSIS: [2 sentences max. State the connection clearly and why it matters for THIS reader's profile specifically. Name mechanisms, not generalities.]
+TOPIC: [Short descriptive topic, max 8 words. Use the actual subject matter, NOT "Headline 1" or "Story A"]
+STORIES: [Comma-separated actual subjects being connected, e.g. "Red Sea attacks, EU gas prices, Suez delays"]
+ANALYSIS: [ONE sentence, max 25 words. For causal chains, use arrows (→) to show the chain visually. Speak directly using "you" or "your work" — do NOT describe the reader's job title, industry, or location in the analysis. Get straight to the mechanism and why it matters.]
 
 INSIGHT 2
 TYPE: ...
@@ -931,16 +928,17 @@ TOPIC: ...
 STORIES: ...
 ANALYSIS: ...
 
-Rules:
-- Use REAL topic names from the stories, never "Headline 1" or "Story 2"
-- Each TOPIC must be self-explanatory without reading the headlines
-- STORIES must name the actual subject matter so a reader understands what's being connected
-- If you can't find 2 genuine patterns, return only what exists — better to show one strong insight than three weak ones
-- Prioritize CAUSAL CHAINS and SECOND-ORDER EFFECTS relevant to the reader's role`;
+CRITICAL RULES:
+- Never write phrases like "for the [role] in [location]" or "this matters for the [industry] analyst" — the reader already knows who they are
+- Speak to them directly with "you" or omit the subject entirely
+- Causal chains MUST use arrows: "X → Y → Z"
+- ANALYSIS must be ONE sentence, no more
+- Use REAL topic names, never "Headline 1" or "Story 2"
+- If you can't find 2 genuine patterns, return only what exists — quality over quantity`;
 
     const chatCompletion = await groqChat(
       [{ role: 'user', content: prompt }],
-      { temperature: 0.35, max_tokens: 700 }
+      { temperature: 0.3, max_tokens: 500 }
     );
 
     const raw = chatCompletion.choices[0]?.message?.content || '';
