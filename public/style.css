@@ -1301,19 +1301,6 @@ select:focus {
   border-left-color: var(--border);
 }
 
-/* A tiny accent dot before the headline for HIGH relevance only */
-.card.relevance-high .card-title::before {
-  content: '';
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
-  margin-right: 10px;
-  vertical-align: middle;
-  margin-top: -4px;
-}
-
 .card.card-read {
   opacity: 0.7;
 }
