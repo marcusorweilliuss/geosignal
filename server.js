@@ -294,6 +294,10 @@ const groqCaches = {
   crossSector: new Map() // key: profile + article set hash → { data, fetchedAt }
 };
 
+// Bump this whenever TL;DR parsing logic changes to invalidate cached entries
+// from previous versions that may have wrong summaries under right keys
+const TLDR_CACHE_VERSION = 'v2-indexed';
+
 function cacheGet(bucket, key) {
   const entry = groqCaches[bucket]?.get(key);
   if (!entry) return null;
@@ -549,7 +553,7 @@ app.post('/api/tldr', async (req, res) => {
     const uncachedArticles = [];
 
     articles.forEach((a, i) => {
-      const key = a.url || a.title;
+      const key = TLDR_CACHE_VERSION + '::' + (a.url || a.title);
       const cached = cacheGet('tldr', key);
       if (cached) {
         summaries[i] = cached;
@@ -582,32 +586,38 @@ RULES:
 Articles:
 ${articleList}
 
-Respond with ONLY a JSON array of strings, one summary per article, in the same order. Example: ["Summary 1", "OFFICIAL: Summary 2"]
-No other text, no markdown, no formatting. Just the JSON array.`;
+Respond with ONLY a JSON OBJECT where each key is the article index and each value is that article's one-sentence summary. Example for three articles: {"0": "Summary for article 0.", "1": "OFFICIAL: Summary for article 1.", "2": "Summary for article 2."}
+You MUST include every index from 0 to ${uncachedArticles.length - 1}. Do not skip any. Do not reorder.
+No other text, no markdown, no prose. Just the JSON object.`;
 
     const chatCompletion = await groqChat(
       [{ role: 'user', content: prompt }],
-      { temperature: 0.3, max_tokens: 2000 }
+      { temperature: 0.3, max_tokens: 2500 }
     );
 
-    const raw = chatCompletion.choices[0]?.message?.content || '[]';
-    let freshSummaries;
+    const raw = chatCompletion.choices[0]?.message?.content || '{}';
+    let freshMap = {};
     try {
-      const jsonMatch = raw.match(/\[[\s\S]*\]/);
-      freshSummaries = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
+      // Extract the JSON object from the response
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        freshMap = JSON.parse(jsonMatch[0]);
+      }
     } catch {
-      freshSummaries = [];
+      freshMap = {};
     }
 
-    // Merge fresh results back into the original order and cache each one
-    freshSummaries.forEach((text, i) => {
-      const originalIndex = uncachedIndices[i];
-      const article = uncachedArticles[i];
-      if (originalIndex !== undefined && text) {
-        summaries[originalIndex] = text;
-        const key = article.url || article.title;
-        cacheSet('tldr', key, text);
-      }
+    // Map fresh results back by key (index) — robust to reordering
+    Object.keys(freshMap).forEach(key => {
+      const localIdx = parseInt(key, 10);
+      const text = freshMap[key];
+      if (isNaN(localIdx) || !text) return;
+      const originalIndex = uncachedIndices[localIdx];
+      const article = uncachedArticles[localIdx];
+      if (originalIndex === undefined || !article) return;
+      summaries[originalIndex] = text;
+      const cacheKey = TLDR_CACHE_VERSION + '::' + (article.url || article.title);
+      cacheSet('tldr', cacheKey, text);
     });
 
     res.json({ summaries });
