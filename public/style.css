@@ -21,8 +21,8 @@
 
   /* Text — warm dark brown */
   --text-primary: #1C1917;
-  --text-secondary: #57534E;
-  --text-tertiary: #A8A29E;
+  --text-secondary: #3F3A34;
+  --text-tertiary: #7B7369;
 
   /* Single warm accent — deep teal */
   --accent: #0F6E56;
@@ -1023,9 +1023,92 @@ select:focus {
   line-height: 1.65;
 }
 
-/* Feed sections — editorial dividers */
+/* Dispatch header — editorial front page */
+.dispatch-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin: 12px 0 8px;
+  padding: 18px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+}
+
+.dispatch-date {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-tertiary);
+  flex: 1;
+  text-align: right;
+}
+
+.dispatch-ornament {
+  color: var(--accent);
+  font-size: 10px;
+  opacity: 0.75;
+}
+
+.dispatch-title {
+  font-family: var(--serif);
+  font-size: 14px;
+  font-style: italic;
+  font-weight: 500;
+  color: var(--text-secondary);
+  flex: 1;
+  text-align: left;
+}
+
+/* Stats strip — tiny visual breakdown */
+.stats-strip {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  padding: 18px 0 32px;
+  font-family: var(--sans);
+}
+
+.stats-strip:empty {
+  display: none;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.stat-value {
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1;
+  letter-spacing: -0.3px;
+}
+
+.stat-label {
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--text-tertiary);
+}
+
+.stat-divider {
+  width: 1px;
+  background: var(--border);
+  align-self: stretch;
+}
+
+/* Feed sections — editorial dividers with diamond ornament */
 .feed-section {
-  margin-top: 40px;
+  margin-top: 48px;
   margin-bottom: 8px;
 }
 
@@ -1036,17 +1119,17 @@ select:focus {
 .feed-section-header {
   display: flex;
   align-items: center;
-  gap: 18px;
-  padding: 0 2px 20px;
+  gap: 14px;
+  padding: 0 2px 24px;
 }
 
 .feed-section-label {
   font-family: var(--serif);
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 600;
   font-style: italic;
   color: var(--text-primary);
-  letter-spacing: -0.2px;
+  letter-spacing: -0.3px;
   flex-shrink: 0;
   line-height: 1;
 }
@@ -1058,16 +1141,29 @@ select:focus {
   color: var(--text-tertiary);
   letter-spacing: 0.3px;
   flex-shrink: 0;
-  padding-top: 3px;
+  padding-top: 4px;
 }
 
-/* Thin horizontal rule extending to the right */
-.feed-section-header::after {
-  content: '';
+/* Thin rule extending right of the label */
+.feed-section-header .section-rule {
   flex: 1;
   height: 1px;
-  background: var(--border);
-  margin-top: 4px;
+  background: var(--border-strong);
+  position: relative;
+}
+
+/* Diamond ornament sitting on top of the rule */
+.feed-section-header .section-rule::after {
+  content: '\25C6';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--accent);
+  background: var(--bg-primary);
+  padding: 0 8px;
+  font-size: 9px;
+  opacity: 0.8;
 }
 
 /* Story Cards — editorial, unified */
@@ -1125,6 +1221,52 @@ select:focus {
 
 .card.card-read .card-title {
   color: var(--text-secondary);
+}
+
+/* Featured / Lead Story card — bigger headline and eyebrow */
+.card.card-featured {
+  padding: 34px 32px 30px;
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+}
+
+.card.card-featured:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.card.card-featured .card-title {
+  font-size: 30px;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+}
+
+.card.card-featured.card-expanded .card-title {
+  font-size: 32px;
+}
+
+.card.card-featured .card-tldr {
+  font-size: 17px;
+  line-height: 1.65;
+  padding-left: 34px;
+  margin-top: 22px;
+}
+
+.card.card-featured .card-tldr::before {
+  font-size: 56px;
+  top: -18px;
+}
+
+.card-eyebrow {
+  display: inline-block;
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--accent);
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--accent-soft);
 }
 
 .card.card-expanded {
@@ -1236,12 +1378,13 @@ select:focus {
   opacity: 0.8;
 }
 
-/* TL;DR — pull-quote feel in serif italic */
+/* TL;DR — pull-quote feel in serif italic with decorative mark */
 .card-tldr {
-  margin-top: 16px;
-  padding: 0 0 0 16px;
+  position: relative;
+  margin-top: 18px;
+  padding: 2px 0 2px 30px;
   background: transparent;
-  border-left: 2px solid var(--accent-soft);
+  border-left: none;
   border-radius: 0;
   font-family: var(--serif);
   font-style: italic;
@@ -1249,6 +1392,20 @@ select:focus {
   line-height: 1.6;
   color: var(--text-secondary);
   font-weight: 400;
+}
+
+.card-tldr::before {
+  content: '\201C';
+  position: absolute;
+  left: 0;
+  top: -14px;
+  font-family: var(--serif);
+  font-size: 48px;
+  color: var(--accent);
+  opacity: 0.35;
+  line-height: 1;
+  font-style: normal;
+  font-weight: 500;
 }
 
 .card-tldr:empty {
@@ -1423,6 +1580,17 @@ select:focus {
   border-radius: 50%;
   background: var(--accent);
   opacity: 0.7;
+}
+
+/* Drop cap on the first bullet of the first briefing section */
+.briefing-content .briefing-section:first-of-type .briefing-bullets li:first-child::first-letter {
+  font-family: var(--serif);
+  font-size: 44px;
+  font-weight: 700;
+  float: left;
+  line-height: 0.9;
+  padding: 4px 8px 0 0;
+  color: var(--accent);
 }
 
 /* Citation chips — subtle editorial tags */

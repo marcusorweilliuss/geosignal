@@ -235,6 +235,41 @@ function scoreToRelevance(score) {
   return 'LOW';
 }
 
+// Dispatch header — today's date and a stats strip above the feed
+function updateDispatchHeader(articles) {
+  const dateEl = document.getElementById('dispatch-date');
+  const stripEl = document.getElementById('stats-strip');
+  if (!dateEl || !stripEl) return;
+
+  const now = new Date();
+  dateEl.textContent = now.toLocaleDateString('en-GB', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long'
+  });
+
+  const sourceSet = new Set();
+  let highCount = 0;
+  articles.forEach(a => {
+    if (a.source) sourceSet.add(a.source);
+    if (a.score !== undefined && scoreToRelevance(a.score) === 'HIGH') highCount++;
+  });
+
+  const stats = [
+    { value: articles.length, label: 'Stories' },
+    { value: sourceSet.size, label: 'Sources' },
+    { value: highCount, label: 'Must Read' }
+  ];
+
+  stripEl.innerHTML = stats.map((s, i) => {
+    const divider = i < stats.length - 1 ? '<div class="stat-divider"></div>' : '';
+    return '<div class="stat-item">' +
+      '<div class="stat-value">' + s.value + '</div>' +
+      '<div class="stat-label">' + s.label + '</div>' +
+    '</div>' + divider;
+  }).join('');
+}
+
 // ── Fetch Stories (RSS-powered) ─────────────────────────────────
 
 async function fetchStories() {
@@ -293,6 +328,7 @@ async function fetchStories() {
     feedCount.textContent = data.articles.length + ' signals';
     feedTimestamp.textContent = formatTimestamp();
 
+    updateDispatchHeader(currentArticles);
     renderFeed(currentArticles);
     generateTldrs(currentArticles);
 
@@ -654,6 +690,16 @@ function renderFeed(articles) {
   const groups = groupArticlesByTime(articles);
   let globalIndex = 0;
 
+  // Featured story: the highest-scoring article in the first non-empty group
+  let featuredArticle = null;
+  for (const key of ['breaking', 'today', 'week']) {
+    if (groups[key].length > 0) {
+      featuredArticle = groups[key].reduce((best, a) =>
+        (a.score || 0) > (best.score || 0) ? a : best, groups[key][0]);
+      break;
+    }
+  }
+
   const groupLabels = [
     { key: 'breaking', label: 'Breaking', hint: 'Last 3 hours' },
     { key: 'today', label: 'Today', hint: 'Last 24 hours' },
@@ -664,13 +710,14 @@ function renderFeed(articles) {
     const groupArticles = groups[key];
     if (groupArticles.length === 0) return;
 
-    // Section header
+    // Section header with editorial ornament
     const section = document.createElement('div');
     section.className = 'feed-section';
     section.innerHTML =
       '<div class="feed-section-header">' +
         '<span class="feed-section-label">' + label + '</span>' +
         '<span class="feed-section-count">' + groupArticles.length + '</span>' +
+        '<span class="section-rule"></span>' +
       '</div>';
     feed.appendChild(section);
 
@@ -683,7 +730,10 @@ function renderFeed(articles) {
         const rel = scoreToRelevance(article.score).toLowerCase();
         relevanceClass = ' relevance-' + rel;
       }
-      card.className = 'card' + relevanceClass + (article.isOfficial ? ' card-is-official' : '');
+      const isFeatured = article === featuredArticle;
+      card.className = 'card' + relevanceClass +
+        (article.isOfficial ? ' card-is-official' : '') +
+        (isFeatured ? ' card-featured' : '');
       card.setAttribute('tabindex', '0');
       card.dataset.cardIndex = index;
 
@@ -698,7 +748,10 @@ function renderFeed(articles) {
         ? '<div class="card-badges">' + officialBadge + regionPill + '</div>'
         : '';
 
+      const eyebrow = isFeatured ? '<div class="card-eyebrow">Lead Story</div>' : '';
+
       card.innerHTML =
+        eyebrow +
         '<div class="card-header">' +
           '<div class="card-title">' + escapeHtml(article.title) + '</div>' +
           badges +
