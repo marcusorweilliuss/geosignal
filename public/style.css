@@ -20,9 +20,9 @@
   --border-strong: rgba(28, 25, 23, 0.12);
 
   /* Text — warm dark brown */
-  --text-primary: #1C1917;
-  --text-secondary: #3F3A34;
-  --text-tertiary: #7B7369;
+  --text-primary: #171512;
+  --text-secondary: #2B2724;
+  --text-tertiary: #6B635A;
 
   /* Single warm accent — deep teal */
   --accent: #0F6E56;
@@ -1081,6 +1081,48 @@ select:focus {
   flex-direction: column;
   align-items: center;
   gap: 3px;
+  padding: 4px 12px;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  color: inherit;
+}
+
+/* Clickable Must Read stat */
+.stat-item-clickable {
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.2s ease, transform 0.2s ease;
+  position: relative;
+}
+
+.stat-item-clickable:hover {
+  background: var(--accent-dim);
+  transform: translateY(-1px);
+}
+
+.stat-item-clickable:hover .stat-value {
+  color: var(--accent);
+}
+
+.stat-item-clickable:hover .stat-label {
+  color: var(--accent);
+}
+
+.stat-item-clickable::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 0;
+  height: 1px;
+  background: var(--accent);
+  transition: width 0.25s ease, left 0.25s ease;
+}
+
+.stat-item-clickable:hover::after {
+  width: 80%;
+  left: 10%;
 }
 
 .stat-value {
@@ -1348,6 +1390,16 @@ select:focus {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Flash highlight when the Must Read stat scrolls you to a card */
+.card.card-flash {
+  animation: card-flash 1.2s ease;
+}
+
+@keyframes card-flash {
+  0%, 100% { box-shadow: var(--shadow-sm); }
+  25%, 60% { box-shadow: 0 0 0 3px var(--accent-soft), var(--shadow-md); }
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -1448,7 +1500,7 @@ select:focus {
   font-size: 16px;
   line-height: 1.6;
   color: var(--text-secondary);
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .card-tldr::before {
@@ -1607,7 +1659,7 @@ select:focus {
   font-size: 16.5px;
   color: var(--text-primary);
   line-height: 1.75;
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .briefing-bullets {

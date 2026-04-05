@@ -269,18 +269,35 @@ function updateDispatchHeader(articles) {
   });
 
   const stats = [
-    { value: articles.length, label: 'Stories' },
-    { value: sourceSet.size, label: 'Sources' },
-    { value: highCount, label: 'Must Read' }
+    { value: articles.length, label: 'Stories', clickable: false },
+    { value: sourceSet.size, label: 'Sources', clickable: false },
+    { value: highCount, label: 'Must Read', clickable: highCount > 0, action: 'must-read' }
   ];
 
   stripEl.innerHTML = stats.map((s, i) => {
     const divider = i < stats.length - 1 ? '<div class="stat-divider"></div>' : '';
-    return '<div class="stat-item">' +
+    const tag = s.clickable ? 'button' : 'div';
+    const cls = 'stat-item' + (s.clickable ? ' stat-item-clickable' : '');
+    const dataAttr = s.clickable ? ' data-action="' + s.action + '"' : '';
+    return '<' + tag + ' class="' + cls + '"' + dataAttr + '>' +
       '<div class="stat-value">' + s.value + '</div>' +
       '<div class="stat-label">' + s.label + '</div>' +
-    '</div>' + divider;
+    '</' + tag + '>' + divider;
   }).join('');
+
+  // Wire up the Must Read click — scroll to the first HIGH relevance card
+  const mustReadBtn = stripEl.querySelector('[data-action="must-read"]');
+  if (mustReadBtn) {
+    mustReadBtn.addEventListener('click', () => {
+      const firstHigh = document.querySelector('.card.relevance-high');
+      if (firstHigh) {
+        firstHigh.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        firstHigh.focus({ preventScroll: true });
+        firstHigh.classList.add('card-flash');
+        setTimeout(() => firstHigh.classList.remove('card-flash'), 1200);
+      }
+    });
+  }
 }
 
 // ── Fetch Stories (RSS-powered) ─────────────────────────────────
