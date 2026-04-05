@@ -463,20 +463,26 @@ app.get('/api/news', async (req, res) => {
     unique = unique.filter(a => a.score >= 0);
     unique.sort((a, b) => b.score - a.score);
 
-    // Map to card format
-    const articles = unique.slice(0, 40).map(article => ({
-      title: article.title,
-      source: article.source,
-      sourceTier: article.sourceTier,
-      publishedAt: article.publishedAt,
-      description: (article.description || '').substring(0, 500),
-      content: (article.content || article.description || '').substring(0, 800),
-      url: article.url,
-      region: region || 'Global',
-      isOfficial: article.sourceTier === 'government-official',
-      score: article.score,
-      thumbnail: article.thumbnail || ''
-    }));
+    // Map to card format. Strip HTML server-side so descriptions arrive
+    // as clean text — prevents truncation from cutting mid-entity on
+    // the client and keeps the payload lean.
+    const articles = unique.slice(0, 40).map(article => {
+      const desc = stripHtml(article.description || '').slice(0, 320);
+      const body = stripHtml(article.content || article.description || '').slice(0, 600);
+      return {
+        title: article.title,
+        source: article.source,
+        sourceTier: article.sourceTier,
+        publishedAt: article.publishedAt,
+        description: desc,
+        content: body,
+        url: article.url,
+        region: region || 'Global',
+        isOfficial: article.sourceTier === 'government-official',
+        score: article.score,
+        thumbnail: article.thumbnail || ''
+      };
+    });
 
     res.json({ articles, governmentCaveat: GOVERNMENT_CAVEAT });
   } catch (err) {
@@ -1084,7 +1090,18 @@ CRITICAL RULES:
     // Parse INSIGHT blocks
     const insights = [];
     const blocks = raw.split(/INSIGHT\s+\d+/i).slice(1);
-    const clean = (s) => (s || '').trim().replace(/\n+/g, ' ').replace(/^\[|\]$/g, '').trim();
+    // Clean a parsed field value: trim, collapse newlines, and strip
+    // wrapping brackets ONLY if the entire value is bracketed (e.g.
+    // "[PATTERN TITLE]" → "PATTERN TITLE"). This must not strip a
+    // trailing citation tag like "[Foreign Affairs]".
+    const clean = (s) => {
+      if (!s) return '';
+      let t = String(s).trim().replace(/\n+/g, ' ').trim();
+      if (/^\[[^\[\]]+\]$/.test(t)) {
+        t = t.slice(1, -1).trim();
+      }
+      return t;
+    };
     const isEmpty = (s) => !s || s.toLowerCase() === 'blank' || s.toLowerCase() === 'n/a' || s === '';
 
     for (const block of blocks) {

@@ -173,28 +173,13 @@ function stripMd(str) {
     .replace(/__/g, '');
 }
 
-// Clean a description into a single-sentence fallback TL;DR.
-// Finds the first sentence end (. ! ?) or cuts at the last word boundary.
+// Clean a raw RSS description into a short fallback TL;DR shown until
+// the AI summary arrives. Caps at 180 chars on a word boundary.
 function cleanFallback(str) {
   if (!str) return '';
-  let text = stripMd(String(str)).replace(/\s+/g, ' ').trim();
-  // Strip any trailing HTML entity fragments or stray brackets
-  text = text.replace(/&[a-z]+;?$/i, '').trim();
-
-  if (text.length <= 160) return text;
-
-  // Try to find the first sentence end within 200 chars
-  const firstPart = text.substring(0, 200);
-  const sentenceEnd = firstPart.search(/[.!?]\s/);
-  if (sentenceEnd > 30) {
-    return text.substring(0, sentenceEnd + 1);
-  }
-
-  // Fallback: cut at the last word boundary under 140 chars and add ellipsis
-  let cut = text.substring(0, 140);
-  const lastSpace = cut.lastIndexOf(' ');
-  if (lastSpace > 80) cut = cut.substring(0, lastSpace);
-  return cut + '\u2026';
+  const text = stripMd(str).replace(/\s+/g, ' ').trim();
+  if (text.length <= 180) return text;
+  return text.slice(0, 180).replace(/\s\S*$/, '') + '\u2026';
 }
 
 // Parse citation tags [Source] in a line and convert to clickable chips
