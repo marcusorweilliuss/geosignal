@@ -173,6 +173,30 @@ function stripMd(str) {
     .replace(/__/g, '');
 }
 
+// Clean a description into a single-sentence fallback TL;DR.
+// Finds the first sentence end (. ! ?) or cuts at the last word boundary.
+function cleanFallback(str) {
+  if (!str) return '';
+  let text = stripMd(String(str)).replace(/\s+/g, ' ').trim();
+  // Strip any trailing HTML entity fragments or stray brackets
+  text = text.replace(/&[a-z]+;?$/i, '').trim();
+
+  if (text.length <= 160) return text;
+
+  // Try to find the first sentence end within 200 chars
+  const firstPart = text.substring(0, 200);
+  const sentenceEnd = firstPart.search(/[.!?]\s/);
+  if (sentenceEnd > 30) {
+    return text.substring(0, sentenceEnd + 1);
+  }
+
+  // Fallback: cut at the last word boundary under 140 chars and add ellipsis
+  let cut = text.substring(0, 140);
+  const lastSpace = cut.lastIndexOf(' ');
+  if (lastSpace > 80) cut = cut.substring(0, lastSpace);
+  return cut + '\u2026';
+}
+
 // Parse citation tags [Source] in a line and convert to clickable chips
 function renderCitations(line, citationMap) {
   line = stripMd(line);
@@ -768,7 +792,7 @@ function renderFeed(articles) {
       card.setAttribute('tabindex', '0');
       card.dataset.cardIndex = index;
 
-      const tldrFallback = article.description ? escapeHtml(article.description) : '';
+      const tldrFallback = article.description ? escapeHtml(cleanFallback(article.description)) : '';
       const officialBadge = article.isOfficial ? '<span class="card-official-badge">Official</span>' : '';
       const regionPill = article.region ? '<span class="card-region">' + escapeHtml(article.region) + '</span>' : '';
       const tierLabel = article.sourceTier
