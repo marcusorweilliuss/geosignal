@@ -378,30 +378,41 @@ h1 {
 /* Control bar — search + filter button side by side */
 .control-bar {
   display: flex;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 
+/* Search bar — warm editorial input */
 .search-bar {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 9px 14px;
-  background: var(--bg-glass);
+  gap: 11px;
+  padding: 13px 18px;
+  background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  backdrop-filter: blur(20px);
-  transition: border-color 0.2s;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.search-bar:hover {
+  border-color: var(--border-hover);
 }
 
 .search-bar:focus-within {
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim), var(--shadow-sm);
 }
 
 .search-icon {
   flex-shrink: 0;
   color: var(--text-tertiary);
+  transition: color 0.2s;
+}
+
+.search-bar:focus-within .search-icon {
+  color: var(--accent);
 }
 
 .search-bar input {
@@ -409,23 +420,27 @@ h1 {
   background: none;
   border: none;
   outline: none;
-  font-family: inherit;
-  font-size: 14px;
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 400;
   color: var(--text-primary);
+  letter-spacing: -0.1px;
 }
 
 .search-bar input::placeholder {
   color: var(--text-tertiary);
-  font-size: 13px;
+  font-size: 15px;
+  font-style: italic;
+  font-weight: 400;
 }
 
 .search-clear {
   background: none;
   border: none;
   color: var(--text-tertiary);
-  font-size: 18px;
+  font-size: 20px;
   cursor: pointer;
-  padding: 0 4px;
+  padding: 0 6px;
   line-height: 1;
   transition: color 0.2s;
 }
@@ -434,130 +449,164 @@ h1 {
   color: var(--text-primary);
 }
 
-/* Filter toggle button (next to search) */
+/* Filter toggle — tactile pill */
 .filters-toggle {
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 0 14px;
-  background: var(--bg-glass);
+  gap: 9px;
+  padding: 0 18px;
+  background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
   color: var(--text-secondary);
-  font-family: inherit;
-  font-size: 12px;
+  font-family: var(--sans);
+  font-size: 13px;
   font-weight: 500;
-  transition: all 0.15s;
+  transition: all 0.2s ease;
   white-space: nowrap;
+  box-shadow: var(--shadow-sm);
 }
 
 .filters-toggle:hover {
   background: var(--bg-card-hover);
-  color: var(--text-primary);
+  color: var(--accent);
   border-color: var(--border-hover);
 }
 
 .filters-toggle svg {
   color: var(--text-tertiary);
+  transition: color 0.2s;
 }
 
-/* Filters expandable panel */
+.filters-toggle:hover svg {
+  color: var(--accent);
+}
+
+/* Filters panel — feels like a sheet of paper */
 .filters {
   display: none;
-  margin-bottom: 16px;
-  padding: 14px 16px;
-  background: var(--bg-glass);
+  margin-bottom: 24px;
+  padding: 22px 24px;
+  background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  backdrop-filter: blur(20px);
+  border-radius: 14px;
+  box-shadow: var(--shadow-md);
 }
 
 .filters.expanded {
   display: block;
-  animation: fadeDown 0.2s ease;
+  animation: fadeDown 0.25s ease;
 }
 
 @keyframes fadeDown {
-  from { opacity: 0; transform: translateY(-4px); }
+  from { opacity: 0; transform: translateY(-6px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .filters-body {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 18px;
 }
 
 .filter-group {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .filter-group label {
-  font-family: var(--mono);
-  font-size: 9px;
-  font-weight: 500;
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.2px;
   color: var(--text-tertiary);
-  min-width: 56px;
+  min-width: 64px;
   flex-shrink: 0;
+  padding-top: 8px;
 }
 
+/* Region select — warm, integrated */
 select {
-  font-family: inherit;
-  font-size: 13px;
-  padding: 6px 12px;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 36px 8px 14px;
   border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg-secondary);
+  border-radius: 10px;
+  background: var(--bg-card);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%23A8A29E' stroke-width='1.5'%3E%3Cpath d='M2 4l3 3 3-3'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
   color: var(--text-primary);
   cursor: pointer;
   outline: none;
-  transition: border-color 0.2s;
+  transition: all 0.2s ease;
   -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+select:hover {
+  border-color: var(--border-hover);
 }
 
 select:focus {
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
 }
 
+/* Pill toggles — tactile editorial */
 .pill-group {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 7px;
 }
 
 .pill {
-  font-family: inherit;
-  font-size: 11px;
-  padding: 5px 12px;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  padding: 8px 15px;
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: 999px;
   background: transparent;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
   font-weight: 500;
-}
-
-.pill.active {
-  background: var(--accent-dim);
-  color: var(--accent);
-  border-color: rgba(74, 158, 255, 0.3);
+  letter-spacing: 0.1px;
 }
 
 .pill:hover:not(.active) {
   border-color: var(--border-hover);
-  color: var(--text-secondary);
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+
+.pill.active {
+  background: var(--accent);
+  color: #FFFFFF;
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.pill.active:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 
 .pill-official.active {
-  background: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
-  border-color: rgba(245, 158, 11, 0.3);
+  background: var(--amber);
+  color: #FFFFFF;
+  border-color: var(--amber);
+}
+
+.pill-official.active:hover {
+  background: #A8521E;
+  border-color: #A8521E;
 }
 
 /* OFFICIAL badge on cards */
