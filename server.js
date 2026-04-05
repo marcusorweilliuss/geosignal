@@ -509,31 +509,37 @@ app.post('/api/briefing', async (req, res) => {
     const hasExperts = expertArticles.length > 0;
 
     if (hasExperts && !isOfficial) {
-      expertContext = '\n\nRELATED ANALYSIS FROM REGIONAL THINK TANKS AND RESEARCH INSTITUTIONS:\n';
+      expertContext = '\n\nAVAILABLE EXPERT SOURCES (cite these by name using [SourceName] tags):\n';
       expertArticles.forEach((ea, i) => {
-        expertContext += `\n[Expert Source ${i + 1}]\nOrganisation: ${ea.source}\nTitle: "${ea.title}"\nSummary: ${ea.description}\n`;
+        expertContext += `- [${ea.source}]: "${ea.title}" — ${ea.description}\n`;
       });
-      expertContext += '\nYou MUST reference these expert sources by name in your "WHAT REGIONAL EXPERTS ARE SAYING" section. Cite the organisation name (e.g. "According to Brookings..." or "Carnegie India notes that..."). Do not invent quotes but you may paraphrase their position based on the title and summary.\n';
     }
+
+    // Build the list of allowed citation tags
+    const citationTags = ['[Article]'];
+    if (hasExperts) {
+      expertArticles.forEach(ea => citationTags.push(`[${ea.source}]`));
+    }
+    const citationList = citationTags.join(', ');
 
     let expertSection, officialNote;
 
     if (isOfficial) {
       officialNote = '\nThis is an official government source. Distinguish claims from verified facts.';
       expertSection = `GOVERNMENT CLAIM & STRATEGIC INTENT:
-- [What the government is asserting and why now.]
-- [Target audience and likely strategic objective.]
-- [Any tension with independent reporting.]`;
+- [What the government is asserting and why now.] [Article]
+- [Target audience and likely strategic objective.] [Article]
+- [Any tension with independent reporting.] [Article]`;
     } else if (hasExperts) {
       officialNote = '';
       expertSection = `WHAT REGIONAL EXPERTS ARE SAYING:
-- [Cite expert source by name: "According to [Organisation]..." Key argument.]
-- [Second expert view or where experts diverge. Cite by name.]`;
+- [Expert perspective paraphrased from the think tank source.] [ExactSourceName]
+- [Second expert view or divergence.] [ExactSourceName]`;
     } else {
       officialNote = '';
       expertSection = `WHAT REGIONAL EXPERTS ARE SAYING:
-- [How regional analysts and think tanks would likely view this.]
-- [Any notable dissenting or contrarian view.]`;
+- [How regional analysts would likely view this.] [Article]
+- [Any notable dissenting or contrarian view.] [Article]`;
     }
 
     const prompt = `You are a senior geopolitical intelligence analyst. Produce a tight, scannable briefing using bullet points. Every bullet must deliver a concrete insight — no filler, no vague language.${officialNote}
@@ -542,21 +548,30 @@ ARTICLE: ${title}
 SOURCE: ${source}
 TEXT: ${articleContent}${expertContext}
 
+CITATION RULES — CRITICAL:
+- Every bullet MUST end with a citation tag in square brackets showing where the information comes from
+- Allowed citation tags: ${citationList}
+- Use [Article] when the information comes from the article text itself
+- Use the exact think tank name in brackets (e.g. [Brookings], [Carnegie India], [Chatham House]) when paraphrasing their view
+- Each bullet can only have ONE citation at the end
+- Never invent a source — only use tags from the allowed list
+- Place the tag at the very end of the bullet, after the final period
+
 Use EXACTLY this format. Each section: 2-3 bullet points, each bullet ONE line max. Use a dash (-) for bullets:
 
 WHAT HAPPENED:
-- [Key fact: who, what, when, where. Use specific names and figures.]
-- [Second key fact or consequence.]
+- Key fact: who, what, when, where with specific names and figures. [Article]
+- Second key fact or consequence. [Article]
 
 WHAT LED TO THIS:
-- [Most important preceding event or structural cause.]
-- [Second factor, if relevant.]
+- Most important preceding event or structural cause. [Article]
+- Second factor, if relevant. [Article]
 
 ${expertSection}
 
 WHY THIS MATTERS:
-- [Biggest implication or second-order effect.]
-- [Who else is affected and what to watch next.]`;
+- Biggest implication or second-order effect. [Article]
+- Who else is affected and what to watch next. [Article]`;
 
     const chatCompletion = await groqChat(
       [{ role: 'user', content: prompt }],
@@ -564,10 +579,18 @@ WHY THIS MATTERS:
     );
 
     const briefing = chatCompletion.choices[0]?.message?.content || 'Unable to generate briefing.';
+
+    // Build citation map: tag name → URL for clickable chips
+    const citationMap = { 'Article': url || '' };
+    expertArticles.forEach(ea => {
+      if (ea.source && ea.url) citationMap[ea.source] = ea.url;
+    });
+
     res.json({
       briefing,
       isOfficial: !!isOfficial,
       expertSources: expertArticles.map(ea => ({ title: ea.title, source: ea.source, url: ea.url })),
+      citationMap,
       fullTextAvailable: !!fullText
     });
   } catch (err) {
@@ -596,11 +619,15 @@ app.post('/api/impact', async (req, res) => {
 
     let expertContext = '';
     if (expertArticles.length > 0) {
-      expertContext = '\n\nRELATED EXPERT ANALYSIS (use these to inform your impact assessment):\n';
-      expertArticles.forEach((ea, i) => {
-        expertContext += `${i + 1}. "${ea.title}" — ${ea.source}: ${ea.description}\n`;
+      expertContext = '\n\nAVAILABLE EXPERT SOURCES (cite these by name using [SourceName] tags):\n';
+      expertArticles.forEach(ea => {
+        expertContext += `- [${ea.source}]: "${ea.title}" — ${ea.description}\n`;
       });
     }
+
+    const citationTags = ['[Article]', '[Profile]'];
+    expertArticles.forEach(ea => citationTags.push(`[${ea.source}]`));
+    const citationList = citationTags.join(', ');
 
     const profileDesc = [
       profile.role && `Role: ${profile.role}`,
@@ -615,18 +642,27 @@ PROFILE: ${profileDesc}
 ARTICLE: ${title} (${source})
 TEXT: ${articleContent}${expertContext}
 
+CITATION RULES — CRITICAL:
+- Every bullet MUST end with a citation tag in square brackets
+- Allowed tags: ${citationList}
+- [Article] — when the fact comes from the article
+- [Profile] — when the reasoning is based on the reader's profile/industry knowledge
+- Think tank name in brackets (e.g. [Brookings]) — when paraphrasing expert analysis
+- Only ONE citation at the end of each bullet
+- Never invent a source
+
 Use EXACTLY this format. Bullets with dashes (-), each ONE line max:
 
 RELEVANCE:
 [One word: HIGH, MEDIUM, or LOW]
 
 IMPACT SUMMARY:
-- [How this specifically affects their role/industry. Name the mechanism.]
-- [Financial, regulatory, or operational consequence for their sector.]
+- How this specifically affects your role/industry. Name the mechanism. [Article or Profile]
+- Financial, regulatory, or operational consequence for your sector. [Article or Profile]
 
 WHAT TO WATCH:
-- [Specific trigger, date, policy decision, or data release to monitor.]
-- [Second actionable item relevant to their profile.]`;
+- Specific trigger, date, policy decision, or data release to monitor. [Article or Profile]
+- Second actionable item. [Article or Profile]`;
 
     const chatCompletion = await groqChat(
       [{ role: 'user', content: prompt }],
@@ -637,7 +673,13 @@ WHAT TO WATCH:
     const relevanceMatch = impact.match(/RELEVANCE:\s*(HIGH|MEDIUM|LOW)/i);
     const relevance = relevanceMatch ? relevanceMatch[1].toUpperCase() : 'MEDIUM';
 
-    res.json({ impact, relevance });
+    // Build citation map for clickable chips
+    const citationMap = { 'Article': url || '', 'Profile': '' };
+    expertArticles.forEach(ea => {
+      if (ea.source && ea.url) citationMap[ea.source] = ea.url;
+    });
+
+    res.json({ impact, relevance, citationMap });
   } catch (err) {
     console.error('Impact analysis error:', err);
     res.status(500).json({ error: 'Failed to generate impact analysis' });

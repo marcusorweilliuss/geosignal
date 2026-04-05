@@ -132,22 +132,60 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
 
+// Parse citation tags [Source] in a line and convert to clickable chips
+function renderCitations(line, citationMap) {
+  if (!citationMap) return escapeHtml(line);
+
+  // Match [...tag...] at end of line or anywhere inline
+  // Process from end so we can find the final citation
+  const citationRegex = /\[([^\[\]]+)\]/g;
+  let result = '';
+  let lastIndex = 0;
+  let match;
+
+  while ((match = citationRegex.exec(line)) !== null) {
+    const tagName = match[1].trim();
+    // Only render as chip if it's in the citation map (an allowed tag)
+    if (citationMap.hasOwnProperty(tagName)) {
+      result += escapeHtml(line.substring(lastIndex, match.index));
+      const url = citationMap[tagName];
+      const chipClass = getChipClass(tagName);
+      if (url) {
+        result += '<a class="citation-chip ' + chipClass + '" href="' + escapeHtml(url) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">' + escapeHtml(tagName) + '</a>';
+      } else {
+        result += '<span class="citation-chip ' + chipClass + '">' + escapeHtml(tagName) + '</span>';
+      }
+      lastIndex = match.index + match[0].length;
+    }
+  }
+  result += escapeHtml(line.substring(lastIndex));
+  return result;
+}
+
+// Determine chip color class based on tag name
+function getChipClass(tagName) {
+  const lower = tagName.toLowerCase();
+  if (lower === 'article') return 'chip-article';
+  if (lower === 'profile') return 'chip-profile';
+  return 'chip-expert';
+}
+
 // Convert lines starting with - into clean bullet list HTML
-function formatBullets(text) {
+function formatBullets(text, citationMap) {
   if (!text) return '';
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
   const hasBullets = lines.some(l => l.startsWith('- ') || l.startsWith('* '));
-  if (!hasBullets) return escapeHtml(text);
+  if (!hasBullets) return renderCitations(text, citationMap);
 
   let html = '';
   let inList = false;
   for (const line of lines) {
     if (line.startsWith('- ') || line.startsWith('* ')) {
       if (!inList) { html += '<ul class="briefing-bullets">'; inList = true; }
-      html += '<li>' + escapeHtml(line.substring(2)) + '</li>';
+      html += '<li>' + renderCitations(line.substring(2), citationMap) + '</li>';
     } else {
       if (inList) { html += '</ul>'; inList = false; }
-      html += '<p>' + escapeHtml(line) + '</p>';
+      html += '<p>' + renderCitations(line, citationMap) + '</p>';
     }
   }
   if (inList) html += '</ul>';
@@ -422,7 +460,7 @@ async function fetchImpact(article, container) {
         '</div><div class="impact-body">';
 
     sections.forEach(s => {
-      html += '<div class="briefing-section"><div class="briefing-label">' + escapeHtml(s.label) + '</div><div class="briefing-text">' + formatBullets(s.text) + '</div></div>';
+      html += '<div class="briefing-section"><div class="briefing-label">' + escapeHtml(s.label) + '</div><div class="briefing-text">' + formatBullets(s.text, data.citationMap) + '</div></div>';
     });
 
     html += '</div></div>';
@@ -698,7 +736,7 @@ async function fetchBriefing(article, container) {
     html += '<div class="briefing-content">';
 
     sections.forEach(section => {
-      html += '<div class="briefing-section"><div class="briefing-label">' + escapeHtml(section.label) + '</div><div class="briefing-text">' + formatBullets(section.text) + '</div></div>';
+      html += '<div class="briefing-section"><div class="briefing-label">' + escapeHtml(section.label) + '</div><div class="briefing-text">' + formatBullets(section.text, data.citationMap) + '</div></div>';
     });
 
     // Expert source links from think tank cross-referencing
