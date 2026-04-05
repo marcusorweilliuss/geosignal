@@ -250,12 +250,12 @@ async function fetchStories() {
 
   const searchVal = searchInput.value.trim();
   const loadingMsg = searchVal
-    ? 'Searching for &ldquo;' + escapeHtml(searchVal) + '&rdquo;&hellip;'
-    : 'Scanning RSS feeds&hellip;';
+    ? 'Searching for &ldquo;' + escapeHtml(searchVal) + '&rdquo;'
+    : 'Scanning 587 sources';
   feed.innerHTML =
     '<div class="loading-feed">' +
       '<div class="loading-pulse"></div>' +
-      '<span>' + loadingMsg + '</span>' +
+      '<span>' + loadingMsg + '&hellip;</span>' +
     '</div>';
   feedCount.textContent = '';
   feedTimestamp.textContent = '';
@@ -284,7 +284,7 @@ async function fetchStories() {
     }
 
     if (!data.articles || data.articles.length === 0) {
-      feed.innerHTML = '<div class="empty-feed">No signals found. RSS feeds may be loading — try refreshing in a moment.</div>';
+      feed.innerHTML = '<div class="empty-feed">No signals match your filters.<br><br>Try broadening your region, enabling more sectors, or clearing your search.</div>';
       return;
     }
 
@@ -630,95 +630,148 @@ async function fetchSentiment(article, container) {
 
 // ── Render Feed ─────────────────────────────────────────────────
 
+// Track which cards the user has expanded (for "read" state)
+const readCards = new Set();
+
+// Group articles by recency for visual hierarchy
+function groupArticlesByTime(articles) {
+  const now = Date.now();
+  const groups = { breaking: [], today: [], week: [] };
+  articles.forEach(a => {
+    const pub = new Date(a.publishedAt).getTime();
+    const hoursAgo = (now - pub) / (1000 * 60 * 60);
+    if (hoursAgo <= 3) groups.breaking.push(a);
+    else if (hoursAgo <= 24) groups.today.push(a);
+    else groups.week.push(a);
+  });
+  return groups;
+}
+
 function renderFeed(articles) {
   feed.innerHTML = '';
   tldrElements = [];
 
-  articles.forEach((article, index) => {
-    const card = document.createElement('div');
+  const groups = groupArticlesByTime(articles);
+  let globalIndex = 0;
 
-    // Relevance via left border color instead of a badge
-    let relevanceClass = '';
-    if (article.score !== undefined) {
-      const rel = scoreToRelevance(article.score).toLowerCase();
-      relevanceClass = ' relevance-' + rel;
-    }
-    card.className = 'card' + relevanceClass + (article.isOfficial ? ' card-is-official' : '');
+  const groupLabels = [
+    { key: 'breaking', label: 'Breaking', hint: 'Last 3 hours' },
+    { key: 'today', label: 'Today', hint: 'Last 24 hours' },
+    { key: 'week', label: 'Earlier', hint: 'Past week' }
+  ];
 
-    const tldrFallback = article.description
-      ? escapeHtml(article.description)
-      : '';
+  groupLabels.forEach(({ key, label, hint }) => {
+    const groupArticles = groups[key];
+    if (groupArticles.length === 0) return;
 
-    // Only show official badge — everything else is hidden or in card border
-    const officialBadge = article.isOfficial
-      ? '<span class="card-official-badge">OFFICIAL</span>'
-      : '';
+    // Section header
+    const section = document.createElement('div');
+    section.className = 'feed-section';
+    section.innerHTML =
+      '<div class="feed-section-header">' +
+        '<span class="feed-section-label">' + label + '</span>' +
+        '<span class="feed-section-count">' + groupArticles.length + '</span>' +
+      '</div>';
+    feed.appendChild(section);
 
-    // Source tier label (hidden by default, shown on hover)
-    const tierLabel = article.sourceTier
-      ? article.sourceTier.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-      : '';
+    groupArticles.forEach(article => {
+      const index = globalIndex++;
+      const card = document.createElement('article');
 
-    card.innerHTML =
-      '<div class="card-header">' +
-        '<div class="card-title">' + escapeHtml(article.title) + '</div>' +
-        (officialBadge ? '<div class="card-badges">' + officialBadge + '</div>' : '') +
-      '</div>' +
-      '<div class="card-meta">' +
-        '<span class="card-source">' + escapeHtml(article.source) + '</span>' +
-        '<span class="card-dot"></span>' +
-        '<span>' + timeAgo(article.publishedAt) + '</span>' +
-        (tierLabel ? '<span class="card-dot card-tier-meta"></span><span class="card-tier-meta">' + escapeHtml(tierLabel) + '</span>' : '') +
-      '</div>' +
-      (tldrFallback ? '<div class="card-tldr loading" data-index="' + index + '">' + tldrFallback + '</div>' : '<div class="card-tldr loading" data-index="' + index + '"></div>');
+      let relevanceClass = '';
+      if (article.score !== undefined) {
+        const rel = scoreToRelevance(article.score).toLowerCase();
+        relevanceClass = ' relevance-' + rel;
+      }
+      card.className = 'card' + relevanceClass + (article.isOfficial ? ' card-is-official' : '');
+      card.setAttribute('tabindex', '0');
+      card.dataset.cardIndex = index;
 
-    const tldrEl = card.querySelector('.card-tldr');
-    tldrElements.push(tldrEl);
+      const tldrFallback = article.description ? escapeHtml(article.description) : '';
+      const officialBadge = article.isOfficial ? '<span class="card-official-badge">OFFICIAL</span>' : '';
+      const tierLabel = article.sourceTier
+        ? article.sourceTier.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+        : '';
 
-    let expanded = false;
-    let briefingEl = null;
+      card.innerHTML =
+        '<div class="card-header">' +
+          '<div class="card-title">' + escapeHtml(article.title) + '</div>' +
+          (officialBadge ? '<div class="card-badges">' + officialBadge + '</div>' : '') +
+        '</div>' +
+        '<div class="card-meta">' +
+          '<span class="card-source">' + escapeHtml(article.source) + '</span>' +
+          '<span class="card-dot"></span>' +
+          '<span>' + timeAgo(article.publishedAt) + '</span>' +
+          (tierLabel ? '<span class="card-dot card-tier-meta"></span><span class="card-tier-meta">' + escapeHtml(tierLabel) + '</span>' : '') +
+        '</div>' +
+        '<div class="card-tldr loading" data-index="' + index + '">' + tldrFallback + '</div>';
 
-    card.addEventListener('click', async (e) => {
-      if (e.target.closest('.card-link')) return;
-      if (e.target.closest('.no-profile-hint button')) return;
-      if (e.target.closest('.annotate-keyword')) return;
+      const tldrEl = card.querySelector('.card-tldr');
+      tldrElements.push(tldrEl);
 
-      // If clicking inside the expanded briefing/impact/sentiment area, do nothing
-      // Only the card header, meta, and TL;DR should toggle expand/collapse
-      if (e.target.closest('.briefing') || e.target.closest('.impact-section') || e.target.closest('.sentiment-section')) {
-        return;
+      const articleId = article.url || article.title;
+      if (readCards.has(articleId)) {
+        card.classList.add('card-read');
       }
 
-      if (expanded) {
-        if (briefingEl) { briefingEl.remove(); briefingEl = null; }
-        expanded = false;
-        return;
-      }
+      let expanded = false;
+      let briefingEl = null;
 
-      expanded = true;
-      briefingEl = document.createElement('div');
-      briefingEl.className = 'briefing';
+      const toggleExpand = async () => {
+        if (expanded) {
+          if (briefingEl) { briefingEl.remove(); briefingEl = null; }
+          expanded = false;
+          return;
+        }
 
-      const briefingContent = document.createElement('div');
-      briefingContent.innerHTML =
-        '<div class="briefing-loading"><div class="spinner"></div><span>Generating intelligence briefing&hellip;</span></div>';
+        expanded = true;
+        card.classList.add('card-expanded', 'card-read');
+        readCards.add(articleId);
 
-      const impactContent = document.createElement('div');
-      const sentimentContent = document.createElement('div');
+        briefingEl = document.createElement('div');
+        briefingEl.className = 'briefing';
 
-      briefingEl.appendChild(briefingContent);
-      briefingEl.appendChild(impactContent);
-      briefingEl.appendChild(sentimentContent);
-      card.appendChild(briefingEl);
+        const briefingContent = document.createElement('div');
+        briefingContent.innerHTML =
+          '<div class="briefing-loading"><div class="spinner"></div><span>Generating intelligence briefing&hellip;</span></div>';
 
-      await Promise.all([
-        fetchBriefing(article, briefingContent),
-        fetchImpact(article, impactContent),
-        fetchSentiment(article, sentimentContent)
-      ]);
+        const impactContent = document.createElement('div');
+        const sentimentContent = document.createElement('div');
+
+        briefingEl.appendChild(briefingContent);
+        briefingEl.appendChild(impactContent);
+        briefingEl.appendChild(sentimentContent);
+        card.appendChild(briefingEl);
+
+        // Smooth scroll the card into view
+        setTimeout(() => {
+          card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+
+        await Promise.all([
+          fetchBriefing(article, briefingContent),
+          fetchImpact(article, impactContent),
+          fetchSentiment(article, sentimentContent)
+        ]);
+      };
+
+      card.addEventListener('click', async (e) => {
+        if (e.target.closest('.card-link')) return;
+        if (e.target.closest('.no-profile-hint button')) return;
+        if (e.target.closest('.annotate-keyword')) return;
+        if (e.target.closest('.briefing') || e.target.closest('.impact-section') || e.target.closest('.sentiment-section')) return;
+        toggleExpand();
+      });
+
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggleExpand();
+        }
+      });
+
+      feed.appendChild(card);
     });
-
-    feed.appendChild(card);
   });
 }
 
@@ -1036,6 +1089,41 @@ document.addEventListener('mousedown', (e) => {
 
 refreshBtn.addEventListener('click', fetchStories);
 regionSelect.addEventListener('change', fetchStories);
+
+// Keyboard navigation: j/k to move, Enter to expand, / to search, Esc to collapse
+document.addEventListener('keydown', (e) => {
+  const tag = (e.target.tagName || '').toLowerCase();
+  const isTyping = tag === 'input' || tag === 'textarea' || tag === 'select';
+
+  // Slash opens search from anywhere
+  if (e.key === '/' && !isTyping) {
+    e.preventDefault();
+    searchInput.focus();
+    return;
+  }
+
+  if (isTyping) return;
+
+  // j/k to navigate cards
+  if (e.key === 'j' || e.key === 'k') {
+    e.preventDefault();
+    const cards = Array.from(document.querySelectorAll('.card'));
+    if (cards.length === 0) return;
+    const current = document.activeElement?.classList?.contains('card') ? document.activeElement : null;
+    let idx = current ? cards.indexOf(current) : -1;
+    if (e.key === 'j') idx = Math.min(cards.length - 1, idx + 1);
+    else idx = Math.max(0, idx - 1);
+    cards[idx].focus();
+    cards[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  // Esc collapses any expanded card
+  if (e.key === 'Escape') {
+    const expanded = document.querySelector('.card.card-expanded');
+    if (expanded) expanded.click();
+    hideAnnotatePopup();
+  }
+});
 
 // Search: trigger on Enter key
 let searchDebounce = null;
