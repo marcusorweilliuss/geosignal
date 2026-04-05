@@ -172,11 +172,11 @@ function extractKeywords(title) {
     .filter(w => w.length > 2 && !stopWords.has(w));
 }
 
-function findRelatedThinkTankArticles(articleTitle, regionSlug, limit = 3) {
+function findRelatedThinkTankArticles(articleTitle, regionSlug, limit = 5) {
   const keywords = extractKeywords(articleTitle);
   if (keywords.length === 0) return [];
 
-  // Get all think-tank-academic sources for this region (and global)
+  // Get all think-tank-academic sources for this region + global + neighbors
   const thinkTankSources = [
     ...(SOURCES[regionSlug] || []),
     ...(SOURCES['global'] || [])
@@ -188,17 +188,16 @@ function findRelatedThinkTankArticles(articleTitle, regionSlug, limit = 3) {
     const cached = feedCache[source.rssUrl];
     if (!cached) continue;
     for (const article of cached.articles) {
-      // Don't match against the same article
       if (article.title?.toLowerCase().trim() === articleTitle.toLowerCase().trim()) continue;
 
       const articleWords = extractKeywords(article.title + ' ' + (article.description || ''));
-      // Count keyword overlap
       let matches = 0;
       for (const kw of keywords) {
         if (articleWords.includes(kw)) matches++;
       }
 
-      if (matches >= 2) {
+      // Lower threshold: 1 match qualifies but with scaled score
+      if (matches >= 1) {
         candidates.push({
           title: article.title,
           source: article.source,
@@ -210,7 +209,6 @@ function findRelatedThinkTankArticles(articleTitle, regionSlug, limit = 3) {
     }
   }
 
-  // Sort by match score descending, return top N
   candidates.sort((a, b) => b.matchScore - a.matchScore);
 
   // Deduplicate by title
@@ -509,10 +507,11 @@ app.post('/api/briefing', async (req, res) => {
     const hasExperts = expertArticles.length > 0;
 
     if (hasExperts && !isOfficial) {
-      expertContext = '\n\nAVAILABLE EXPERT SOURCES (cite these by name using [SourceName] tags):\n';
+      expertContext = '\n\nAVAILABLE EXPERT SOURCES — YOU MUST CITE AT LEAST 2 OF THESE IN YOUR BRIEFING:\n';
       expertArticles.forEach((ea, i) => {
-        expertContext += `- [${ea.source}]: "${ea.title}" — ${ea.description}\n`;
+        expertContext += `[${ea.source}] "${ea.title}" — ${ea.description}\n`;
       });
+      expertContext += '\nMANDATORY: At least 2 bullets in your briefing (especially in "WHAT LED TO THIS" and "WHAT REGIONAL EXPERTS ARE SAYING" sections) MUST cite one of these expert sources by name. Paraphrase their analysis to inform your briefing — do not just cite [Article] for everything. Think tank analysis adds depth the article alone cannot provide.\n';
     }
 
     // Build the list of allowed citation tags
@@ -928,11 +927,53 @@ app.post('/api/cross-sector', async (req, res) => {
       return res.json({ insights: [] });
     }
 
+    const topArticles = articles.slice(0, 20);
+
+    // Build a pool of think tank articles cached from the region's experts
+    const regionSlug = (region || 'global').toLowerCase().replace(/\s+&?\s*/g, '-').replace('central-asia-caucasus', 'central-asia-caucasus');
+    const regionKey = regionSlugMap[region] || 'global';
+    const thinkTankSources = [
+      ...(SOURCES[regionKey] || []),
+      ...(SOURCES['global'] || [])
+    ].filter(s => s.tier === 'think-tank-academic');
+
+    const expertPool = [];
+    for (const src of thinkTankSources) {
+      const cached = feedCache[src.rssUrl];
+      if (!cached) continue;
+      for (const a of cached.articles.slice(0, 3)) {
+        if (a.title && a.url) {
+          expertPool.push({
+            source: src.name,
+            title: a.title,
+            description: (a.description || '').substring(0, 150),
+            url: a.url
+          });
+        }
+      }
+      if (expertPool.length >= 20) break;
+    }
+
+    // Build the list of allowed citation tags
+    const citationTags = ['[Article]', '[Profile]'];
+    const uniqueExpertNames = new Set();
+    expertPool.forEach(e => uniqueExpertNames.add(e.source));
+    uniqueExpertNames.forEach(name => citationTags.push(`[${name}]`));
+    const citationList = citationTags.join(', ');
+
     // Give the AI short topic labels it can reference back by name
-    const topArticles = articles.slice(0, 20).map((a, i) => {
+    const storyBlock = topArticles.map((a, i) => {
       const shortTitle = (a.title || '').substring(0, 120);
       return `<story id="${i + 1}" source="${a.source}">${shortTitle}</story>`;
     }).join('\n');
+
+    let expertBlock = '';
+    if (expertPool.length > 0) {
+      expertBlock = '\n\nAVAILABLE THINK TANK / EXPERT SOURCES — CITE AT LEAST ONE IN EVERY INSIGHT:\n';
+      expertPool.slice(0, 15).forEach(e => {
+        expertBlock += `[${e.source}] "${e.title}" — ${e.description}\n`;
+      });
+    }
 
     const profileDesc = profile ? [
       profile.role && `Role: ${profile.role}`,
@@ -947,7 +988,7 @@ READER PROFILE: ${profileDesc}
 REGION FOCUS: ${region || 'Global'}
 
 TODAY'S STORIES:
-${topArticles}
+${storyBlock}${expertBlock}
 
 Look for FOUR types of patterns:
 
@@ -956,34 +997,37 @@ Look for FOUR types of patterns:
 3. SECOND-ORDER EFFECT — Indirect downstream consequence the reader's work will feel.
 4. CONTRADICTION — Two or more sources tell conflicting stories about the same thing.
 
+CITATION RULES — CRITICAL:
+- Every MECHANISM and TAKEAWAY line MUST end with a citation tag in square brackets
+- Allowed citation tags: ${citationList}
+- [Article] — when the claim comes directly from today's stories
+- [Profile] — when reasoning is inferred from the reader's industry/role
+- Think tank name in brackets — when paraphrasing expert analysis from the available sources above
+- EACH INSIGHT should cite at least one think tank source when available — do not default to [Article] for everything
+- Place the tag at the very end, after the final period
+
 Produce 2-4 insights TOTAL. Use this EXACT format, no markdown, no asterisks:
 
 INSIGHT 1
 TYPE: [CAUSAL CHAIN | SHARED ENTITY | SECOND-ORDER EFFECT | CONTRADICTION]
 TOPIC: [Short topic, max 8 words. Actual subject matter — NEVER "Headline 1" or "Story A"]
 STORIES: [Comma-separated actual subjects being connected]
-CHAIN: [ONLY for CAUSAL CHAIN type — the event flow with arrows. e.g. "Red Sea attacks → Suez delays → LNG prices +12% → EU fuel costs rise". Leave empty for other types. This must be JUST the chain, no prose.]
-MECHANISM: [ONE sentence naming the specific mechanism: actors, numbers, dates, percentages, or concrete effect. NOT a restatement of the chain.]
-TAKEAWAY: [ONE sentence on what you should track, adjust, or reconsider. Must be actionable and specific — not "monitor the situation".]
-
-INSIGHT 2
-...
+CHAIN: [ONLY for CAUSAL CHAIN type — the event flow with arrows. e.g. "Red Sea attacks → Suez delays → LNG prices +12% → EU fuel costs rise". Leave empty for other types. Just the chain, no prose, no citation.]
+MECHANISM: [ONE sentence naming the specific mechanism: actors, numbers, dates, percentages. End with a citation tag. Example: "EU cut Russian oil cap to \$50 while India boosted imports 18%, arbitraging the gap. [Carnegie Endowment]"]
+TAKEAWAY: [ONE sentence on what you should track, adjust, or reconsider. End with a citation tag. Example: "Watch Indian refinery throughput reports — arbitrage ends when capacity maxes out in Q2. [Profile]"]
 
 CRITICAL RULES:
-- MECHANISM and TAKEAWAY must NEVER repeat each other or the CHAIN — each field adds new information
-- MECHANISM = the "why/how" with real numbers and names
-- TAKEAWAY = what to DO about it (watch X, reconsider Y, adjust Z)
-- CHAIN is ONLY for CAUSAL CHAIN type — leave blank for SHARED ENTITY, SECOND-ORDER EFFECT, CONTRADICTION
-- Never write phrases like "for the [role] in [location]" — the reader knows who they are
-- Use "you" or omit the subject entirely
+- MECHANISM and TAKEAWAY must NEVER repeat each other or the CHAIN
+- Every MECHANISM and TAKEAWAY ends with exactly ONE citation tag
+- Prefer think tank citations when experts are available — cite them by exact name
+- CHAIN is ONLY for CAUSAL CHAIN type — leave blank for other types
+- Never write phrases like "for the [role] in [location]"
 - Use REAL topic names, never "Headline 1"
-- BAD (vague): "Trade tensions could affect markets — monitor closely"
-- GOOD (specific): MECHANISM: "EU cut Russian oil cap to \$50 while India boosted imports 18%, arbitraging the gap." TAKEAWAY: "Watch Indian refinery throughput reports — arbitrage ends when capacity maxes out in Q2."
 - If you can't find 2 genuinely substantive patterns, return only 1`;
 
     const chatCompletion = await groqChat(
       [{ role: 'user', content: prompt }],
-      { temperature: 0.35, max_tokens: 900 }
+      { temperature: 0.35, max_tokens: 1000 }
     );
 
     const raw = chatCompletion.choices[0]?.message?.content || '';
@@ -1016,7 +1060,13 @@ CRITICAL RULES:
       }
     }
 
-    res.json({ insights });
+    // Build citation map: tag name → URL
+    const citationMap = { 'Article': '', 'Profile': '' };
+    expertPool.forEach(e => {
+      if (!citationMap[e.source]) citationMap[e.source] = e.url;
+    });
+
+    res.json({ insights, citationMap });
   } catch (err) {
     console.error('Cross-sector analysis error:', err.message);
     res.json({ insights: [] });

@@ -349,13 +349,13 @@ async function fetchCrossSectorInsights(articles, profile, region) {
         html += '<div class="cross-sector-chain">' + escapeHtml(insight.chain) + '</div>';
       }
 
-      // Mechanism and takeaway as separate labeled bullets
+      // Mechanism and takeaway as separate labeled bullets with citation chips
       html += '<ul class="cross-sector-bullets">';
       if (insight.mechanism) {
-        html += '<li><span class="cs-bullet-label">Why:</span> ' + escapeHtml(insight.mechanism) + '</li>';
+        html += '<li><span class="cs-bullet-label">Why:</span> ' + renderCitations(insight.mechanism, data.citationMap) + '</li>';
       }
       if (insight.takeaway) {
-        html += '<li><span class="cs-bullet-label">Watch:</span> ' + escapeHtml(insight.takeaway) + '</li>';
+        html += '<li><span class="cs-bullet-label">Watch:</span> ' + renderCitations(insight.takeaway, data.citationMap) + '</li>';
       }
       html += '</ul></div>';
     });
