@@ -227,8 +227,55 @@ function findRelatedThinkTankArticles(articleTitle, regionSlug, limit = 5) {
 
 const rssParser = new Parser({
   timeout: 5000,
-  headers: { 'User-Agent': 'GeoSignal/1.0' }
+  headers: { 'User-Agent': 'GeoSignal/1.0' },
+  customFields: {
+    item: [
+      ['media:content', 'mediaContent', { keepArray: true }],
+      ['media:thumbnail', 'mediaThumbnail', { keepArray: true }],
+      ['content:encoded', 'contentEncoded']
+    ]
+  }
 });
+
+// Extract a thumbnail URL from an RSS item, trying multiple patterns
+function extractThumbnail(item) {
+  // 1. media:content with image type
+  if (item.mediaContent && Array.isArray(item.mediaContent)) {
+    for (const mc of item.mediaContent) {
+      const url = mc?.$?.url;
+      const medium = mc?.$?.medium || '';
+      const type = mc?.$?.type || '';
+      if (url && (medium === 'image' || type.startsWith('image/') || /\.(jpe?g|png|webp|gif)(\?|$)/i.test(url))) {
+        return url;
+      }
+    }
+  }
+
+  // 2. media:thumbnail
+  if (item.mediaThumbnail && Array.isArray(item.mediaThumbnail)) {
+    for (const mt of item.mediaThumbnail) {
+      const url = mt?.$?.url;
+      if (url) return url;
+    }
+  }
+
+  // 3. enclosure with image type
+  if (item.enclosure) {
+    const enc = item.enclosure;
+    const type = enc.type || '';
+    const url = enc.url;
+    if (url && (type.startsWith('image/') || /\.(jpe?g|png|webp|gif)(\?|$)/i.test(url))) {
+      return url;
+    }
+  }
+
+  // 4. First <img> in content:encoded, content, or description
+  const html = item.contentEncoded || item.content || item.description || item.summary || '';
+  const imgMatch = typeof html === 'string' && html.match(/<img[^>]+src=["']([^"']+)["']/i);
+  if (imgMatch && imgMatch[1]) return imgMatch[1];
+
+  return '';
+}
 
 // In-memory cache: { url: { articles: [], fetchedAt: timestamp } }
 const feedCache = {};
@@ -251,7 +298,8 @@ async function fetchFeed(source) {
       source: source.name,
       sourceTier: source.tier,
       sourceCountry: source.country,
-      region: source.region
+      region: source.region,
+      thumbnail: extractThumbnail(item)
     }));
 
     feedCache[source.rssUrl] = { articles, fetchedAt: Date.now() };
@@ -426,7 +474,8 @@ app.get('/api/news', async (req, res) => {
       url: article.url,
       region: region || 'Global',
       isOfficial: article.sourceTier === 'government-official',
-      score: article.score
+      score: article.score,
+      thumbnail: article.thumbnail || ''
     }));
 
     res.json({ articles, governmentCaveat: GOVERNMENT_CAVEAT });

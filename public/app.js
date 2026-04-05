@@ -750,19 +750,46 @@ function renderFeed(articles) {
 
       const eyebrow = isFeatured ? '<div class="card-eyebrow">Lead Story</div>' : '';
 
-      card.innerHTML =
-        eyebrow +
-        '<div class="card-header">' +
-          '<div class="card-title">' + escapeHtml(article.title) + '</div>' +
-          badges +
-        '</div>' +
-        '<div class="card-meta">' +
-          '<span class="card-source">' + escapeHtml(article.source) + '</span>' +
-          '<span class="card-dot"></span>' +
-          '<span>' + timeAgo(article.publishedAt) + '</span>' +
-          (tierLabel ? '<span class="card-dot card-tier-meta"></span><span class="card-tier-meta">' + escapeHtml(tierLabel) + '</span>' : '') +
-        '</div>' +
-        '<div class="card-tldr loading" data-index="' + index + '">' + tldrFallback + '</div>';
+      const thumbnailHtml = article.thumbnail
+        ? '<div class="card-thumb"><img src="' + escapeHtml(article.thumbnail) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.closest(\'.card\').classList.add(\'no-thumb\');this.parentElement.remove()" /></div>'
+        : '';
+
+      if (article.thumbnail) card.classList.add('has-thumb');
+
+      if (isFeatured) {
+        // Featured: thumbnail on top, full width
+        card.innerHTML =
+          thumbnailHtml +
+          eyebrow +
+          '<div class="card-header">' +
+            '<div class="card-title">' + escapeHtml(article.title) + '</div>' +
+            badges +
+          '</div>' +
+          '<div class="card-meta">' +
+            '<span class="card-source">' + escapeHtml(article.source) + '</span>' +
+            '<span class="card-dot"></span>' +
+            '<span>' + timeAgo(article.publishedAt) + '</span>' +
+            (tierLabel ? '<span class="card-dot card-tier-meta"></span><span class="card-tier-meta">' + escapeHtml(tierLabel) + '</span>' : '') +
+          '</div>' +
+          '<div class="card-tldr loading" data-index="' + index + '">' + tldrFallback + '</div>';
+      } else {
+        // Regular: thumbnail on the right as a square, body on the left
+        card.innerHTML =
+          '<div class="card-body">' +
+            '<div class="card-header">' +
+              '<div class="card-title">' + escapeHtml(article.title) + '</div>' +
+              badges +
+            '</div>' +
+            '<div class="card-meta">' +
+              '<span class="card-source">' + escapeHtml(article.source) + '</span>' +
+              '<span class="card-dot"></span>' +
+              '<span>' + timeAgo(article.publishedAt) + '</span>' +
+              (tierLabel ? '<span class="card-dot card-tier-meta"></span><span class="card-tier-meta">' + escapeHtml(tierLabel) + '</span>' : '') +
+            '</div>' +
+            '<div class="card-tldr loading" data-index="' + index + '">' + tldrFallback + '</div>' +
+          '</div>' +
+          thumbnailHtml;
+      }
 
       const tldrEl = card.querySelector('.card-tldr');
       tldrElements.push(tldrEl);

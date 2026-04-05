@@ -1183,6 +1183,63 @@ select:focus {
   box-shadow: var(--shadow-sm);
 }
 
+/* Regular card with thumbnail: 2-column layout */
+.card.has-thumb:not(.card-featured) {
+  display: grid;
+  grid-template-columns: 1fr 140px;
+  gap: 22px;
+  align-items: start;
+}
+
+.card.has-thumb .card-body {
+  min-width: 0;
+}
+
+.card-thumb {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--bg-secondary);
+  aspect-ratio: 1 / 1;
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.card-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.35s ease;
+}
+
+.card.has-thumb:hover .card-thumb img {
+  transform: scale(1.03);
+}
+
+/* Featured card with thumbnail: hero image on top, full width */
+.card.card-featured.has-thumb .card-thumb {
+  aspect-ratio: 16 / 9;
+  margin: -34px -32px 24px;
+  border-radius: 13px 13px 0 0;
+  border-bottom: 1px solid var(--border);
+  box-shadow: none;
+}
+
+.card.card-featured .card-thumb {
+  max-height: 320px;
+}
+
+/* Expanded + thumbnail: thumbnail stays at the top, body spans full width */
+.card.card-expanded.has-thumb:not(.card-featured) {
+  display: block;
+}
+
+.card.card-expanded.has-thumb:not(.card-featured) .card-thumb {
+  float: right;
+  width: 140px;
+  margin: 0 0 16px 22px;
+}
+
 .card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
