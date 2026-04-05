@@ -102,80 +102,94 @@ html {
   padding: 40px 28px 80px;
 }
 
-/* Header — minimal icon bar */
+/* Header — editorial masthead */
 header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 14px;
-  padding-bottom: 0;
-  border-bottom: none;
-  gap: 16px;
+  margin-bottom: 36px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+  gap: 20px;
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 14px;
 }
 
 .logo-mark {
   display: flex;
   align-items: center;
+  opacity: 0.9;
+}
+
+.logo-mark svg {
+  width: 24px;
+  height: 24px;
 }
 
 h1 {
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.4px;
-  background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-family: var(--serif);
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  color: var(--text-primary);
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  line-height: 1;
 }
 
 .live-dot {
   width: 6px;
   height: 6px;
-  background: var(--green);
+  background: var(--accent);
   border-radius: 50%;
-  animation: pulse-dot 2s ease-in-out infinite;
+  animation: pulse-dot 2.4s ease-in-out infinite;
+  align-self: center;
+  margin-left: 2px;
 }
 
 @keyframes pulse-dot {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.4); }
-  50% { opacity: 0.7; box-shadow: 0 0 0 4px rgba(52, 211, 153, 0); }
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(15, 110, 86, 0.35); }
+  50% { opacity: 0.65; box-shadow: 0 0 0 5px rgba(15, 110, 86, 0); }
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
 }
 
+/* Icon buttons — warm, tactile */
 .icon-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   width: auto;
-  min-width: 30px;
-  height: 30px;
-  padding: 0 9px;
+  min-width: 38px;
+  height: 38px;
+  padding: 0 12px;
   background: transparent;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
   border: 1px solid transparent;
-  border-radius: 7px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.15s ease;
-  font-family: inherit;
-  font-size: 11px;
+  transition: all 0.2s ease;
+  font-family: var(--sans);
+  font-size: 13px;
   font-weight: 500;
 }
 
 .icon-btn:hover {
-  background: var(--bg-glass);
-  color: var(--text-primary);
+  background: var(--bg-secondary);
+  color: var(--accent);
   border-color: var(--border);
+}
+
+.icon-btn svg {
+  stroke: currentColor;
 }
 
 .icon-btn-label {
@@ -184,22 +198,38 @@ h1 {
 }
 
 .icon-btn.has-profile {
-  color: var(--purple);
-  background: var(--purple-dim);
-  border-color: rgba(168, 85, 247, 0.3);
+  color: var(--accent);
+  background: var(--accent-dim);
+  border-color: var(--accent-soft);
+}
+
+.icon-btn.has-profile:hover {
+  background: var(--accent-soft);
 }
 
 .icon-btn.has-profile .icon-btn-label {
   display: inline;
+  font-weight: 600;
 }
 
-/* Annotate Toggle */
+/* Annotate toggle — pill style, tactile */
 .annotate-toggle {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
+  padding: 0 12px;
+  height: 38px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 10px;
   cursor: pointer;
   user-select: none;
+  transition: all 0.2s ease;
+}
+
+.annotate-toggle:hover {
+  background: var(--bg-secondary);
+  border-color: var(--border-hover);
 }
 
 .annotate-toggle input {
@@ -207,10 +237,10 @@ h1 {
 }
 
 .annotate-slider {
-  width: 32px;
-  height: 18px;
-  background: var(--bg-glass);
-  border: 1px solid var(--border);
+  width: 30px;
+  height: 17px;
+  background: rgba(28, 25, 23, 0.1);
+  border: none;
   border-radius: 9px;
   position: relative;
   transition: all 0.25s ease;
@@ -221,32 +251,35 @@ h1 {
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 12px;
-  height: 12px;
-  background: var(--text-tertiary);
+  width: 13px;
+  height: 13px;
+  background: #FFFFFF;
   border-radius: 50%;
   transition: all 0.25s ease;
+  box-shadow: 0 1px 3px rgba(28, 25, 23, 0.15);
 }
 
 .annotate-toggle input:checked + .annotate-slider {
-  background: rgba(52, 211, 153, 0.2);
-  border-color: rgba(52, 211, 153, 0.4);
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
 .annotate-toggle input:checked + .annotate-slider::after {
-  left: 16px;
-  background: var(--green);
+  left: 15px;
 }
 
 .annotate-label {
-  font-size: 11px;
+  font-family: var(--sans);
+  font-size: 12px;
   font-weight: 500;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
+  letter-spacing: 0.2px;
   transition: color 0.2s;
 }
 
 .annotate-toggle input:checked ~ .annotate-label {
-  color: var(--green);
+  color: var(--accent);
+  font-weight: 600;
 }
 
 /* Annotate Popup */
