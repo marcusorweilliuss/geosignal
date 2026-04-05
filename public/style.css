@@ -1091,7 +1091,8 @@ select:focus {
   margin-bottom: 8px;
   font-family: var(--serif);
   font-size: 15px;
-  color: var(--text-primary);
+  color: #0F0D0B;
+  font-weight: 500;
   line-height: 1.65;
 }
 
@@ -1125,7 +1126,8 @@ select:focus {
 .cross-sector-analysis {
   font-family: var(--serif);
   font-size: 15px;
-  color: var(--text-primary);
+  color: #0F0D0B;
+  font-weight: 500;
   line-height: 1.65;
 }
 
@@ -1592,7 +1594,7 @@ select:focus {
   font-style: italic;
   font-size: 16px;
   line-height: 1.6;
-  color: var(--text-secondary);
+  color: #1A1714;
   font-weight: 500;
 }
 
@@ -1750,9 +1752,13 @@ select:focus {
 .briefing-text {
   font-family: var(--serif);
   font-size: 16.5px;
-  color: var(--text-primary);
+  color: #0F0D0B;
   line-height: 1.75;
   font-weight: 500;
+}
+
+.briefing-bullets li {
+  color: #0F0D0B;
 }
 
 .briefing-bullets {

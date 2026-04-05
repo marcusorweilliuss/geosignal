@@ -298,11 +298,21 @@ function stripMd(str) {
 }
 
 // Clean a raw RSS description into a short fallback TL;DR shown until
-// the AI summary arrives. Caps at 180 chars on a word boundary.
+// the AI summary arrives. Prefers cutting at a sentence end; falls back
+// to a word boundary with ellipsis if no sentence end is nearby.
 function cleanFallback(str) {
   if (!str) return '';
   const text = stripMd(str).replace(/\s+/g, ' ').trim();
-  if (text.length <= 180) return text;
+  if (text.length <= 200) return text;
+
+  // Prefer the first sentence end within the first 220 chars
+  const window = text.slice(0, 220);
+  const sentenceEnd = window.search(/[.!?](?:\s|$)/);
+  if (sentenceEnd >= 40) {
+    return text.slice(0, sentenceEnd + 1);
+  }
+
+  // Otherwise cut at a word boundary around 180 chars
   return text.slice(0, 180).replace(/\s\S*$/, '') + '\u2026';
 }
 
@@ -311,8 +321,15 @@ function renderCitations(line, citationMap) {
   line = stripMd(line);
   if (!citationMap) return escapeHtml(line);
 
-  // Match [...tag...] at end of line or anywhere inline
-  // Process from end so we can find the final citation
+  // Repair unclosed trailing citation tags like "...[Foreign Affairs"
+  // that the AI sometimes emits. If the last "[" has no matching "]"
+  // after it, append one so the regex below can capture it.
+  const lastOpen = line.lastIndexOf('[');
+  const lastClose = line.lastIndexOf(']');
+  if (lastOpen > lastClose) {
+    line = line + ']';
+  }
+
   const citationRegex = /\[([^\[\]]+)\]/g;
   let result = '';
   let lastIndex = 0;
