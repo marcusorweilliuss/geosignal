@@ -935,36 +935,51 @@ select:focus {
   line-height: 1.6;
 }
 
-/* Feed sections — time-based grouping */
+/* Feed sections — editorial dividers */
 .feed-section {
-  margin-top: 18px;
-  margin-bottom: 4px;
+  margin-top: 40px;
+  margin-bottom: 8px;
 }
 
 .feed-section:first-child {
-  margin-top: 0;
+  margin-top: 16px;
 }
 
 .feed-section-header {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
-  padding: 0 2px 8px;
+  align-items: center;
+  gap: 18px;
+  padding: 0 2px 20px;
 }
 
 .feed-section-label {
-  font-family: var(--mono);
-  font-size: 9px;
+  font-family: var(--serif);
+  font-size: 20px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1.4px;
-  color: var(--text-secondary);
+  font-style: italic;
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
+  flex-shrink: 0;
+  line-height: 1;
 }
 
 .feed-section-count {
-  font-family: var(--mono);
-  font-size: 9px;
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 500;
   color: var(--text-tertiary);
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+  padding-top: 3px;
+}
+
+/* Thin horizontal rule extending to the right */
+.feed-section-header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+  margin-top: 4px;
 }
 
 /* Story Cards — editorial, unified */
