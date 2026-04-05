@@ -688,15 +688,20 @@ function renderFeed(articles) {
       card.dataset.cardIndex = index;
 
       const tldrFallback = article.description ? escapeHtml(article.description) : '';
-      const officialBadge = article.isOfficial ? '<span class="card-official-badge">OFFICIAL</span>' : '';
+      const officialBadge = article.isOfficial ? '<span class="card-official-badge">Official</span>' : '';
+      const regionPill = article.region ? '<span class="card-region">' + escapeHtml(article.region) + '</span>' : '';
       const tierLabel = article.sourceTier
         ? article.sourceTier.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+        : '';
+
+      const badges = (officialBadge || regionPill)
+        ? '<div class="card-badges">' + officialBadge + regionPill + '</div>'
         : '';
 
       card.innerHTML =
         '<div class="card-header">' +
           '<div class="card-title">' + escapeHtml(article.title) + '</div>' +
-          (officialBadge ? '<div class="card-badges">' + officialBadge + '</div>' : '') +
+          badges +
         '</div>' +
         '<div class="card-meta">' +
           '<span class="card-source">' + escapeHtml(article.source) + '</span>' +
