@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:wght@400;500;600;700&display=swap');
 
 * {
   margin: 0;
@@ -7,44 +7,99 @@
 }
 
 :root {
-  --bg-primary: #09090b;
-  --bg-secondary: #111114;
-  --bg-card: rgba(255, 255, 255, 0.03);
-  --bg-card-hover: rgba(255, 255, 255, 0.05);
-  --bg-glass: rgba(255, 255, 255, 0.04);
-  --border: rgba(255, 255, 255, 0.08);
-  --border-hover: rgba(255, 255, 255, 0.14);
-  --text-primary: #f0f0f0;
-  --text-secondary: rgba(255, 255, 255, 0.55);
-  --text-tertiary: rgba(255, 255, 255, 0.35);
-  --accent: #4a9eff;
-  --accent-dim: rgba(74, 158, 255, 0.15);
-  --accent-glow: rgba(74, 158, 255, 0.08);
-  --purple: #a855f7;
-  --purple-dim: rgba(168, 85, 247, 0.15);
-  --green: #34d399;
-  --green-dim: rgba(52, 211, 153, 0.15);
-  --red: #f87171;
-  --red-dim: rgba(248, 113, 113, 0.15);
-  --yellow: #fbbf24;
-  --yellow-dim: rgba(251, 191, 36, 0.15);
-  --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+  /* Warm editorial palette */
+  --bg-primary: #FAF8F5;
+  --bg-secondary: #F5F1EB;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #FDFBF7;
+  --bg-glass: #F5F1EB;
+
+  /* Borders — warm, subtle */
+  --border: rgba(28, 25, 23, 0.08);
+  --border-hover: rgba(28, 25, 23, 0.18);
+  --border-strong: rgba(28, 25, 23, 0.12);
+
+  /* Text — warm dark brown */
+  --text-primary: #1C1917;
+  --text-secondary: #57534E;
+  --text-tertiary: #A8A29E;
+
+  /* Single warm accent — deep teal */
+  --accent: #0F6E56;
+  --accent-hover: #0B5744;
+  --accent-dim: rgba(15, 110, 86, 0.08);
+  --accent-soft: rgba(15, 110, 86, 0.14);
+
+  /* Semantic colors — muted to fit editorial palette */
+  --purple: #6B4E71;
+  --purple-dim: rgba(107, 78, 113, 0.08);
+  --green: #4F7942;
+  --green-dim: rgba(79, 121, 66, 0.08);
+  --red: #B54534;
+  --red-dim: rgba(181, 69, 52, 0.08);
+  --yellow: #B8860B;
+  --yellow-dim: rgba(184, 134, 11, 0.08);
+  --amber: #C4622D;
+  --amber-dim: rgba(196, 98, 45, 0.1);
+
+  /* Type families */
+  --serif: 'Lora', 'Georgia', 'Times New Roman', serif;
+  --sans: 'DM Sans', -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --mono: 'DM Sans', -apple-system, monospace;
+
+  /* Shadows — soft warm */
+  --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.04);
+  --shadow-md: 0 2px 8px rgba(28, 25, 23, 0.06), 0 1px 2px rgba(28, 25, 23, 0.04);
+  --shadow-lg: 0 8px 24px rgba(28, 25, 23, 0.08), 0 2px 6px rgba(28, 25, 23, 0.04);
+}
+
+html {
+  background: var(--bg-primary);
 }
 
 body {
-  font-family: 'Inter', -apple-system, 'SF Pro Display', 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-family: var(--sans);
   background: var(--bg-primary);
   color: var(--text-primary);
-  line-height: 1.6;
+  font-size: 16px;
+  line-height: 1.7;
+  font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
+  text-rendering: optimizeLegibility;
+}
+
+/* Warm scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(28, 25, 23, 0.12);
+  border-radius: 5px;
+  border: 2px solid var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(28, 25, 23, 0.22);
+}
+
+/* Firefox */
+html {
+  scrollbar-color: rgba(28, 25, 23, 0.12) var(--bg-primary);
+  scrollbar-width: thin;
 }
 
 .app-shell {
-  max-width: 760px;
+  max-width: 780px;
   margin: 0 auto;
-  padding: 24px 20px 56px;
+  padding: 40px 28px 80px;
 }
 
 /* Header — minimal icon bar */
