@@ -306,6 +306,10 @@ async function fetchCrossSectorInsights(articles, profile, region) {
         html += '<div class="cross-sector-stories">Connecting: ' + escapeHtml(insight.stories) + '</div>';
       }
 
+      if (insight.chain) {
+        html += '<div class="cross-sector-chain">' + escapeHtml(insight.chain) + '</div>';
+      }
+
       html += '<div class="cross-sector-analysis">' + escapeHtml(insight.analysis) + '</div>' +
         '</div>';
     });

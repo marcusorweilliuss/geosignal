@@ -663,6 +663,19 @@ select:focus {
   line-height: 1.5;
 }
 
+.cross-sector-chain {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  background: rgba(74, 158, 255, 0.06);
+  border-left: 2px solid var(--accent);
+  padding: 8px 12px;
+  margin: 8px 0;
+  border-radius: 4px;
+  line-height: 1.55;
+  letter-spacing: 0.2px;
+}
+
 .cross-sector-analysis {
   font-size: 12.5px;
   color: var(--text-secondary);

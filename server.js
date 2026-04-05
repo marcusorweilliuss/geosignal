@@ -899,7 +899,7 @@ app.post('/api/cross-sector', async (req, res) => {
       profile.focus && `Focus areas: ${profile.focus}`
     ].filter(Boolean).join(' | ') : 'General reader';
 
-    const prompt = `You are a senior intelligence analyst doing cross-sector pattern detection. Find NON-OBVIOUS connections between today's stories that a regular reader would miss. Be terse and rigorous.
+    const prompt = `You are a senior intelligence analyst doing cross-sector pattern detection. Find NON-OBVIOUS connections between today's stories that a regular reader would miss. Be SPECIFIC and SUBSTANTIVE — name actual mechanisms, actors, numbers, and second-order effects.
 
 READER PROFILE: ${profileDesc}
 REGION FOCUS: ${region || 'Global'}
@@ -909,9 +909,9 @@ ${topArticles}
 
 Look for FOUR types of patterns:
 
-1. CAUSAL CHAIN — Event in sector A drives event in sector B. Use arrows (→) to show the chain.
-2. SHARED ENTITY — Same country/company/person appears across sectors, revealing a bigger picture.
-3. SECOND-ORDER EFFECT — Indirect consequence for the reader's work.
+1. CAUSAL CHAIN — Event in sector A drives event in sector B. Use arrows (→) to show the chain visually.
+2. SHARED ENTITY — Same country/company/person appears across sectors, revealing a coordinated campaign or shifting strategy.
+3. SECOND-ORDER EFFECT — Indirect downstream consequence the reader's work will feel, even if not obvious from the headlines.
 4. CONTRADICTION — Two or more sources tell conflicting stories about the same thing.
 
 Produce 2-4 insights TOTAL. Use this EXACT format, no markdown, no asterisks:
@@ -920,25 +920,26 @@ INSIGHT 1
 TYPE: [CAUSAL CHAIN | SHARED ENTITY | SECOND-ORDER EFFECT | CONTRADICTION]
 TOPIC: [Short descriptive topic, max 8 words. Use the actual subject matter, NOT "Headline 1" or "Story A"]
 STORIES: [Comma-separated actual subjects being connected, e.g. "Red Sea attacks, EU gas prices, Suez delays"]
-ANALYSIS: [ONE sentence, max 25 words. For causal chains, use arrows (→) to show the chain visually. Speak directly using "you" or "your work" — do NOT describe the reader's job title, industry, or location in the analysis. Get straight to the mechanism and why it matters.]
+CHAIN: [For CAUSAL CHAIN only — show the event flow with arrows, e.g. "Red Sea attacks → Suez shipping delays → LNG spot prices up 12% → EU winter fuel costs rise". Leave blank for other types.]
+ANALYSIS: [2 sentences. First sentence: the specific mechanism — name actors, numbers, timing, or concrete effect. Second sentence: the actionable takeaway for the reader's work — what they should track, adjust, or reconsider. Use "you" or omit subject — NEVER echo the reader's profile fields back.]
 
 INSIGHT 2
 TYPE: ...
-TOPIC: ...
-STORIES: ...
-ANALYSIS: ...
+...
 
 CRITICAL RULES:
-- Never write phrases like "for the [role] in [location]" or "this matters for the [industry] analyst" — the reader already knows who they are
-- Speak to them directly with "you" or omit the subject entirely
-- Causal chains MUST use arrows: "X → Y → Z"
-- ANALYSIS must be ONE sentence, no more
-- Use REAL topic names, never "Headline 1" or "Story 2"
-- If you can't find 2 genuine patterns, return only what exists — quality over quantity`;
+- BAD (shallow, vague): "This shows that trade tensions could affect markets."
+- GOOD (specific): "EU tightened Russian oil cap to $50 this week while India boosted Russian crude imports 18%, suggesting Delhi is arbitraging the price gap. Watch Indian refinery capacity announcements — this arbitrage will likely end when refiners hit maximum throughput in Q2."
+- Name real actors, numbers, dates, or mechanisms in every ANALYSIS
+- Never write generic phrases like "could impact", "may affect", "worth monitoring" without specifying what to monitor and why
+- Causal chains MUST include the CHAIN field with arrow notation
+- Never write phrases like "for the [role] in [location]" — the reader knows who they are
+- Use REAL topic names from the stories, never "Headline 1"
+- If you can't find 2 genuinely substantive patterns, return only 1 — quality over quantity`;
 
     const chatCompletion = await groqChat(
       [{ role: 'user', content: prompt }],
-      { temperature: 0.3, max_tokens: 500 }
+      { temperature: 0.35, max_tokens: 900 }
     );
 
     const raw = chatCompletion.choices[0]?.message?.content || '';
@@ -950,14 +951,17 @@ CRITICAL RULES:
       const typeMatch = block.match(/TYPE:\s*(.+?)(?:\n|$)/i);
       const topicMatch = block.match(/TOPIC:\s*(.+?)(?:\n|$)/i);
       const storiesMatch = block.match(/STORIES:\s*(.+?)(?:\n|$)/i);
-      const analysisMatch = block.match(/ANALYSIS:\s*([\s\S]+?)(?:\n\s*(?:TYPE|TOPIC|STORIES|ANALYSIS|INSIGHT)|$)/i);
+      const chainMatch = block.match(/CHAIN:\s*(.+?)(?:\n|$)/i);
+      const analysisMatch = block.match(/ANALYSIS:\s*([\s\S]+?)(?:\n\s*(?:TYPE|TOPIC|STORIES|CHAIN|ANALYSIS|INSIGHT)|$)/i);
 
       if (topicMatch && analysisMatch) {
         const type = (typeMatch?.[1] || 'PATTERN').trim().toUpperCase();
+        const chain = (chainMatch?.[1] || '').trim();
         insights.push({
           type,
           topic: topicMatch[1].trim(),
           stories: (storiesMatch?.[1] || '').trim(),
+          chain: chain && chain.toLowerCase() !== 'blank' && chain !== '' ? chain : '',
           analysis: analysisMatch[1].trim().replace(/\n+/g, ' ')
         });
       }
