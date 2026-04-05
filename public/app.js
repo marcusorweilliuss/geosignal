@@ -14,6 +14,32 @@ const filtersSummary = document.getElementById('filters-summary');
 const savedBtn = document.getElementById('saved-btn');
 const savedBtnCount = document.getElementById('saved-btn-count');
 const profileBtn = document.getElementById('profile-btn');
+const textSizeBtn = document.getElementById('text-size-btn');
+
+// ── Text Size Control ───────────────────────────────────────────
+
+const TEXT_SIZES = ['small', 'medium', 'large', 'xlarge'];
+const TEXT_SIZE_LABELS = { small: 'Smaller text', medium: 'Default text size', large: 'Larger text', xlarge: 'Largest text' };
+
+function applyTextSize(size) {
+  TEXT_SIZES.forEach(s => document.body.classList.remove('size-' + s));
+  if (size !== 'medium') document.body.classList.add('size-' + size);
+  if (textSizeBtn) textSizeBtn.title = TEXT_SIZE_LABELS[size] + ' (click to cycle)';
+}
+
+function getTextSize() {
+  return localStorage.getItem('geosignal-text-size') || 'medium';
+}
+
+function cycleTextSize() {
+  const current = getTextSize();
+  const next = TEXT_SIZES[(TEXT_SIZES.indexOf(current) + 1) % TEXT_SIZES.length];
+  localStorage.setItem('geosignal-text-size', next);
+  applyTextSize(next);
+}
+
+applyTextSize(getTextSize());
+if (textSizeBtn) textSizeBtn.addEventListener('click', cycleTextSize);
 const profileBtnText = document.getElementById('profile-btn-text');
 const profileModal = document.getElementById('profile-modal');
 const modalClose = document.getElementById('modal-close');
@@ -345,7 +371,9 @@ function formatBullets(text, citationMap) {
 // ── Store ───────────────────────────────────────────────────────
 
 let currentArticles = [];
-let tldrElements = [];
+// Map article ID → TL;DR element. Position-based arrays broke when the
+// render order (time groups) diverged from the request order.
+let tldrElementsById = new Map();
 let governmentCaveat = '';
 
 // Convert numeric score to relevance label
@@ -599,14 +627,15 @@ async function generateTldrs(articles) {
 
     if (data.summaries && data.summaries.length > 0) {
       data.summaries.forEach((summary, i) => {
-        if (tldrElements[i] && summary) {
-          let cleaned = stripMd(summary).trim();
-          if (cleaned && !/[.!?]$/.test(cleaned)) {
-            cleaned += '.';
-          }
-          tldrElements[i].classList.remove('loading');
-          tldrElements[i].textContent = cleaned;
-        }
+        if (!summary) return;
+        const article = articles[i];
+        const id = article.url || article.title;
+        const el = tldrElementsById.get(id);
+        if (!el) return;
+        let cleaned = stripMd(summary).trim();
+        if (cleaned && !/[.!?]$/.test(cleaned)) cleaned += '.';
+        el.classList.remove('loading');
+        el.textContent = cleaned;
       });
     }
   } catch (err) {
@@ -823,7 +852,7 @@ function groupArticlesByTime(articles) {
 
 function renderFeed(articles) {
   feed.innerHTML = '';
-  tldrElements = [];
+  tldrElementsById = new Map();
 
   const groups = groupArticlesByTime(articles);
   let globalIndex = 0;
@@ -940,9 +969,9 @@ function renderFeed(articles) {
       }
 
       const tldrEl = card.querySelector('.card-tldr');
-      tldrElements.push(tldrEl);
-
       const articleId = article.url || article.title;
+      tldrElementsById.set(articleId, tldrEl);
+
       if (readCards.has(articleId)) {
         card.classList.add('card-read');
       }
