@@ -636,23 +636,34 @@ select:focus {
 }
 
 .briefing-quality-note {
-  margin-bottom: 10px;
-  font-family: var(--mono);
-  font-size: 9px;
+  margin-bottom: 18px;
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 500;
   color: var(--green);
-  letter-spacing: 0.5px;
-  opacity: 0.8;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.briefing-quality-note::before {
+  content: '✓';
+  font-size: 12px;
 }
 
 .government-caveat {
-  margin-top: 12px;
-  padding: 10px 14px;
-  background: rgba(245, 158, 11, 0.06);
-  border: 1px solid rgba(245, 158, 11, 0.15);
-  border-radius: 8px;
-  font-size: 11px;
-  line-height: 1.5;
-  color: rgba(245, 158, 11, 0.8);
+  margin-top: 0;
+  margin-bottom: 22px;
+  padding: 16px 20px;
+  background: var(--amber-dim);
+  border: 1px solid rgba(196, 98, 45, 0.2);
+  border-radius: 10px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--amber);
 }
 
 /* Feed header */
@@ -1169,57 +1180,59 @@ select:focus {
 
 /* Expanded Briefing */
 .briefing {
-  margin-top: 18px;
-  padding-top: 16px;
+  margin-top: 28px;
+  padding-top: 28px;
   border-top: 1px solid var(--border);
 }
 
-/* Progressive disclosure — Impact and Discourse collapsed by default */
+/* Progressive disclosure — editorial section buttons */
 .more-sections {
-  margin-top: 14px;
+  margin-top: 24px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 10px;
 }
 
 .more-section-toggle {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
-  padding: 10px 14px;
-  background: var(--bg-glass);
+  padding: 16px 20px;
+  background: var(--bg-primary);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
-  color: var(--text-secondary);
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 500;
+  color: var(--text-primary);
+  font-family: var(--serif);
+  font-size: 15px;
+  font-weight: 600;
+  font-style: italic;
   text-align: left;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
+  letter-spacing: -0.1px;
 }
 
 .more-section-toggle:hover {
   background: var(--bg-card-hover);
   border-color: var(--border-hover);
-  color: var(--text-primary);
 }
 
 .more-section-toggle svg {
   margin-left: auto;
   color: var(--text-tertiary);
-  transition: transform 0.2s ease;
+  transition: transform 0.25s ease;
 }
 
 .more-section-toggle.open svg {
   transform: rotate(180deg);
+  color: var(--accent);
 }
 
 .more-section-icon {
-  color: var(--purple);
-  font-size: 10px;
-  opacity: 0.7;
+  color: var(--accent);
+  font-size: 11px;
+  opacity: 0.8;
 }
 
 .more-section-label {
@@ -1228,19 +1241,20 @@ select:focus {
 
 .more-section-body {
   display: none;
-  margin: -2px 0 4px;
+  margin: 0;
 }
 
 .more-section-body.open {
   display: block;
-  animation: fadeDown 0.2s ease;
+  animation: fadeDown 0.3s ease;
 }
 
+/* Briefing content — reads like a magazine article */
 .briefing-content {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 20px 22px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
   cursor: text;
 }
 
@@ -1259,27 +1273,41 @@ select:focus {
 }
 
 .briefing-section {
-  margin-bottom: 18px;
+  margin-bottom: 24px;
 }
 
 .briefing-section:last-of-type {
   margin-bottom: 0;
 }
 
+/* Editorial section labels: small uppercase sans with tracking in teal */
 .briefing-label {
-  font-family: var(--mono);
-  font-size: 10px;
-  font-weight: 500;
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1.2px;
+  letter-spacing: 1.8px;
   color: var(--accent);
-  margin-bottom: 6px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
+.briefing-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--accent-soft);
+}
+
+/* Body — Lora serif at 16-17px for magazine reading */
 .briefing-text {
-  font-size: 13px;
-  color: var(--text-secondary);
-  line-height: 1.7;
+  font-family: var(--serif);
+  font-size: 16.5px;
+  color: var(--text-primary);
+  line-height: 1.75;
+  font-weight: 400;
 }
 
 .briefing-bullets {
@@ -1290,88 +1318,95 @@ select:focus {
 
 .briefing-bullets li {
   position: relative;
-  padding-left: 16px;
-  margin-bottom: 6px;
-  line-height: 1.6;
+  padding-left: 22px;
+  margin-bottom: 10px;
+  line-height: 1.7;
+}
+
+.briefing-bullets li:last-child {
+  margin-bottom: 0;
 }
 
 .briefing-bullets li::before {
   content: '';
   position: absolute;
-  left: 0;
-  top: 9px;
-  width: 5px;
-  height: 5px;
+  left: 2px;
+  top: 13px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--accent);
-  opacity: 0.6;
+  opacity: 0.7;
 }
 
-/* Citation chips */
+/* Citation chips — subtle editorial tags */
 .citation-chip {
   display: inline-block;
-  font-family: var(--mono);
-  font-size: 9px;
+  font-family: var(--sans);
+  font-size: 10px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 2px 7px;
-  margin-left: 5px;
-  border-radius: 4px;
+  text-transform: none;
+  letter-spacing: 0.1px;
+  padding: 2px 9px;
+  margin-left: 6px;
+  border-radius: 999px;
   text-decoration: none;
   white-space: nowrap;
   vertical-align: baseline;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
+  line-height: 1.5;
 }
 
 .citation-chip.chip-article {
-  background: rgba(74, 158, 255, 0.12);
+  background: var(--accent-dim);
   color: var(--accent);
-  border: 1px solid rgba(74, 158, 255, 0.25);
+  border: 1px solid var(--accent-soft);
 }
 
 .citation-chip.chip-article:hover {
-  background: rgba(74, 158, 255, 0.22);
-  border-color: rgba(74, 158, 255, 0.5);
+  background: var(--accent-soft);
+  border-color: var(--accent);
 }
 
 .citation-chip.chip-expert {
-  background: rgba(168, 85, 247, 0.12);
+  background: rgba(107, 78, 113, 0.08);
   color: var(--purple);
-  border: 1px solid rgba(168, 85, 247, 0.25);
+  border: 1px solid rgba(107, 78, 113, 0.2);
 }
 
 .citation-chip.chip-expert:hover {
-  background: rgba(168, 85, 247, 0.22);
-  border-color: rgba(168, 85, 247, 0.5);
+  background: rgba(107, 78, 113, 0.14);
+  border-color: rgba(107, 78, 113, 0.35);
 }
 
 .citation-chip.chip-profile {
-  background: rgba(52, 211, 153, 0.12);
+  background: var(--green-dim);
   color: var(--green);
-  border: 1px solid rgba(52, 211, 153, 0.25);
+  border: 1px solid rgba(79, 121, 66, 0.2);
 }
 
 .briefing-text p {
-  margin: 0 0 6px 0;
+  margin: 0 0 10px 0;
 }
 
 .briefing-loading {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   color: var(--text-tertiary);
-  font-size: 12px;
-  padding: 16px 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  padding: 20px 0;
 }
 
 .spinner {
-  width: 16px;
-  height: 16px;
-  border: 1.5px solid var(--border);
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border);
   border-top-color: var(--accent);
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 0.9s linear infinite;
 }
 
 @keyframes spin {
@@ -1379,91 +1414,110 @@ select:focus {
 }
 
 .briefing-error {
+  font-family: var(--serif);
+  font-style: italic;
   color: var(--red);
-  font-size: 12px;
-  padding: 8px 0;
+  font-size: 14px;
+  padding: 12px 0;
 }
 
+/* "Read original source" link — editorial anchor */
 .card-link {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  margin-top: 16px;
-  font-size: 11px;
+  gap: 6px;
+  margin-top: 24px;
+  font-family: var(--sans);
+  font-size: 13px;
   color: var(--accent);
   text-decoration: none;
-  font-weight: 500;
-  opacity: 0.8;
-  transition: opacity 0.2s;
+  font-weight: 600;
+  padding-bottom: 2px;
+  border-bottom: 1px solid var(--accent-soft);
+  transition: border-color 0.2s, color 0.2s;
 }
 
 .card-link:hover {
-  opacity: 1;
+  color: var(--accent-hover);
+  border-bottom-color: var(--accent);
 }
 
-/* Expert source links in briefings */
+/* Expert source links — references list */
 .expert-sources {
-  margin-top: 16px;
-  padding-top: 14px;
+  margin-top: 28px;
+  padding-top: 20px;
   border-top: 1px solid var(--border);
+}
+
+.expert-sources .briefing-label {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  margin-bottom: 12px;
 }
 
 .expert-source-link {
   display: block;
-  font-size: 11px;
-  color: var(--accent);
+  font-family: var(--serif);
+  font-size: 14px;
+  font-style: italic;
+  color: var(--text-secondary);
   text-decoration: none;
-  padding: 4px 0;
-  opacity: 0.75;
-  transition: opacity 0.2s;
-  line-height: 1.5;
+  padding: 6px 0;
+  line-height: 1.55;
+  transition: color 0.2s;
 }
 
 .expert-source-link:hover {
-  opacity: 1;
+  color: var(--accent);
 }
 
-/* Public Discourse / Sentiment Section */
+/* Public Discourse / Sentiment Section — warm editorial */
 .sentiment-section {
-  margin-top: 0;
-  padding: 14px 16px;
-  background: rgba(59, 130, 246, 0.035);
-  border: 1px solid rgba(59, 130, 246, 0.1);
-  border-radius: 8px;
+  margin-top: 16px;
+  padding: 22px 24px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
 }
 
 .sentiment-header {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
 }
 
 .sentiment-title {
-  font-family: var(--mono);
-  font-size: 10px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
-  color: #60a5fa;
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--text-primary);
+  letter-spacing: -0.1px;
 }
 
 .sentiment-loading {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   color: var(--text-tertiary);
-  font-size: 12px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
 }
 
 .sentiment-loading .spinner {
-  border-top-color: #60a5fa;
+  border-top-color: var(--accent);
 }
 
 .sentiment-empty {
-  font-size: 12px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
   color: var(--text-tertiary);
 }
 
 .sentiment-platform {
-  margin-bottom: 14px;
+  margin-bottom: 22px;
 }
 
 .sentiment-platform:last-child {
@@ -1471,191 +1525,214 @@ select:focus {
 }
 
 .sentiment-platform-label {
-  font-family: var(--mono);
+  font-family: var(--sans);
   font-size: 10px;
-  font-weight: 600;
-  color: var(--text-secondary);
+  font-weight: 700;
+  color: var(--accent);
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 1.5px;
   margin-bottom: 4px;
 }
 
 .sentiment-platform-note {
-  font-size: 10px;
+  font-family: var(--serif);
+  font-size: 12px;
   color: var(--text-tertiary);
   font-style: italic;
-  margin-bottom: 8px;
-  line-height: 1.4;
+  margin-bottom: 12px;
+  line-height: 1.5;
 }
 
 .sentiment-post {
   display: block;
-  padding: 8px 10px;
-  margin-bottom: 6px;
-  background: var(--bg-glass);
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 10px;
   text-decoration: none;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
 }
 
 .sentiment-post:hover {
   border-color: var(--border-hover);
-  background: var(--bg-card-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .sentiment-post-title {
-  font-size: 12px;
-  font-weight: 500;
+  font-family: var(--serif);
+  font-size: 14.5px;
+  font-weight: 600;
   color: var(--text-primary);
-  line-height: 1.4;
-  margin-bottom: 4px;
+  line-height: 1.45;
+  margin-bottom: 6px;
+  letter-spacing: -0.1px;
 }
 
 .sentiment-post-text {
-  font-size: 12px;
+  font-family: var(--serif);
+  font-size: 14px;
   color: var(--text-secondary);
-  line-height: 1.45;
-  margin-bottom: 4px;
+  line-height: 1.55;
+  margin-bottom: 6px;
 }
 
 .sentiment-post-meta {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 10px;
+  gap: 10px;
+  font-family: var(--sans);
+  font-size: 11px;
   color: var(--text-tertiary);
 }
 
-.sentiment-subreddit {
-  color: #60a5fa;
-  font-weight: 500;
-}
-
+.sentiment-subreddit,
 .sentiment-username {
-  color: #60a5fa;
-  font-weight: 500;
+  color: var(--accent);
+  font-weight: 600;
 }
 
 .sentiment-dot {
-  width: 2px;
-  height: 2px;
+  width: 3px;
+  height: 3px;
   background: var(--text-tertiary);
   border-radius: 50%;
+  opacity: 0.6;
 }
 
-/* Impact Analysis Section */
+/* Impact Analysis Section — warm editorial */
 .impact-section {
-  margin-top: 0;
-  padding: 14px 16px;
-  background: rgba(168, 85, 247, 0.04);
-  border: 1px solid rgba(168, 85, 247, 0.12);
-  border-radius: 8px;
+  margin-top: 16px;
+  padding: 22px 24px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
   cursor: text;
 }
 
 .impact-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
 }
 
 .impact-icon {
-  font-size: 14px;
+  display: none;
 }
 
 .impact-title {
-  font-family: var(--mono);
-  font-size: 10px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
-  color: var(--purple);
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--text-primary);
+  letter-spacing: -0.1px;
 }
 
 .impact-badge {
-  font-family: var(--mono);
-  font-size: 9px;
-  font-weight: 600;
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  padding: 2px 8px;
-  border-radius: 4px;
+  letter-spacing: 1.2px;
+  padding: 4px 12px;
+  border-radius: 999px;
   margin-left: auto;
 }
 
 .impact-badge.high {
   background: var(--red-dim);
   color: var(--red);
-  border: 1px solid rgba(248, 113, 113, 0.2);
+  border: 1px solid rgba(181, 69, 52, 0.2);
 }
 
 .impact-badge.medium {
-  background: var(--yellow-dim);
-  color: var(--yellow);
-  border: 1px solid rgba(251, 191, 36, 0.2);
+  background: var(--amber-dim);
+  color: var(--amber);
+  border: 1px solid rgba(196, 98, 45, 0.2);
 }
 
 .impact-badge.low {
   background: var(--green-dim);
   color: var(--green);
-  border: 1px solid rgba(52, 211, 153, 0.2);
+  border: 1px solid rgba(79, 121, 66, 0.2);
 }
 
 .impact-body .briefing-section {
-  margin-bottom: 14px;
+  margin-bottom: 20px;
+}
+
+.impact-body .briefing-section:last-of-type {
+  margin-bottom: 0;
 }
 
 .impact-body .briefing-label {
-  color: var(--purple);
+  color: var(--accent);
 }
 
 .impact-body .briefing-text {
-  font-size: 12.5px;
+  font-size: 16px;
 }
 
 .impact-loading {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   color: var(--text-tertiary);
-  font-size: 12px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
 }
 
 .impact-loading .spinner {
-  border-top-color: var(--purple);
+  border-top-color: var(--accent);
 }
 
+/* No profile hint — invitation to set profile */
 .no-profile-hint {
   margin-top: 16px;
-  padding: 12px 16px;
-  background: var(--bg-glass);
-  border: 1px dashed rgba(168, 85, 247, 0.25);
-  border-radius: 8px;
-  font-size: 12px;
-  color: var(--text-tertiary);
+  padding: 20px 24px;
+  background: var(--bg-primary);
+  border: 1px dashed var(--border-strong);
+  border-radius: 12px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14.5px;
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 16px;
+  line-height: 1.55;
+}
+
+.no-profile-hint span {
+  flex: 1;
 }
 
 .no-profile-hint button {
-  background: var(--purple-dim);
-  color: var(--purple);
-  border: 1px solid rgba(168, 85, 247, 0.3);
-  padding: 4px 12px;
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 500;
-  border-radius: 6px;
+  background: var(--accent);
+  color: #FFFFFF;
+  border: none;
+  padding: 9px 18px;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  font-style: normal;
+  border-radius: 999px;
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
+  letter-spacing: 0.2px;
 }
 
 .no-profile-hint button:hover {
-  background: rgba(168, 85, 247, 0.25);
+  background: var(--accent-hover);
+  transform: translateY(-1px);
 }
 
 /* Modal */
