@@ -735,30 +735,73 @@ function renderFeed(articles) {
         briefingContent.innerHTML =
           '<div class="briefing-loading"><div class="spinner"></div><span>Generating intelligence briefing&hellip;</span></div>';
 
-        const impactContent = document.createElement('div');
-        const sentimentContent = document.createElement('div');
+        // Progressive disclosure: Impact and Discourse are collapsed by default
+        const moreSections = document.createElement('div');
+        moreSections.className = 'more-sections';
+        moreSections.innerHTML =
+          '<button class="more-section-toggle" data-section="impact" type="button">' +
+            '<span class="more-section-icon">&#9670;</span>' +
+            '<span class="more-section-label">How This Impacts You</span>' +
+            '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 5l3 3 3-3"/></svg>' +
+          '</button>' +
+          '<div class="more-section-body" data-section-body="impact"></div>' +
+          '<button class="more-section-toggle" data-section="sentiment" type="button">' +
+            '<span class="more-section-icon">&#9671;</span>' +
+            '<span class="more-section-label">Public Discourse</span>' +
+            '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 5l3 3 3-3"/></svg>' +
+          '</button>' +
+          '<div class="more-section-body" data-section-body="sentiment"></div>';
 
         briefingEl.appendChild(briefingContent);
-        briefingEl.appendChild(impactContent);
-        briefingEl.appendChild(sentimentContent);
+        briefingEl.appendChild(moreSections);
         card.appendChild(briefingEl);
+
+        // Track which sections have been loaded so we don't refetch
+        const loaded = { impact: false, sentiment: false };
+
+        // Wire up the toggles
+        moreSections.querySelectorAll('.more-section-toggle').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const section = btn.dataset.section;
+            const bodyEl = moreSections.querySelector('[data-section-body="' + section + '"]');
+            const isOpen = btn.classList.contains('open');
+
+            if (isOpen) {
+              btn.classList.remove('open');
+              bodyEl.classList.remove('open');
+              return;
+            }
+
+            btn.classList.add('open');
+            bodyEl.classList.add('open');
+
+            // Lazy load on first expand
+            if (!loaded[section]) {
+              loaded[section] = true;
+              if (section === 'impact') {
+                await fetchImpact(article, bodyEl);
+              } else if (section === 'sentiment') {
+                await fetchSentiment(article, bodyEl);
+              }
+            }
+          });
+        });
 
         // Smooth scroll the card into view
         setTimeout(() => {
           card.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
 
-        await Promise.all([
-          fetchBriefing(article, briefingContent),
-          fetchImpact(article, impactContent),
-          fetchSentiment(article, sentimentContent)
-        ]);
+        // Only fetch the briefing immediately — Impact and Discourse lazy-load on click
+        await fetchBriefing(article, briefingContent);
       };
 
       card.addEventListener('click', async (e) => {
         if (e.target.closest('.card-link')) return;
         if (e.target.closest('.no-profile-hint button')) return;
         if (e.target.closest('.annotate-keyword')) return;
+        if (e.target.closest('.more-section-toggle')) return;
         if (e.target.closest('.briefing') || e.target.closest('.impact-section') || e.target.closest('.sentiment-section')) return;
         toggleExpand();
       });

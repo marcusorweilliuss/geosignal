@@ -985,6 +985,68 @@ select:focus {
   border-top: 1px solid var(--border);
 }
 
+/* Progressive disclosure — Impact and Discourse collapsed by default */
+.more-sections {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.more-section-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.more-section-toggle:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+.more-section-toggle svg {
+  margin-left: auto;
+  color: var(--text-tertiary);
+  transition: transform 0.2s ease;
+}
+
+.more-section-toggle.open svg {
+  transform: rotate(180deg);
+}
+
+.more-section-icon {
+  color: var(--purple);
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.more-section-label {
+  flex: 1;
+}
+
+.more-section-body {
+  display: none;
+  margin: -2px 0 4px;
+}
+
+.more-section-body.open {
+  display: block;
+  animation: fadeDown 0.2s ease;
+}
+
 .briefing-content {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
@@ -1174,11 +1236,11 @@ select:focus {
 
 /* Public Discourse / Sentiment Section */
 .sentiment-section {
-  margin-top: 16px;
-  padding: 16px 18px;
-  background: rgba(59, 130, 246, 0.04);
-  border: 1px solid rgba(59, 130, 246, 0.12);
-  border-radius: 10px;
+  margin-top: 0;
+  padding: 14px 16px;
+  background: rgba(59, 130, 246, 0.035);
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  border-radius: 8px;
 }
 
 .sentiment-header {
@@ -1295,11 +1357,12 @@ select:focus {
 
 /* Impact Analysis Section */
 .impact-section {
-  margin-top: 16px;
-  padding: 16px 18px;
-  background: rgba(168, 85, 247, 0.05);
-  border: 1px solid rgba(168, 85, 247, 0.15);
-  border-radius: 10px;
+  margin-top: 0;
+  padding: 14px 16px;
+  background: rgba(168, 85, 247, 0.04);
+  border: 1px solid rgba(168, 85, 247, 0.12);
+  border-radius: 8px;
+  cursor: text;
 }
 
 .impact-header {
