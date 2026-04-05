@@ -324,6 +324,11 @@ async function fetchCrossSectorInsights(articles, profile, region) {
 
     html += '</div>';
     container.innerHTML = html;
+
+    // Auto-highlight annotate terms if mode is on
+    if (isAnnotateActive && isAnnotateActive()) {
+      highlightTermsInElement(container);
+    }
   } catch (err) {
     console.error('Cross-sector error:', err);
     container.innerHTML = '';
@@ -351,10 +356,15 @@ async function generateTldrs(articles) {
     if (data.summaries && data.summaries.length > 0) {
       data.summaries.forEach((summary, i) => {
         if (tldrElements[i] && summary) {
+          // Ensure TL;DR ends with proper punctuation
+          let cleaned = summary.trim();
+          if (cleaned && !/[.!?]$/.test(cleaned)) {
+            cleaned += '.';
+          }
           tldrElements[i].classList.remove('loading');
           tldrElements[i].innerHTML =
             '<div class="card-tldr-label">TL;DR</div>' +
-            '<div>' + escapeHtml(summary) + '</div>';
+            '<div>' + escapeHtml(cleaned) + '</div>';
         }
       });
     }
@@ -577,7 +587,9 @@ function renderFeed(articles) {
     badgesHtml += '<span class="card-region">' + escapeHtml(article.region) + '</span>';
 
     // Source tier label
-    const tierLabel = article.sourceTier ? article.sourceTier.replace(/-/g, ' ') : '';
+    const tierLabel = article.sourceTier
+      ? article.sourceTier.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+      : '';
 
     card.innerHTML =
       '<div class="card-header">' +
@@ -872,7 +884,7 @@ async function explainTerm(term, headline, briefingText, x, y) {
 // Auto-highlight known terms in briefing text elements
 function highlightTermsInElement(el) {
   if (!el) return;
-  const textEls = el.querySelectorAll('.briefing-text, .impact-body .briefing-text');
+  const textEls = el.querySelectorAll('.briefing-text, .impact-body .briefing-text, .cross-sector-pattern-title, .cross-sector-chain, .cross-sector-bullets li, .cross-sector-stories');
   textEls.forEach(textEl => {
     let html = textEl.innerHTML;
     // Only process if no highlights yet
@@ -898,13 +910,16 @@ function removeHighlightsFromElement(el) {
   });
 }
 
-// When annotate toggle changes, highlight/unhighlight all open briefings
+// When annotate toggle changes, highlight/unhighlight all open briefings + cross-sector
 annotateToggle.addEventListener('change', () => {
-  const briefings = document.querySelectorAll('.briefing');
+  const targets = [
+    ...document.querySelectorAll('.briefing'),
+    ...document.querySelectorAll('.cross-sector-bubble')
+  ];
   if (isAnnotateActive()) {
-    briefings.forEach(b => highlightTermsInElement(b));
+    targets.forEach(t => highlightTermsInElement(t));
   } else {
-    briefings.forEach(b => removeHighlightsFromElement(b));
+    targets.forEach(t => removeHighlightsFromElement(t));
     hideAnnotatePopup();
   }
 });
@@ -935,7 +950,7 @@ document.addEventListener('mouseup', (e) => {
   const anchorNode = selection.anchorNode;
   if (!anchorNode) return;
   const parentEl = anchorNode.parentElement || anchorNode;
-  if (!parentEl.closest('.briefing') && !parentEl.closest('.impact-section') && !parentEl.closest('.sentiment-section')) return;
+  if (!parentEl.closest('.briefing') && !parentEl.closest('.impact-section') && !parentEl.closest('.sentiment-section') && !parentEl.closest('.cross-sector-bubble')) return;
 
   const { headline, briefingText } = getBriefingContext(anchorNode);
   explainTerm(term, headline, briefingText, e.clientX, e.clientY);
