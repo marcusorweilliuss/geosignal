@@ -1753,17 +1753,67 @@ select:focus {
   border-bottom-color: var(--accent);
 }
 
-/* Expert source links — references list */
-.expert-sources {
-  margin-top: 28px;
+/* Expert sources — collapsible references list */
+.expert-sources-details {
+  margin-top: 24px;
   padding-top: 20px;
   border-top: 1px solid var(--border);
 }
 
-.expert-sources .briefing-label {
+.expert-sources-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  list-style: none;
+  padding: 2px 0;
+  user-select: none;
+  transition: color 0.2s;
+}
+
+.expert-sources-summary::-webkit-details-marker {
+  display: none;
+}
+
+.expert-sources-summary:hover {
+  color: var(--accent);
+}
+
+.expert-sources-label {
+  font-family: var(--sans);
   font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
   letter-spacing: 1.5px;
-  margin-bottom: 12px;
+  color: var(--accent);
+}
+
+.expert-sources-count {
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  padding: 2px 8px;
+  background: var(--bg-secondary);
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+
+.expert-sources-chevron {
+  margin-left: auto;
+  color: var(--text-tertiary);
+  transition: transform 0.25s ease;
+}
+
+.expert-sources-details[open] .expert-sources-chevron {
+  transform: rotate(180deg);
+  color: var(--accent);
+}
+
+.expert-sources-list {
+  margin-top: 14px;
+  padding-left: 2px;
+  animation: fadeDown 0.25s ease;
 }
 
 .expert-source-link {

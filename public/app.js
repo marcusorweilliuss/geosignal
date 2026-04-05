@@ -162,8 +162,20 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
 
+// Strip markdown emphasis marks (**bold**, __bold__, *italic*) that the AI
+// sometimes emits despite being told to use plain text
+function stripMd(str) {
+  if (!str) return '';
+  return str
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/__([^_]+)__/g, '$1')
+    .replace(/\*\*/g, '')
+    .replace(/__/g, '');
+}
+
 // Parse citation tags [Source] in a line and convert to clickable chips
 function renderCitations(line, citationMap) {
+  line = stripMd(line);
   if (!citationMap) return escapeHtml(line);
 
   // Match [...tag...] at end of line or anywhere inline
@@ -203,6 +215,7 @@ function getChipClass(tagName) {
 // Convert lines starting with - into clean bullet list HTML
 function formatBullets(text, citationMap) {
   if (!text) return '';
+  text = stripMd(text);
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
   const hasBullets = lines.some(l => l.startsWith('- ') || l.startsWith('* '));
   if (!hasBullets) return renderCitations(text, citationMap);
@@ -406,16 +419,16 @@ async function fetchCrossSectorInsights(articles, profile, region) {
         '<div class="cross-sector-pattern">' +
           '<div class="cross-sector-pattern-header">' +
             '<span class="cross-sector-type-badge ' + style.cls + '">' + escapeHtml(style.label) + '</span>' +
-            '<span class="cross-sector-pattern-title">' + escapeHtml(insight.topic) + '</span>' +
+            '<span class="cross-sector-pattern-title">' + escapeHtml(stripMd(insight.topic)) + '</span>' +
           '</div>';
 
       if (insight.stories) {
-        html += '<div class="cross-sector-stories">Connecting: ' + escapeHtml(insight.stories) + '</div>';
+        html += '<div class="cross-sector-stories">Connecting: ' + escapeHtml(stripMd(insight.stories)) + '</div>';
       }
 
       // Show the arrow chain only for causal type
       if (insight.chain) {
-        html += '<div class="cross-sector-chain">' + escapeHtml(insight.chain) + '</div>';
+        html += '<div class="cross-sector-chain">' + escapeHtml(stripMd(insight.chain)) + '</div>';
       }
 
       // Mechanism and takeaway as separate labeled bullets with citation chips
@@ -463,7 +476,7 @@ async function generateTldrs(articles) {
     if (data.summaries && data.summaries.length > 0) {
       data.summaries.forEach((summary, i) => {
         if (tldrElements[i] && summary) {
-          let cleaned = summary.trim();
+          let cleaned = stripMd(summary).trim();
           if (cleaned && !/[.!?]$/.test(cleaned)) {
             cleaned += '.';
           }
@@ -538,6 +551,7 @@ async function fetchImpact(article, container) {
 }
 
 function parseImpact(text) {
+  text = stripMd(text || '');
   const labels = ['RELEVANCE', 'IMPACT SUMMARY', 'WHAT TO WATCH'];
   const sections = [];
   for (let i = 0; i < labels.length; i++) {
@@ -952,15 +966,21 @@ async function fetchBriefing(article, container) {
       html += '<div class="briefing-section"><div class="briefing-label">' + escapeHtml(section.label) + '</div><div class="briefing-text">' + formatBullets(section.text, data.citationMap) + '</div></div>';
     });
 
-    // Expert source links from think tank cross-referencing
+    // Expert source links from think tank cross-referencing — collapsible
     if (data.expertSources && data.expertSources.length > 0) {
-      html += '<div class="expert-sources">';
-      html += '<div class="briefing-label">Sources Referenced</div>';
+      const count = data.expertSources.length;
+      html += '<details class="expert-sources-details">';
+      html += '<summary class="expert-sources-summary">' +
+        '<span class="expert-sources-label">Sources Referenced</span>' +
+        '<span class="expert-sources-count">' + count + '</span>' +
+        '<svg class="expert-sources-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 5l3 3 3-3"/></svg>' +
+        '</summary>';
+      html += '<div class="expert-sources-list">';
       data.expertSources.forEach(es => {
         html += '<a class="expert-source-link" href="' + escapeHtml(es.url) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">' +
           escapeHtml(es.source) + ': ' + escapeHtml(es.title) + ' &rarr;</a>';
       });
-      html += '</div>';
+      html += '</div></details>';
     }
 
     if (article.url) {
@@ -981,6 +1001,7 @@ async function fetchBriefing(article, container) {
 }
 
 function parseBriefing(text, isOfficial) {
+  text = stripMd(text || '');
   const standardLabels = ['WHAT HAPPENED', 'WHAT LED TO THIS', 'WHAT REGIONAL EXPERTS ARE SAYING', 'WHY THIS MATTERS'];
   const officialLabels = ['WHAT HAPPENED', 'WHAT LED TO THIS', 'WHAT THE GOVERNMENT IS CLAIMING AND ITS LIKELY STRATEGIC INTENT', 'WHY THIS MATTERS'];
   const labels = isOfficial ? officialLabels : standardLabels;
@@ -1116,10 +1137,11 @@ async function explainTerm(term, headline, briefingText, x, y) {
     });
     const data = await res.json();
     if (data.explanation) {
-      annotateCache[cacheKey] = data.explanation;
+      const cleanedExplanation = stripMd(data.explanation);
+      annotateCache[cacheKey] = cleanedExplanation;
       annotatePopupBody.innerHTML =
         '<div class="annotate-popup-term">' + escapeHtml(term) + '</div>' +
-        '<div class="annotate-popup-text">' + escapeHtml(data.explanation) + '</div>';
+        '<div class="annotate-popup-text">' + escapeHtml(cleanedExplanation) + '</div>';
     } else {
       annotatePopupBody.innerHTML =
         '<div class="annotate-popup-term">' + escapeHtml(term) + '</div>' +
