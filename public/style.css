@@ -1450,12 +1450,15 @@ select:focus {
   border-left-color: var(--border);
 }
 
-.card.card-read {
-  opacity: 0.7;
-}
-
+/* Read state — only fade the title, not the entire card.
+   Expanding a card marks it as read, but the briefing content
+   must remain fully opaque and readable. */
 .card.card-read .card-title {
   color: var(--text-secondary);
+}
+
+.card.card-read .card-meta {
+  opacity: 0.7;
 }
 
 /* Featured / Lead Story card — bigger headline and eyebrow */
