@@ -514,7 +514,13 @@ app.get('/api/news', async (req, res) => {
     // as clean text — prevents truncation from cutting mid-entity on
     // the client and keeps the payload lean.
     const articles = unique.slice(0, 40).map(article => {
-      const desc = stripHtml(article.description || '').slice(0, 320);
+      // Truncate description to the first sentence so the fallback TL;DR
+      // is always a complete thought, never a mid-sentence cut.
+      let desc = stripHtml(article.description || '');
+      if (desc.length > 180) {
+        const end = desc.slice(0, 220).search(/[.!?](?:\s|$)/);
+        desc = end >= 40 ? desc.slice(0, end + 1) : desc.slice(0, 180).replace(/\s\S*$/, '') + '\u2026';
+      }
       const body = stripHtml(article.content || article.description || '').slice(0, 600);
       return {
         title: article.title,
