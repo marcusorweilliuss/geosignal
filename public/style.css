@@ -1932,6 +1932,22 @@ select:focus {
   color: var(--text-secondary);
 }
 
+.card-source[title],
+.card-tier-meta[title] {
+  cursor: help;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: var(--border-strong);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.card-source[title]:hover,
+.card-tier-meta[title]:hover {
+  color: var(--accent);
+  text-decoration-color: var(--accent);
+}
+
 .card-dot {
   width: 3px;
   height: 3px;

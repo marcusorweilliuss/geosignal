@@ -4,7 +4,7 @@ const fetch = require('node-fetch');
 const Groq = require('groq-sdk');
 const Parser = require('rss-parser');
 
-const { SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT, classifyArticleType, extractPrimaryCountry } = require('./sources');
+const { SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT, classifyArticleType, extractPrimaryCountry, getSourceDescription } = require('./sources');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -607,7 +607,8 @@ app.get('/api/news', async (req, res) => {
         score: article.score,
         thumbnail: article.thumbnail || '',
         articleType: article.articleType || 'News',
-        country: article.country || ''
+        country: article.country || '',
+        sourceDescription: getSourceDescription(article.source)
       };
     });
 
@@ -1292,7 +1293,9 @@ app.post('/api/cross-sector', async (req, res) => {
 
     // Cache key: profile + region + sorted top article URLs. Same inputs
     // return the same insights without re-hitting Groq.
+    const CS_CACHE_VERSION = 'v2-perplexity';
     const csKey = hashString(
+      CS_CACHE_VERSION + '|' +
       (region || 'global') + '|' +
       JSON.stringify(profile || {}) + '|' +
       topArticles.map(a => a.url || a.title).sort().join('||')
@@ -1377,7 +1380,7 @@ CITATION RULES — CRITICAL:
 - EACH INSIGHT should cite at least one think tank source when available — do not default to [Article] for everything
 - Place the tag at the very end, after the final period
 
-Produce 2-4 insights TOTAL. Use this EXACT format, no markdown, no asterisks:
+Produce 2-4 insights TOTAL. Use this EXACT format, no markdown, no asterisks, no code fences:
 
 INSIGHT 1
 TYPE: [CAUSAL CHAIN | SHARED ENTITY | SECOND-ORDER EFFECT | CONTRADICTION]
@@ -1396,12 +1399,46 @@ CRITICAL RULES:
 - Use REAL topic names, never "Headline 1"
 - If you can't find 2 genuinely substantive patterns, return only 1`;
 
-    const chatCompletion = await groqChat(
-      [{ role: 'user', content: prompt }],
-      { temperature: 0.35, max_tokens: 1000 }
-    );
+    // Prefer Perplexity (sonar) for web-grounded cross-sector pattern
+    // detection. Fall back to Groq on failure, timeout, or empty parse.
+    let raw = '';
+    let providerUsed = 'groq';
+    let perplexityCitations = [];
+    if (PERPLEXITY_API_KEY) {
+      try {
+        const pplx = await perplexityChat(
+          [
+            { role: 'system', content: 'You are a senior geopolitical intelligence analyst producing cross-sector pattern detection. Use real-time web search when it helps name specific mechanisms, actors, numbers, and dates. Always be concrete — never vague. Output plain text exactly in the format requested, no markdown, no code fences.' },
+            { role: 'user', content: prompt }
+          ],
+          { temperature: 0.25, max_tokens: 1200 }
+        );
+        raw = pplx?.choices?.[0]?.message?.content || '';
+        // Perplexity returns a `citations` (or `search_results`) array we can
+        // map to numeric citation tags so any inline [1], [2] references
+        // become clickable chips on the frontend.
+        perplexityCitations = Array.isArray(pplx.citations)
+          ? pplx.citations
+          : (Array.isArray(pplx.search_results) ? pplx.search_results.map(r => r.url).filter(Boolean) : []);
+        if (raw && /INSIGHT\s+\d+/i.test(raw)) {
+          providerUsed = 'perplexity';
+        } else {
+          throw new Error('Perplexity returned no parseable INSIGHT blocks');
+        }
+      } catch (err) {
+        console.error('Perplexity cross-sector failed, falling back to Groq:', err.message);
+        raw = '';
+        perplexityCitations = [];
+      }
+    }
 
-    const raw = chatCompletion.choices[0]?.message?.content || '';
+    if (!raw) {
+      const chatCompletion = await groqChat(
+        [{ role: 'user', content: prompt }],
+        { temperature: 0.35, max_tokens: 1000 }
+      );
+      raw = chatCompletion.choices[0]?.message?.content || '';
+    }
 
     // Parse INSIGHT blocks
     const insights = [];
@@ -1447,8 +1484,12 @@ CRITICAL RULES:
     expertPool.forEach(e => {
       if (!citationMap[e.source]) citationMap[e.source] = e.url;
     });
+    // Numeric citations from Perplexity's search results, e.g. [1], [2]
+    perplexityCitations.forEach((u, i) => {
+      if (u && typeof u === 'string') citationMap[String(i + 1)] = u;
+    });
 
-    const csResponse = { insights, citationMap };
+    const csResponse = { insights, citationMap, provider: providerUsed };
     cacheSet('crossSector', csKey, csResponse);
     res.json(csResponse);
   } catch (err) {

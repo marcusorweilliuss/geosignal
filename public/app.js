@@ -704,15 +704,28 @@ function updateFiltersSummary() {
   const activeSectors = getActivePills(sectorPills);
   const totalSectors = sectorPills.querySelectorAll('.pill').length;
 
-  // Build a compact summary: region + any non-default sector info
+  // Build a compact, plain-English summary. No raw ratios like "2/8" —
+  // those mean nothing on their own. Anything narrower than "all
+  // sectors" gets spelled out as a sector count, and the filters
+  // toggle carries a descriptive tooltip.
   let parts = [region];
+  let tooltip = 'Region: ' + region + '. ';
+
   if (activeSectors.length === 0) {
-    parts.push('no sectors');
-  } else if (activeSectors.length < totalSectors) {
-    parts.push(activeSectors.length + '/' + totalSectors);
+    parts.push('no sectors selected');
+    tooltip += 'No sectors selected — the feed is empty until you pick one.';
+  } else if (activeSectors.length === totalSectors) {
+    tooltip += 'All ' + totalSectors + ' sectors included.';
+  } else {
+    const label = activeSectors.length === 1 ? 'sector' : 'sectors';
+    parts.push(activeSectors.length + ' ' + label);
+    tooltip += 'Showing ' + activeSectors.length + ' of ' + totalSectors + ' sectors: ' +
+      activeSectors.join(', ') + '.';
   }
 
   filtersSummary.textContent = parts.join(' · ');
+  const toggleBtn = document.getElementById('filters-toggle');
+  if (toggleBtn) toggleBtn.setAttribute('title', tooltip);
 }
 
 function handleFiltersChanged() {
@@ -912,9 +925,18 @@ function updateDispatchHeader(articles) {
   });
 
   const stats = [
-    { value: articles.length, label: 'Stories', clickable: false },
-    { value: sourceSet.size, label: 'Sources', clickable: false },
-    { value: highCount, label: 'Must Read', clickable: highCount > 0, action: 'must-read' }
+    {
+      value: articles.length, label: 'Articles', clickable: false,
+      tip: 'Total articles matching your current filters.'
+    },
+    {
+      value: sourceSet.size, label: 'Sources', clickable: false,
+      tip: 'Number of distinct publications represented in the feed right now.'
+    },
+    {
+      value: highCount, label: 'Must read', clickable: highCount > 0, action: 'must-read',
+      tip: 'Articles scored as High relevance based on your filters and profile. Click to jump to the first one.'
+    }
   ];
 
   stripEl.innerHTML = stats.map((s, i) => {
@@ -922,7 +944,8 @@ function updateDispatchHeader(articles) {
     const tag = s.clickable ? 'button' : 'div';
     const cls = 'stat-item' + (s.clickable ? ' stat-item-clickable' : '');
     const dataAttr = s.clickable ? ' data-action="' + s.action + '"' : '';
-    return '<' + tag + ' class="' + cls + '"' + dataAttr + '>' +
+    const titleAttr = s.tip ? ' title="' + escapeHtml(s.tip) + '"' : '';
+    return '<' + tag + ' class="' + cls + '"' + dataAttr + titleAttr + '>' +
       '<div class="stat-value">' + s.value + '</div>' +
       '<div class="stat-label">' + s.label + '</div>' +
     '</' + tag + '>' + divider;
@@ -1003,7 +1026,9 @@ async function fetchStories() {
 
     currentArticles = data.articles;
     governmentCaveat = data.governmentCaveat || '';
-    feedCount.textContent = data.articles.length + ' signals';
+    feedCount.textContent = data.articles.length === 1
+      ? '1 article'
+      : data.articles.length + ' articles';
     feedTimestamp.textContent = formatTimestamp();
 
     updateDispatchHeader(currentArticles);
@@ -1429,8 +1454,11 @@ function renderFeed(articles) {
     // Section header with editorial ornament
     const section = document.createElement('div');
     section.className = 'feed-section';
+    const countTip = groupArticles.length === 1
+      ? '1 article in this time window (' + hint.toLowerCase() + ')'
+      : groupArticles.length + ' articles in this time window (' + hint.toLowerCase() + ')';
     section.innerHTML =
-      '<div class="feed-section-header">' +
+      '<div class="feed-section-header" title="' + escapeHtml(countTip) + '">' +
         '<span class="feed-section-label">' + label + '</span>' +
         '<span class="feed-section-count">' + groupArticles.length + '</span>' +
         '<span class="section-rule"></span>' +
@@ -1461,6 +1489,28 @@ function renderFeed(articles) {
         : '';
       const tierLabel = article.sourceTier
         ? article.sourceTier.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+        : '';
+
+      // Build the hover tooltip text shown when the user hovers the source
+      // name or tier label. Includes: source name, one-line description
+      // (if known), and the tier badge in plain English. Missing description
+      // falls back gracefully to source + tier only.
+      const sourceTierFriendly = ({
+        'mainstream': 'Mainstream news',
+        'business': 'Mainstream news (business)',
+        'independent-left': 'Independent journalism (centre-left)',
+        'independent-right': 'Independent journalism (centre-right)',
+        'independent-critical': 'Independent journalism',
+        'think-tank-academic': 'Think tank / academic',
+        'government-official': 'Official government source',
+        'regional': 'Regional mainstream news'
+      })[article.sourceTier] || tierLabel || '';
+      const sourceTooltipParts = [article.source];
+      if (article.sourceDescription) sourceTooltipParts.push(article.sourceDescription);
+      if (sourceTierFriendly) sourceTooltipParts.push('Type: ' + sourceTierFriendly);
+      const sourceTooltip = sourceTooltipParts.filter(Boolean).join('\n\n');
+      const sourceAttr = sourceTooltip
+        ? ' title="' + escapeHtml(sourceTooltip) + '"'
         : '';
 
       // Article type label (News / Analysis / Opinion)
@@ -1506,10 +1556,10 @@ function renderFeed(articles) {
           '</div>' +
           '<div class="card-meta">' +
             typeBadge +
-            '<span class="card-source">' + escapeHtml(article.source) + '</span>' +
+            '<span class="card-source"' + sourceAttr + '>' + escapeHtml(article.source) + '</span>' +
             '<span class="card-dot"></span>' +
             '<span class="card-time">' + escapeHtml(timeAgo(article.publishedAt)) + '</span>' +
-            (tierLabel ? '<span class="card-dot card-tier-meta"></span><span class="card-tier-meta">' + escapeHtml(tierLabel) + '</span>' : '') +
+            (tierLabel ? '<span class="card-dot card-tier-meta"></span><span class="card-tier-meta"' + sourceAttr + '>' + escapeHtml(tierLabel) + '</span>' : '') +
           '</div>' +
           '<div class="card-tldr loading" data-index="' + index + '">' + tldrFallback + '</div>';
       } else {

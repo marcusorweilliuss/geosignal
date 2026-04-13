@@ -1449,8 +1449,108 @@ function extractPrimaryCountry(article) {
   return '';
 }
 
+// ── Source descriptions ────────────────────────────────────────
+// One-line human descriptions for the top ~40 sources that appear
+// most often in the feed. Surfaced as a tooltip on each card's
+// source badge so users can judge credibility and scope at a glance.
+const SOURCE_DESCRIPTIONS = {
+  // ── Newswires / global mainstream ──
+  'Reuters': 'International newswire. Core factual reporting relied on by news desks worldwide.',
+  'Reuters Top News': 'International newswire. Core factual reporting relied on by news desks worldwide.',
+  'Reuters World': 'Reuters world-affairs desk. Straight factual reporting from a global newswire.',
+  'Reuters Business': 'Reuters business and markets desk. Factual financial and corporate reporting.',
+  'Reuters Asia': 'Reuters Asia desk. Factual reporting on East, South, and Southeast Asia.',
+  'Reuters Middle East': 'Reuters Middle East desk. Factual reporting from across the region.',
+  'Reuters Europe': 'Reuters Europe desk. Factual reporting on European politics and economics.',
+  'Reuters Africa': 'Reuters Africa desk. Factual reporting from across the continent.',
+  'Reuters Latin America': 'Reuters Latin America desk. Factual reporting from across the region.',
+  'Associated Press': 'Non-profit US newswire. Straight reporting, widely syndicated.',
+  'AP News': 'Non-profit US newswire. Straight reporting, widely syndicated.',
+  'AP Top Stories': 'Non-profit US newswire. Straight reporting, widely syndicated.',
+  'AFP': 'French international newswire. Global factual reporting in multiple languages.',
+  'AFP News': 'French international newswire. Global factual reporting in multiple languages.',
+  'Bloomberg': 'US financial news outlet. Markets, business, and economic policy focus.',
+  'Bloomberg News': 'US financial news outlet. Markets, business, and economic policy focus.',
+  'Financial Times': 'UK financial daily. Business, economics, and policy with a markets-first lens.',
+  'The Economist': 'UK weekly. Analytical coverage of global politics, economics, and business.',
+  'Wall Street Journal': 'US business daily. Financial markets and corporate reporting.',
+  'The New York Times': 'US daily of record. Broad international and national coverage with analysis.',
+  'The Washington Post': 'US daily focused on national politics, security, and foreign policy.',
+  'BBC News': "UK public broadcaster's news arm. Global general-interest reporting.",
+  'BBC World': "BBC's international news service. Global general-interest reporting.",
+  'The Guardian': 'UK daily with a centre-left editorial stance. International and investigative coverage.',
+  'Al Jazeera English': 'Qatar-based international broadcaster. Strong coverage of the Middle East and Global South.',
+  'Deutsche Welle': "Germany's international public broadcaster. Europe and Africa focus in English.",
+  'France 24': "France's international public broadcaster. English-language global coverage.",
+  'Nikkei Asia': 'Japanese business daily focused on Asia. Corporate, economic, and political coverage.',
+  'South China Morning Post': 'Hong Kong daily. Greater China coverage with a business slant.',
+  'Kyodo News': 'Japanese newswire. Straight domestic and international reporting.',
+  'Xinhua': "China's official state newswire. Treat as government-framed reporting.",
+  'TASS': "Russia's official state newswire. Treat as government-framed reporting.",
+  'PTI': "India's largest newswire (Press Trust of India). Factual reporting syndicated across Indian outlets.",
+  'ANI': 'Asian News International. Indian newswire with subcontinent focus.',
+
+  // ── Think tanks / academic ──
+  'Brookings': 'Washington-based centrist think tank. Policy research across economics, foreign policy, and governance.',
+  'Brookings Institution': 'Washington-based centrist think tank. Policy research across economics, foreign policy, and governance.',
+  'Carnegie Endowment': 'Washington-based foreign policy think tank with global network. Geopolitics and strategy.',
+  'Carnegie Endowment for International Peace': 'Washington-based foreign policy think tank with global network. Geopolitics and strategy.',
+  'Carnegie India': 'Carnegie Endowment\'s New Delhi branch. South Asian strategy and technology policy.',
+  'Chatham House': 'UK-based foreign policy institute (Royal Institute of International Affairs). Global-affairs research.',
+  'CFR': 'Council on Foreign Relations — US foreign-policy membership organisation. Analysis and commentary on international affairs.',
+  'Council on Foreign Relations': 'US foreign-policy membership organisation. Analysis and commentary on international affairs.',
+  'RUSI': 'Royal United Services Institute — UK defence and security think tank.',
+  'CSIS': 'Center for Strategic and International Studies — Washington defence and geopolitics think tank.',
+  'Atlantic Council': 'Washington think tank focused on transatlantic security and geopolitics.',
+  'RAND': 'Non-profit research institution. Defence, policy, and strategic analysis.',
+  'Stimson Center': 'Washington-based non-partisan think tank. Security, nuclear policy, and Asia.',
+  'Lowy Institute': 'Australian foreign-policy think tank. Indo-Pacific strategy and diplomacy.',
+  'ISAS': 'Institute of South Asian Studies (National University of Singapore). Academic South Asia research.',
+  'ISEAS': 'ISEAS–Yusof Ishak Institute (Singapore). Academic research on Southeast Asia.',
+  'ISS Africa': 'Institute for Security Studies (Pretoria). Research on African peace and security.',
+  'ORF': 'Observer Research Foundation — New Delhi think tank. Indian strategic and economic policy.',
+  'Observer Research Foundation': 'New Delhi think tank. Indian strategic and economic policy.',
+  'Wilson Center': 'Washington think tank chartered by US Congress. International affairs and regional programmes.',
+  'Peterson Institute': 'Peterson Institute for International Economics (Washington). Trade and macroeconomic policy.',
+  'IISS': 'International Institute for Strategic Studies (London). Defence, security, and military balance research.',
+  'MERICS': 'Mercator Institute for China Studies (Berlin). Europe-based research on China.',
+  'ECFR': 'European Council on Foreign Relations. Pan-European foreign-policy analysis.',
+  'Bruegel': 'Brussels-based economic policy think tank. European macroeconomics and finance.',
+  'New Mandala': 'Regional specialist journal on Southeast Asian politics, published by Australian National University.',
+  'War on the Rocks': 'US national-security analysis platform written by practitioners and academics.',
+  'Foreign Affairs': 'US foreign-policy journal published by the Council on Foreign Relations. Long-form analysis.',
+  'Foreign Policy': 'US foreign-policy magazine. News analysis and commentary on international affairs.',
+
+  // ── Independent / alternative ──
+  'Rest of World': 'Non-profit independent publication covering technology outside the Anglosphere.',
+  'The Diplomat': 'Asia-Pacific magazine covering politics, security, and business with a regional focus.',
+  'The Intercept': 'US independent investigative outlet with a security and surveillance focus.',
+  'openDemocracy': 'UK-based independent outlet covering democracy, rights, and civil society.',
+  'The Conversation': 'Global non-profit that publishes analysis written directly by academics.',
+  'ProPublica': 'US non-profit investigative newsroom.',
+  'Tortoise': 'UK slow-journalism outlet. Long-form reporting and analysis.',
+  'Rappler': 'Philippine independent investigative outlet. Politics and civil society.',
+  'Scroll.in': 'Indian independent news outlet. Long-form reporting and analysis.',
+  'The Wire': 'Indian independent news outlet. Investigative and analytical reporting.',
+  'Caravan': 'Indian long-form journalism magazine. Politics, business, and society.',
+  'Mongabay': 'Environmental-science non-profit. Conservation, climate, and biodiversity.',
+  'Coda Story': 'Independent outlet on disinformation, authoritarianism, and crises.'
+};
+
+function getSourceDescription(source) {
+  if (!source) return '';
+  if (SOURCE_DESCRIPTIONS[source]) return SOURCE_DESCRIPTIONS[source];
+  // Light fuzzy lookup: try a few common variations
+  const lower = source.toLowerCase();
+  for (const key of Object.keys(SOURCE_DESCRIPTIONS)) {
+    if (key.toLowerCase() === lower) return SOURCE_DESCRIPTIONS[key];
+  }
+  return '';
+}
+
 module.exports = {
   SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT,
   SECTOR_KEYWORDS, REGION_COUNTRIES, JUNK_PATTERNS, SIGNIFICANCE_WORDS,
-  classifyArticleType, extractPrimaryCountry
+  classifyArticleType, extractPrimaryCountry,
+  SOURCE_DESCRIPTIONS, getSourceDescription
 };
