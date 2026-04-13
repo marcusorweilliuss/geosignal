@@ -1864,6 +1864,58 @@ select:focus {
   flex-shrink: 0;
 }
 
+/* Country tag — sits next to the region pill */
+.card-country {
+  display: inline-block;
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-strong);
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: help;
+}
+
+/* Article type label — sits at the start of the meta row */
+.card-type-label {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 3px 9px;
+  border-radius: 4px;
+  white-space: nowrap;
+  cursor: help;
+  margin-right: 4px;
+}
+
+.card-type-news {
+  color: #1F5F87;
+  background: #E6EEF6;
+  border: 1px solid #BFD3E5;
+}
+
+.card-type-analysis {
+  color: #6B4598;
+  background: #ECE5F5;
+  border: 1px solid #D2BFE5;
+}
+
+.card-type-opinion {
+  color: #B5642D;
+  background: #FAEAD8;
+  border: 1px solid #E8C7A1;
+}
+
 .card-meta {
   display: flex;
   gap: 10px;

@@ -2,6 +2,7 @@ const feed = document.getElementById('feed');
 const regionSelect = document.getElementById('region-select');
 const sectorPills = document.getElementById('sector-pills');
 const sourcePills = document.getElementById('source-pills');
+const articleTypePills = document.getElementById('article-type-pills');
 const refreshBtn = document.getElementById('refresh-btn');
 const refreshConfirmation = document.getElementById('refresh-confirmation');
 let refreshConfirmationTimer = null;
@@ -562,7 +563,8 @@ function saveFilters() {
     const state = {
       region: regionSelect.value,
       sectors: getActivePills(sectorPills),
-      sourceTypes: getActivePills(sourcePills)
+      sourceTypes: getActivePills(sourcePills),
+      articleTypes: articleTypePills ? getActivePills(articleTypePills) : ['News', 'Analysis']
     };
     localStorage.setItem(FILTERS_KEY, JSON.stringify(state));
   } catch { /* storage unavailable — nothing we can do */ }
@@ -586,6 +588,9 @@ function restoreFilters() {
     }
     if (state && Array.isArray(state.sectors)) applyPillState(sectorPills, state.sectors);
     if (state && Array.isArray(state.sourceTypes)) applyPillState(sourcePills, state.sourceTypes);
+    if (state && Array.isArray(state.articleTypes) && articleTypePills) {
+      applyPillState(articleTypePills, state.articleTypes);
+    }
   } catch { /* ignore */ }
 }
 
@@ -594,6 +599,7 @@ restoreFilters();
 
 initPills(sectorPills);
 initPills(sourcePills);
+if (articleTypePills) initPills(articleTypePills);
 
 function getActivePills(container) {
   return Array.from(container.querySelectorAll('.pill.active'))
@@ -621,6 +627,7 @@ function snapshotFilterState() {
     region: regionSelect.value,
     sectors: getActivePills(sectorPills).slice().sort().join('|'),
     sourceTypes: getActivePills(sourcePills).slice().sort().join('|'),
+    articleTypes: (articleTypePills ? getActivePills(articleTypePills) : []).slice().sort().join('|'),
     search: (searchInput ? searchInput.value.trim() : '')
   };
 }
@@ -637,6 +644,7 @@ function countActiveFilters() {
   if (regionSelect.value && regionSelect.value !== 'Global') count += 1;
   count += getActivePills(sectorPills).length;
   count += getActivePills(sourcePills).length;
+  if (articleTypePills) count += getActivePills(articleTypePills).length;
   if (searchInput && searchInput.value.trim()) count += 1;
   return count;
 }
@@ -660,6 +668,7 @@ function updatePendingState() {
     applied.region !== current.region ||
     applied.sectors !== current.sectors ||
     applied.sourceTypes !== current.sourceTypes ||
+    applied.articleTypes !== current.articleTypes ||
     applied.search !== current.search
   );
 
@@ -708,6 +717,11 @@ function handleFiltersChanged() {
 regionSelect.addEventListener('change', handleFiltersChanged);
 sectorPills.addEventListener('click', (e) => { if (e.target.classList.contains('pill')) setTimeout(handleFiltersChanged, 0); });
 sourcePills.addEventListener('click', (e) => { if (e.target.classList.contains('pill')) setTimeout(handleFiltersChanged, 0); });
+if (articleTypePills) {
+  articleTypePills.addEventListener('click', (e) => {
+    if (e.target.classList.contains('pill')) setTimeout(handleFiltersChanged, 0);
+  });
+}
 if (searchInput) {
   searchInput.addEventListener('input', () => { updateActiveFiltersBadge(); updatePendingState(); });
 }
@@ -716,16 +730,30 @@ handleFiltersChanged();
 // ── Utilities ───────────────────────────────────────────────────
 
 function timeAgo(dateStr) {
+  if (!dateStr) return '';
   const now = new Date();
   const then = new Date(dateStr);
+  if (isNaN(then.getTime())) return '';
   const diffMs = now - then;
   const mins = Math.floor(diffMs / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return mins + 'm ago';
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return mins === 1 ? '1 minute ago' : mins + ' minutes ago';
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return hours + 'h ago';
-  const days = Math.floor(hours / 24);
-  return days + 'd ago';
+  if (hours < 24) return hours === 1 ? '1 hour ago' : hours + ' hours ago';
+
+  // Calendar-based day comparison so "Yesterday" reflects the actual date,
+  // not just a 24-hour window.
+  const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const dayDiff = Math.round((startOfDay(now) - startOfDay(then)) / (24 * 60 * 60 * 1000));
+
+  if (dayDiff === 1) return 'Yesterday';
+  if (dayDiff < 7) return dayDiff + ' days ago';
+
+  // Older than a week: show the actual date
+  return then.toLocaleDateString('en-US', {
+    month: 'short', day: 'numeric',
+    year: now.getFullYear() === then.getFullYear() ? undefined : 'numeric'
+  });
 }
 
 function formatTimestamp() {
@@ -912,6 +940,7 @@ async function fetchStories() {
   const region = regionSelect.value;
   const sectors = getActivePills(sectorPills);
   const sourceTypes = getActivePills(sourcePills);
+  const articleTypes = articleTypePills ? getActivePills(articleTypePills) : ['News', 'Analysis'];
 
   if (sectors.length === 0 || sourceTypes.length === 0) {
     feed.innerHTML = '<div class="empty-feed">You haven\u2019t selected anything to read. Pick a sector or a source type to get started.</div>';
@@ -940,7 +969,8 @@ async function fetchStories() {
     const params = new URLSearchParams({
       region,
       sectors: sectors.join(','),
-      sourceTypes: sourceTypes.join(',')
+      sourceTypes: sourceTypes.join(','),
+      articleTypes: articleTypes.join(',')
     });
     if (profile) {
       params.set('profile', JSON.stringify(profile));
@@ -1005,7 +1035,7 @@ async function fetchCrossSectorInsights(articles, profile, region) {
     '<div class="cross-sector-bubble loading">' +
       '<div class="cross-sector-header">' +
         '<span class="cross-sector-icon">&#9670;</span>' +
-        '<span class="cross-sector-title">Cross-Sector Signals</span>' +
+        '<span class="cross-sector-title">Related impacts across sectors</span>' +
       '</div>' +
       '<div class="cross-sector-loading"><div class="spinner"></div><span>Reading across the day\u2019s stories&hellip;</span></div>' +
     '</div>';
@@ -1028,12 +1058,24 @@ async function fetchCrossSectorInsights(articles, profile, region) {
       return;
     }
 
-    // Map insight types to colors and short labels
+    // Map insight types to colors, plain-English labels, and tooltips
     const typeStyles = {
-      'CAUSAL CHAIN': { cls: 'type-causal', label: 'Causal Chain' },
-      'SHARED ENTITY': { cls: 'type-entity', label: 'Shared Entity' },
-      'SECOND-ORDER EFFECT': { cls: 'type-second-order', label: 'Second-Order Effect' },
-      'CONTRADICTION': { cls: 'type-contradiction', label: 'Contradiction' }
+      'CAUSAL CHAIN': {
+        cls: 'type-causal', label: 'Causal Chain',
+        tip: 'A chain of cause and effect linking events across different sectors or actors.'
+      },
+      'SHARED ENTITY': {
+        cls: 'type-entity', label: 'Common connection',
+        tip: 'An actor, country, or organisation that links this article to another sector.'
+      },
+      'SECOND-ORDER EFFECT': {
+        cls: 'type-second-order', label: 'Downstream impact',
+        tip: 'How this event could indirectly affect other sectors or actors.'
+      },
+      'CONTRADICTION': {
+        cls: 'type-contradiction', label: 'Contradiction',
+        tip: 'Two stories that point in opposite directions or undermine each other.'
+      }
     };
 
     const count = data.insights.length;
@@ -1041,18 +1083,19 @@ async function fetchCrossSectorInsights(articles, profile, region) {
       '<div class="cross-sector-bubble collapsed">' +
         '<button class="cross-sector-header" type="button" onclick="this.parentElement.classList.toggle(\'collapsed\')">' +
           '<span class="cross-sector-icon">&#9670;</span>' +
-          '<span class="cross-sector-title">Cross-Sector Signals</span>' +
+          '<span class="cross-sector-title">Related impacts across sectors</span>' +
           '<span class="cross-sector-subtitle">' + count + ' pattern' + (count > 1 ? 's' : '') + ' detected — click to expand</span>' +
           '<svg class="cross-sector-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 5l3 3 3-3"/></svg>' +
         '</button>' +
         '<div class="cross-sector-body">';
 
     data.insights.forEach(insight => {
-      const style = typeStyles[insight.type] || { cls: 'type-default', label: insight.type };
+      const style = typeStyles[insight.type] || { cls: 'type-default', label: insight.type, tip: '' };
+      const badgeTip = style.tip ? ' title="' + escapeHtml(style.tip) + '"' : '';
       html +=
         '<div class="cross-sector-pattern">' +
           '<div class="cross-sector-pattern-header">' +
-            '<span class="cross-sector-type-badge ' + style.cls + '">' + escapeHtml(style.label) + '</span>' +
+            '<span class="cross-sector-type-badge ' + style.cls + '"' + badgeTip + '>' + escapeHtml(style.label) + '</span>' +
             '<span class="cross-sector-pattern-title">' + escapeHtml(stripMd(insight.topic)) + '</span>' +
           '</div>';
 
@@ -1068,10 +1111,10 @@ async function fetchCrossSectorInsights(articles, profile, region) {
       // Mechanism and takeaway as separate labeled bullets with citation chips
       html += '<ul class="cross-sector-bullets">';
       if (insight.mechanism) {
-        html += '<li><span class="cs-bullet-label">Why:</span> ' + renderCitations(insight.mechanism, data.citationMap) + '</li>';
+        html += '<li><span class="cs-bullet-label" title="How this story connects to the other sector or actor — the underlying mechanism.">How it connects:</span> ' + renderCitations(insight.mechanism, data.citationMap) + '</li>';
       }
       if (insight.takeaway) {
-        html += '<li><span class="cs-bullet-label">Watch:</span> ' + renderCitations(insight.takeaway, data.citationMap) + '</li>';
+        html += '<li><span class="cs-bullet-label" title="What to keep an eye on as this plays out.">Watch:</span> ' + renderCitations(insight.takeaway, data.citationMap) + '</li>';
       }
       html += '</ul></div>';
     });
@@ -1404,9 +1447,22 @@ function renderFeed(articles) {
       const tldrFallback = article.description ? escapeHtml(cleanFallback(article.description)) : '';
       const officialBadge = article.isOfficial ? '<span class="card-official-badge">Official</span>' : '';
       const regionPill = article.region ? '<span class="card-region">' + escapeHtml(article.region) + '</span>' : '';
+      const countryPill = (article.country && article.country !== article.region)
+        ? '<span class="card-country" title="Primary country covered in this story">' + escapeHtml(article.country) + '</span>'
+        : '';
       const tierLabel = article.sourceTier
         ? article.sourceTier.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
         : '';
+
+      // Article type label (News / Analysis / Opinion)
+      const typeLabel = article.articleType || 'News';
+      const typeClass = 'card-type-' + (typeLabel.toLowerCase().replace(/[^a-z]+/g, '-'));
+      const typeTitle = ({
+        'News': 'News — straight reporting from a newswire or mainstream desk',
+        'Analysis': 'Analysis — explainer, feature, or research that interprets events',
+        'Opinion': 'Opinion / op-ed — argument or personal viewpoint, not reporting'
+      })[typeLabel] || typeLabel;
+      const typeBadge = '<span class="card-type-label ' + typeClass + '" title="' + escapeHtml(typeTitle) + '">' + escapeHtml(typeLabel) + '</span>';
 
       const saved = isArticleSaved(article);
       const saveBtn =
@@ -1418,8 +1474,8 @@ function renderFeed(articles) {
           '</svg>' +
         '</button>';
 
-      const badges = (officialBadge || regionPill || saveBtn)
-        ? '<div class="card-badges">' + officialBadge + regionPill + saveBtn + '</div>'
+      const badges = (officialBadge || regionPill || countryPill || saveBtn)
+        ? '<div class="card-badges">' + officialBadge + regionPill + countryPill + saveBtn + '</div>'
         : '';
 
       const eyebrow = isFeatured ? '<div class="card-eyebrow">Lead Story</div>' : '';
@@ -1440,9 +1496,10 @@ function renderFeed(articles) {
             badges +
           '</div>' +
           '<div class="card-meta">' +
+            typeBadge +
             '<span class="card-source">' + escapeHtml(article.source) + '</span>' +
             '<span class="card-dot"></span>' +
-            '<span>' + timeAgo(article.publishedAt) + '</span>' +
+            '<span class="card-time">' + escapeHtml(timeAgo(article.publishedAt)) + '</span>' +
             (tierLabel ? '<span class="card-dot card-tier-meta"></span><span class="card-tier-meta">' + escapeHtml(tierLabel) + '</span>' : '') +
           '</div>' +
           '<div class="card-tldr loading" data-index="' + index + '">' + tldrFallback + '</div>';

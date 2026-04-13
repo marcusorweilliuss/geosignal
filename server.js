@@ -4,7 +4,7 @@ const fetch = require('node-fetch');
 const Groq = require('groq-sdk');
 const Parser = require('rss-parser');
 
-const { SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT } = require('./sources');
+const { SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT, classifyArticleType, extractPrimaryCountry } = require('./sources');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -472,11 +472,14 @@ const regionSlugMap = {
 
 app.get('/api/news', async (req, res) => {
   try {
-    const { region, sectors, sourceTypes, profile: profileStr, search } = req.query;
+    const { region, sectors, sourceTypes, profile: profileStr, search, articleTypes } = req.query;
     const regionSlug = regionSlugMap[region] || 'global';
     const typeList = sourceTypes ? sourceTypes.split(',') : ['Mainstream news', 'Independent journalism', 'Think tanks & academic'];
     const activeSectors = sectors ? sectors.split(',') : [];
     const searchTerms = search ? search.toLowerCase().trim().split(/\s+/).filter(w => w.length > 1) : [];
+    const activeArticleTypes = articleTypes
+      ? articleTypes.split(',').map(t => t.trim()).filter(Boolean)
+      : ['News', 'Analysis']; // default: News + Analysis, Opinion off
 
     // Get filtered sources from registry
     const sources = getSourcesForRegion(regionSlug, typeList);
@@ -564,6 +567,19 @@ app.get('/api/news', async (req, res) => {
     });
     // Remove junk articles (score -1)
     unique = unique.filter(a => a.score >= 0);
+
+    // Classify article type + extract a primary country for each article
+    unique.forEach(a => {
+      a.articleType = classifyArticleType(a);
+      a.country = extractPrimaryCountry(a);
+    });
+
+    // Apply article-type filter (defaults to News + Analysis)
+    if (activeArticleTypes.length > 0 && activeArticleTypes.length < 3) {
+      const allowed = new Set(activeArticleTypes);
+      unique = unique.filter(a => allowed.has(a.articleType));
+    }
+
     unique.sort((a, b) => b.score - a.score);
 
     // Map to card format. Strip HTML server-side so descriptions arrive
@@ -589,7 +605,9 @@ app.get('/api/news', async (req, res) => {
         region: region || 'Global',
         isOfficial: article.sourceTier === 'government-official',
         score: article.score,
-        thumbnail: article.thumbnail || ''
+        thumbnail: article.thumbnail || '',
+        articleType: article.articleType || 'News',
+        country: article.country || ''
       };
     });
 

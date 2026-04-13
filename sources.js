@@ -1245,4 +1245,212 @@ function scoreArticle(article, region, userProfile, activeSectors) {
 
 const GOVERNMENT_CAVEAT = 'This is an official government statement. The analysis below summarises the content as presented by the issuing government. It does not reflect independent verification or editorial judgment. Read alongside independent sources for full context.';
 
-module.exports = { SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT, SECTOR_KEYWORDS, REGION_COUNTRIES, JUNK_PATTERNS, SIGNIFICANCE_WORDS };
+// ── Article type classification ────────────────────────────────
+// Heuristic-based. "Opinion" takes precedence over "Analysis", which
+// takes precedence over "News". Used both to label each card and to
+// power the Article Type filter.
+
+const NEWSWIRE_SOURCES = new Set([
+  'Reuters', 'Reuters Top News', 'Reuters World', 'Reuters Business',
+  'Reuters Latin America', 'Reuters Middle East', 'Reuters Europe', 'Reuters Africa', 'Reuters Asia',
+  'Associated Press', 'AP', 'AP News', 'AP Top Stories',
+  'AFP', 'AFP News', 'Agence France-Presse',
+  'Bloomberg', 'Bloomberg News', 'Bloomberg Politics',
+  'Kyodo News', 'ANI', 'PTI', 'DPA', 'EFE', 'TASS', 'Xinhua'
+]);
+
+const OPINION_PATTERNS = [
+  /\bop[-\s]?ed\b/i,
+  /^opinion[:\s]/i,
+  /\bopinion\s*\|/i,
+  /\beditorial\b/i,
+  /^editorial[:\s]/i,
+  /^column[:\s]/i,
+  /^comment[:\s]/i,
+  /^perspective[:\s]/i,
+  /\bcommentary\b/i,
+  /\/opinion\//i,
+  /\/opinions?\//i,
+  /\/commentary\//i,
+  /\/editorials?\//i,
+  /\/columnists?\//i,
+  /\/op-eds?\//i
+];
+
+const ANALYSIS_PATTERNS = [
+  /^analysis[:\s]/i,
+  /\banalysis\s*\|/i,
+  /^explainer[:\s]/i,
+  /\bexplainer\b/i,
+  /^factbox[:\s]/i,
+  /^deep\s*dive[:\s]/i,
+  /^long\s*read[:\s]/i,
+  /^briefing[:\s]/i,
+  /\/analysis\//i,
+  /\/explainer\//i,
+  /\/features\//i,
+  /\/insights?\//i
+];
+
+function classifyArticleType(article) {
+  const title = article.title || '';
+  const url = article.url || '';
+  const source = article.source || '';
+  const tier = article.sourceTier || '';
+  const haystack = title + ' ' + url;
+
+  // Explicit opinion markers win regardless of source
+  for (const p of OPINION_PATTERNS) {
+    if (p.test(haystack)) return 'Opinion';
+  }
+
+  // Think-tank / academic pieces are analytical by nature
+  if (tier === 'think-tank-academic') return 'Analysis';
+
+  // Explicit analysis markers
+  for (const p of ANALYSIS_PATTERNS) {
+    if (p.test(haystack)) return 'Analysis';
+  }
+
+  // Known newswires default to News
+  if (NEWSWIRE_SOURCES.has(source)) return 'News';
+
+  // Government statements are News (officially released information)
+  if (tier === 'government-official') return 'News';
+
+  // Default for mainstream/regional/business etc. that don't match anything
+  return 'News';
+}
+
+// ── Country extraction ──────────────────────────────────────────
+// Maps canonical-country lookup terms → display country name.
+// Order matters: more specific multi-word terms are matched first.
+const COUNTRY_KEYWORDS = [
+  // Multi-word country names (must come before single-word matches)
+  ['United States', 'United States'], ['United Kingdom', 'United Kingdom'],
+  ['South Africa', 'South Africa'], ['South Korea', 'South Korea'],
+  ['North Korea', 'North Korea'], ['New Zealand', 'New Zealand'],
+  ['Sri Lanka', 'Sri Lanka'], ['Saudi Arabia', 'Saudi Arabia'],
+  ['Papua New Guinea', 'Papua New Guinea'],
+  ['Costa Rica', 'Costa Rica'], ['Dominican Republic', 'Dominican Republic'],
+  ['El Salvador', 'El Salvador'], ['Solomon Islands', 'Solomon Islands'],
+  ['Timor-Leste', 'Timor-Leste'], ['Hong Kong', 'Hong Kong'],
+  ['Ivory Coast', 'Ivory Coast'], ['Congo', 'DRC'],
+  // Single-word country names
+  ['India', 'India'], ['Indian', 'India'], ['Delhi', 'India'], ['Modi', 'India'], ['Mumbai', 'India'], ['Bengaluru', 'India'],
+  ['Pakistan', 'Pakistan'], ['Pakistani', 'Pakistan'], ['Islamabad', 'Pakistan'], ['Karachi', 'Pakistan'],
+  ['Bangladesh', 'Bangladesh'], ['Bangladeshi', 'Bangladesh'], ['Dhaka', 'Bangladesh'],
+  ['Nepal', 'Nepal'], ['Kathmandu', 'Nepal'],
+  ['Afghanistan', 'Afghanistan'], ['Afghan', 'Afghanistan'], ['Kabul', 'Afghanistan'], ['Taliban', 'Afghanistan'],
+  ['Myanmar', 'Myanmar'], ['Burma', 'Myanmar'],
+  ['Bhutan', 'Bhutan'], ['Maldives', 'Maldives'],
+  ['China', 'China'], ['Chinese', 'China'], ['Beijing', 'China'], ['Shanghai', 'China'], ['Xi Jinping', 'China'], ['Xinjiang', 'China'], ['Tibet', 'China'],
+  ['Japan', 'Japan'], ['Japanese', 'Japan'], ['Tokyo', 'Japan'], ['Kishida', 'Japan'],
+  ['Taiwan', 'Taiwan'], ['Taiwanese', 'Taiwan'], ['Taipei', 'Taiwan'], ['TSMC', 'Taiwan'],
+  ['Korea', 'South Korea'], ['Korean', 'South Korea'], ['Seoul', 'South Korea'], ['Samsung', 'South Korea'],
+  ['Pyongyang', 'North Korea'], ['DPRK', 'North Korea'], ['Kim Jong', 'North Korea'],
+  ['Mongolia', 'Mongolia'],
+  ['Thailand', 'Thailand'], ['Thai', 'Thailand'], ['Bangkok', 'Thailand'],
+  ['Vietnam', 'Vietnam'], ['Vietnamese', 'Vietnam'], ['Hanoi', 'Vietnam'], ['Ho Chi Minh', 'Vietnam'],
+  ['Indonesia', 'Indonesia'], ['Indonesian', 'Indonesia'], ['Jakarta', 'Indonesia'], ['Jokowi', 'Indonesia'],
+  ['Philippines', 'Philippines'], ['Filipino', 'Philippines'], ['Manila', 'Philippines'], ['Marcos', 'Philippines'], ['Duterte', 'Philippines'],
+  ['Malaysia', 'Malaysia'], ['Malaysian', 'Malaysia'], ['Kuala Lumpur', 'Malaysia'],
+  ['Singapore', 'Singapore'], ['Singaporean', 'Singapore'],
+  ['Cambodia', 'Cambodia'], ['Cambodian', 'Cambodia'], ['Phnom Penh', 'Cambodia'],
+  ['Laos', 'Laos'], ['Brunei', 'Brunei'],
+  ['Australia', 'Australia'], ['Australian', 'Australia'], ['Sydney', 'Australia'], ['Canberra', 'Australia'], ['Melbourne', 'Australia'],
+  ['Fiji', 'Fiji'], ['Samoa', 'Samoa'], ['Tonga', 'Tonga'], ['Vanuatu', 'Vanuatu'],
+  ['UK', 'United Kingdom'], ['Britain', 'United Kingdom'], ['British', 'United Kingdom'], ['London', 'United Kingdom'], ['Starmer', 'United Kingdom'], ['Brexit', 'United Kingdom'],
+  ['Germany', 'Germany'], ['German', 'Germany'], ['Berlin', 'Germany'], ['Scholz', 'Germany'], ['Merz', 'Germany'],
+  ['France', 'France'], ['French', 'France'], ['Paris', 'France'], ['Macron', 'France'],
+  ['Italy', 'Italy'], ['Italian', 'Italy'], ['Rome', 'Italy'], ['Meloni', 'Italy'],
+  ['Spain', 'Spain'], ['Spanish', 'Spain'], ['Madrid', 'Spain'],
+  ['Netherlands', 'Netherlands'], ['Dutch', 'Netherlands'], ['Amsterdam', 'Netherlands'],
+  ['Belgium', 'Belgium'], ['Brussels', 'Belgium'],
+  ['Sweden', 'Sweden'], ['Swedish', 'Sweden'], ['Stockholm', 'Sweden'],
+  ['Norway', 'Norway'], ['Norwegian', 'Norway'], ['Oslo', 'Norway'],
+  ['Denmark', 'Denmark'], ['Danish', 'Denmark'], ['Copenhagen', 'Denmark'],
+  ['Finland', 'Finland'], ['Finnish', 'Finland'], ['Helsinki', 'Finland'],
+  ['Poland', 'Poland'], ['Polish', 'Poland'], ['Warsaw', 'Poland'],
+  ['Czech', 'Czech Republic'], ['Prague', 'Czech Republic'],
+  ['Hungary', 'Hungary'], ['Hungarian', 'Hungary'], ['Budapest', 'Hungary'], ['Orban', 'Hungary'],
+  ['Romania', 'Romania'], ['Romanian', 'Romania'], ['Bucharest', 'Romania'],
+  ['Greece', 'Greece'], ['Greek', 'Greece'], ['Athens', 'Greece'],
+  ['Portugal', 'Portugal'], ['Portuguese', 'Portugal'], ['Lisbon', 'Portugal'],
+  ['Switzerland', 'Switzerland'], ['Swiss', 'Switzerland'], ['Zurich', 'Switzerland'], ['Geneva', 'Switzerland'],
+  ['Austria', 'Austria'], ['Austrian', 'Austria'], ['Vienna', 'Austria'],
+  ['Ireland', 'Ireland'], ['Irish', 'Ireland'], ['Dublin', 'Ireland'],
+  ['Ukraine', 'Ukraine'], ['Ukrainian', 'Ukraine'], ['Kyiv', 'Ukraine'], ['Zelensky', 'Ukraine'],
+  ['Russia', 'Russia'], ['Russian', 'Russia'], ['Moscow', 'Russia'], ['Kremlin', 'Russia'], ['Putin', 'Russia'],
+  ['Belarus', 'Belarus'], ['Minsk', 'Belarus'],
+  ['Turkey', 'Turkey'], ['Turkish', 'Turkey'], ['Ankara', 'Turkey'], ['Istanbul', 'Turkey'], ['Erdogan', 'Turkey'],
+  ['Saudi', 'Saudi Arabia'], ['Riyadh', 'Saudi Arabia'], ['MBS', 'Saudi Arabia'],
+  ['UAE', 'UAE'], ['Emirates', 'UAE'], ['Dubai', 'UAE'], ['Abu Dhabi', 'UAE'],
+  ['Iran', 'Iran'], ['Iranian', 'Iran'], ['Tehran', 'Iran'], ['Khamenei', 'Iran'],
+  ['Iraq', 'Iraq'], ['Iraqi', 'Iraq'], ['Baghdad', 'Iraq'],
+  ['Israel', 'Israel'], ['Israeli', 'Israel'], ['Jerusalem', 'Israel'], ['Tel Aviv', 'Israel'], ['Netanyahu', 'Israel'],
+  ['Palestine', 'Palestine'], ['Palestinian', 'Palestine'], ['Gaza', 'Palestine'], ['West Bank', 'Palestine'], ['Hamas', 'Palestine'],
+  ['Lebanon', 'Lebanon'], ['Lebanese', 'Lebanon'], ['Beirut', 'Lebanon'], ['Hezbollah', 'Lebanon'],
+  ['Syria', 'Syria'], ['Syrian', 'Syria'], ['Damascus', 'Syria'],
+  ['Jordan', 'Jordan'], ['Jordanian', 'Jordan'], ['Amman', 'Jordan'],
+  ['Yemen', 'Yemen'], ['Yemeni', 'Yemen'], ['Houthi', 'Yemen'],
+  ['Qatar', 'Qatar'], ['Qatari', 'Qatar'], ['Doha', 'Qatar'],
+  ['Kuwait', 'Kuwait'], ['Bahrain', 'Bahrain'], ['Oman', 'Oman'],
+  ['Egypt', 'Egypt'], ['Egyptian', 'Egypt'], ['Cairo', 'Egypt'],
+  ['Libya', 'Libya'], ['Libyan', 'Libya'], ['Tripoli', 'Libya'],
+  ['Tunisia', 'Tunisia'], ['Tunisian', 'Tunisia'], ['Tunis', 'Tunisia'],
+  ['Morocco', 'Morocco'], ['Moroccan', 'Morocco'], ['Rabat', 'Morocco'],
+  ['Algeria', 'Algeria'], ['Algerian', 'Algeria'], ['Algiers', 'Algeria'],
+  ['Nigeria', 'Nigeria'], ['Nigerian', 'Nigeria'], ['Lagos', 'Nigeria'], ['Abuja', 'Nigeria'],
+  ['Kenya', 'Kenya'], ['Kenyan', 'Kenya'], ['Nairobi', 'Kenya'],
+  ['Ethiopia', 'Ethiopia'], ['Ethiopian', 'Ethiopia'], ['Addis Ababa', 'Ethiopia'],
+  ['Ghana', 'Ghana'], ['Ghanaian', 'Ghana'], ['Accra', 'Ghana'],
+  ['Tanzania', 'Tanzania'], ['Uganda', 'Uganda'], ['Rwanda', 'Rwanda'], ['Senegal', 'Senegal'], ['Cameroon', 'Cameroon'],
+  ['Sudan', 'Sudan'], ['Sudanese', 'Sudan'], ['Khartoum', 'Sudan'],
+  ['Somalia', 'Somalia'], ['Somali', 'Somalia'], ['Mogadishu', 'Somalia'],
+  ['Zimbabwe', 'Zimbabwe'], ['Zimbabwean', 'Zimbabwe'],
+  ['Mozambique', 'Mozambique'], ['Angola', 'Angola'], ['Zambia', 'Zambia'], ['Botswana', 'Botswana'],
+  ['Brazil', 'Brazil'], ['Brazilian', 'Brazil'], ['Brasilia', 'Brazil'], ['Sao Paulo', 'Brazil'], ['Rio de Janeiro', 'Brazil'], ['Lula', 'Brazil'],
+  ['Mexico', 'Mexico'], ['Mexican', 'Mexico'], ['Mexico City', 'Mexico'],
+  ['Argentina', 'Argentina'], ['Argentine', 'Argentina'], ['Buenos Aires', 'Argentina'], ['Milei', 'Argentina'],
+  ['Colombia', 'Colombia'], ['Colombian', 'Colombia'], ['Bogota', 'Colombia'],
+  ['Chile', 'Chile'], ['Chilean', 'Chile'], ['Santiago', 'Chile'],
+  ['Peru', 'Peru'], ['Peruvian', 'Peru'], ['Lima', 'Peru'],
+  ['Venezuela', 'Venezuela'], ['Venezuelan', 'Venezuela'], ['Caracas', 'Venezuela'], ['Maduro', 'Venezuela'],
+  ['Ecuador', 'Ecuador'], ['Bolivia', 'Bolivia'], ['Uruguay', 'Uruguay'], ['Paraguay', 'Paraguay'],
+  ['Cuba', 'Cuba'], ['Cuban', 'Cuba'], ['Havana', 'Cuba'],
+  ['Haiti', 'Haiti'], ['Guatemala', 'Guatemala'], ['Honduras', 'Honduras'], ['Nicaragua', 'Nicaragua'], ['Panama', 'Panama'], ['Jamaica', 'Jamaica'],
+  ['Canada', 'Canada'], ['Canadian', 'Canada'], ['Ottawa', 'Canada'], ['Toronto', 'Canada'], ['Trudeau', 'Canada'],
+  ['USA', 'United States'], ['US', 'United States'], ['American', 'United States'], ['Washington', 'United States'], ['Pentagon', 'United States'], ['White House', 'United States'], ['Trump', 'United States'], ['Biden', 'United States'], ['Silicon Valley', 'United States'], ['Wall Street', 'United States'], ['Federal Reserve', 'United States'],
+  ['Kazakhstan', 'Kazakhstan'], ['Kazakh', 'Kazakhstan'], ['Astana', 'Kazakhstan'],
+  ['Uzbekistan', 'Uzbekistan'], ['Tashkent', 'Uzbekistan'],
+  ['Kyrgyzstan', 'Kyrgyzstan'], ['Tajikistan', 'Tajikistan'], ['Turkmenistan', 'Turkmenistan'],
+  ['Azerbaijan', 'Azerbaijan'], ['Baku', 'Azerbaijan'],
+  ['Armenia', 'Armenia'], ['Yerevan', 'Armenia'],
+  ['Georgia', 'Georgia'], ['Tbilisi', 'Georgia']
+];
+
+// Build regex once — longest terms first so multi-word matches win.
+const COUNTRY_PATTERNS = COUNTRY_KEYWORDS
+  .slice()
+  .sort((a, b) => b[0].length - a[0].length)
+  .map(([term, country]) => ({
+    // Word-boundary match. Escape is trivial since these are alpha/hyphen terms.
+    re: new RegExp('\\b' + term.replace(/[-]/g, '[-\\s]') + '\\b', 'i'),
+    country
+  }));
+
+function extractPrimaryCountry(article) {
+  const hay = (article.title || '') + ' ' + (article.description || '').slice(0, 300);
+  if (!hay.trim()) return '';
+  for (const { re, country } of COUNTRY_PATTERNS) {
+    if (re.test(hay)) return country;
+  }
+  return '';
+}
+
+module.exports = {
+  SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT,
+  SECTOR_KEYWORDS, REGION_COUNTRIES, JUNK_PATTERNS, SIGNIFICANCE_WORDS,
+  classifyArticleType, extractPrimaryCountry
+};
