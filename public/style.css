@@ -1864,6 +1864,36 @@ select:focus {
   flex-shrink: 0;
 }
 
+.locations-input {
+  width: 100%;
+  padding: 8px 12px;
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  border: 1.5px solid var(--border-strong);
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.locations-input:hover { border-color: var(--accent); }
+.locations-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.filter-hint {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  text-transform: none;
+  letter-spacing: 0.2px;
+  font-style: italic;
+  margin-left: 6px;
+}
+
 /* Country tag — sits next to the region pill */
 .card-country {
   display: inline-block;
@@ -2959,6 +2989,15 @@ select:focus {
   font-size: 13px;
   color: var(--text-primary);
   transition: all 0.15s ease;
+  min-width: 0; /* let the text span shrink within the grid cell */
+}
+
+.sector-checkbox > span {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sector-checkbox:hover {
@@ -2969,11 +3008,15 @@ select:focus {
 .sector-checkbox input {
   appearance: none;
   -webkit-appearance: none;
-  width: 15px;
-  height: 15px;
+  width: 15px !important;
+  height: 15px !important;
+  min-width: 15px;
+  max-width: 15px;
+  padding: 0 !important;
   border: 1.5px solid var(--border-strong);
   border-radius: 4px;
   margin: 0;
+  flex: 0 0 auto;
   flex-shrink: 0;
   cursor: pointer;
   transition: all 0.15s ease;

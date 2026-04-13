@@ -126,6 +126,14 @@
       </div>
 
       <div class="filter-group">
+        <label for="locations-input">Countries / cities <span class="filter-hint">(optional)</span></label>
+        <input type="text" id="locations-input" class="locations-input"
+               placeholder="e.g., India, Singapore, Lagos, Seoul — comma-separated"
+               autocomplete="off"
+               title="Only show articles that mention one of these countries or cities. Leave empty for no location filter." />
+      </div>
+
+      <div class="filter-group">
         <label>Sectors</label>
         <div class="pill-group" id="sector-pills">
           <button class="pill active" data-value="Geopolitics">Geopolitics</button>

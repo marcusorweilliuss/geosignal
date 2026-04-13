@@ -3,6 +3,7 @@ const regionSelect = document.getElementById('region-select');
 const sectorPills = document.getElementById('sector-pills');
 const sourcePills = document.getElementById('source-pills');
 const articleTypePills = document.getElementById('article-type-pills');
+const locationsInput = document.getElementById('locations-input');
 const refreshBtn = document.getElementById('refresh-btn');
 const refreshConfirmation = document.getElementById('refresh-confirmation');
 let refreshConfirmationTimer = null;
@@ -573,7 +574,8 @@ function saveFilters() {
       region: regionSelect.value,
       sectors: getActivePills(sectorPills),
       sourceTypes: getActivePills(sourcePills),
-      articleTypes: articleTypePills ? getActivePills(articleTypePills) : ['News', 'Analysis']
+      articleTypes: articleTypePills ? getActivePills(articleTypePills) : ['News', 'Analysis'],
+      locations: locationsInput ? locationsInput.value.trim() : ''
     };
     localStorage.setItem(FILTERS_KEY, JSON.stringify(state));
   } catch { /* storage unavailable — nothing we can do */ }
@@ -599,6 +601,9 @@ function restoreFilters() {
     if (state && Array.isArray(state.sourceTypes)) applyPillState(sourcePills, state.sourceTypes);
     if (state && Array.isArray(state.articleTypes) && articleTypePills) {
       applyPillState(articleTypePills, state.articleTypes);
+    }
+    if (state && typeof state.locations === 'string' && locationsInput) {
+      locationsInput.value = state.locations;
     }
   } catch { /* ignore */ }
 }
@@ -637,6 +642,7 @@ function snapshotFilterState() {
     sectors: getActivePills(sectorPills).slice().sort().join('|'),
     sourceTypes: getActivePills(sourcePills).slice().sort().join('|'),
     articleTypes: (articleTypePills ? getActivePills(articleTypePills) : []).slice().sort().join('|'),
+    locations: (locationsInput ? locationsInput.value.trim() : ''),
     search: (searchInput ? searchInput.value.trim() : '')
   };
 }
@@ -654,6 +660,7 @@ function countActiveFilters() {
   count += getActivePills(sectorPills).length;
   count += getActivePills(sourcePills).length;
   if (articleTypePills) count += getActivePills(articleTypePills).length;
+  if (locationsInput && locationsInput.value.trim()) count += 1;
   if (searchInput && searchInput.value.trim()) count += 1;
   return count;
 }
@@ -678,6 +685,7 @@ function updatePendingState() {
     applied.sectors !== current.sectors ||
     applied.sourceTypes !== current.sourceTypes ||
     applied.articleTypes !== current.articleTypes ||
+    applied.locations !== current.locations ||
     applied.search !== current.search
   );
 
@@ -746,6 +754,9 @@ if (articleTypePills) {
 }
 if (searchInput) {
   searchInput.addEventListener('input', () => { updateActiveFiltersBadge(); updatePendingState(); });
+}
+if (locationsInput) {
+  locationsInput.addEventListener('input', () => setTimeout(handleFiltersChanged, 0));
 }
 handleFiltersChanged();
 
@@ -968,11 +979,58 @@ function updateDispatchHeader(articles) {
 
 // ── Fetch Stories (RSS-powered) ─────────────────────────────────
 
+// Fallback: when an RSS search returns 0 results, use Perplexity to find
+// recent articles from the open web and render them into the feed.
+async function runWebSearch(query) {
+  feed.innerHTML =
+    '<div class="loading-feed">' +
+      '<div class="loading-pulse"></div>' +
+      '<span>Searching the web for &ldquo;' + escapeHtml(query) + '&rdquo;&hellip;</span>' +
+    '</div>';
+  feedCount.textContent = '';
+  feedTimestamp.textContent = '';
+
+  try {
+    const res = await fetch('/api/web-search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      feed.innerHTML = '<div class="empty-feed">Web search failed: ' + escapeHtml(data.error || 'Unknown error') + '</div>';
+      return;
+    }
+
+    if (!data.articles || data.articles.length === 0) {
+      feed.innerHTML = '<div class="empty-feed">Web search found no credible matches for &ldquo;' + escapeHtml(query) + '&rdquo;.</div>';
+      return;
+    }
+
+    currentArticles = data.articles;
+    governmentCaveat = data.governmentCaveat || '';
+    feedCount.textContent = (data.articles.length === 1 ? '1 article' : data.articles.length + ' articles') + ' · web search';
+    feedTimestamp.textContent = formatTimestamp();
+    updateDispatchHeader(currentArticles);
+    renderFeed(currentArticles);
+    generateTldrs(currentArticles);
+    markFiltersApplied();
+    showRefreshConfirmation();
+  } catch (err) {
+    console.error('Web search error:', err);
+    feed.innerHTML = '<div class="empty-feed">Couldn\u2019t reach the web-search service. Try again in a moment.</div>';
+  } finally {
+    if (refreshBtn) refreshBtn.classList.remove('is-loading');
+  }
+}
+
 async function fetchStories() {
   const region = regionSelect.value;
   const sectors = getActivePills(sectorPills);
   const sourceTypes = getActivePills(sourcePills);
   const articleTypes = articleTypePills ? getActivePills(articleTypePills) : ['News', 'Analysis'];
+  const locations = locationsInput ? locationsInput.value.trim() : '';
 
   if (sectors.length === 0 || sourceTypes.length === 0) {
     feed.innerHTML = '<div class="empty-feed">You haven\u2019t selected anything to read. Pick a sector or a source type to get started.</div>';
@@ -1010,6 +1068,9 @@ async function fetchStories() {
     if (searchQuery) {
       params.set('search', searchQuery);
     }
+    if (locations) {
+      params.set('locations', locations);
+    }
 
     const res = await fetch('/api/news?' + params);
     const data = await res.json();
@@ -1020,7 +1081,20 @@ async function fetchStories() {
     }
 
     if (!data.articles || data.articles.length === 0) {
-      feed.innerHTML = '<div class="empty-feed">Nothing matches this combination just yet. Try a wider region, turn on more sectors, or clear your search to see what\u2019s moving.</div>';
+      const q = searchInput.value.trim();
+      if (q) {
+        // Search query returned nothing from the RSS cache — offer a web search fallback.
+        feed.innerHTML =
+          '<div class="empty-feed">' +
+            'No articles in GeoSignal\u2019s sources match &ldquo;' + escapeHtml(q) + '&rdquo; right now.<br><br>' +
+            '<button id="web-search-fallback-btn" class="btn-primary" type="button">Search the web for &ldquo;' + escapeHtml(q) + '&rdquo;</button>' +
+            '<div style="margin-top:10px;font-size:12px;color:var(--text-tertiary)">Uses Perplexity to find recent articles across the open web.</div>' +
+          '</div>';
+        const btn = document.getElementById('web-search-fallback-btn');
+        if (btn) btn.addEventListener('click', () => runWebSearch(q));
+      } else {
+        feed.innerHTML = '<div class="empty-feed">Nothing matches this combination just yet. Try a wider region, turn on more sectors, or clear your search to see what\u2019s moving.</div>';
+      }
       return;
     }
 

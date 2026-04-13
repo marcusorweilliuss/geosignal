@@ -472,7 +472,7 @@ const regionSlugMap = {
 
 app.get('/api/news', async (req, res) => {
   try {
-    const { region, sectors, sourceTypes, profile: profileStr, search, articleTypes } = req.query;
+    const { region, sectors, sourceTypes, profile: profileStr, search, articleTypes, locations } = req.query;
     const regionSlug = regionSlugMap[region] || 'global';
     const typeList = sourceTypes ? sourceTypes.split(',') : ['Mainstream news', 'Independent journalism', 'Think tanks & academic'];
     const activeSectors = sectors ? sectors.split(',') : [];
@@ -480,6 +480,11 @@ app.get('/api/news', async (req, res) => {
     const activeArticleTypes = articleTypes
       ? articleTypes.split(',').map(t => t.trim()).filter(Boolean)
       : ['News', 'Analysis']; // default: News + Analysis, Opinion off
+    // Free-text country/city filter — comma-separated terms. Each article
+    // must mention at least one (case-insensitive) in title or description.
+    const locationTerms = locations
+      ? locations.split(',').map(s => s.trim().toLowerCase()).filter(s => s.length > 1)
+      : [];
 
     // Get filtered sources from registry
     const sources = getSourcesForRegion(regionSlug, typeList);
@@ -538,6 +543,16 @@ app.get('/api/news', async (req, res) => {
       });
     }
 
+    // Apply location filter — article must mention at least one typed
+    // country or city in title or description (case-insensitive). This is
+    // the user's narrow-down-to-specific-places knob.
+    if (locationTerms.length > 0) {
+      unique = unique.filter(a => {
+        const text = ((a.title || '') + ' ' + (a.description || '')).toLowerCase();
+        return locationTerms.some(term => text.includes(term));
+      });
+    }
+
     // Apply sector filter — article must match at least one active sector's keywords
     if (activeSectors.length > 0 && activeSectors.length < 8) {
       // Build keyword list from only the active sectors
@@ -563,6 +578,11 @@ app.get('/api/news', async (req, res) => {
         const titleLower = (a.title || '').toLowerCase();
         const titleMatches = searchTerms.filter(t => titleLower.includes(t)).length;
         a.score += titleMatches * 10;
+      }
+      if (locationTerms.length > 0) {
+        const titleLower = (a.title || '').toLowerCase();
+        const titleHit = locationTerms.some(term => titleLower.includes(term));
+        if (titleHit) a.score += 15;
       }
     });
     // Remove junk articles (score -1)
@@ -1495,6 +1515,105 @@ CRITICAL RULES:
   } catch (err) {
     console.error('Cross-sector analysis error:', err.message);
     res.json({ insights: [] });
+  }
+});
+
+// ── Web-search fallback ─────────────────────────────────────────
+// When the user's search matches nothing in the local RSS cache,
+// the client can call this endpoint to let Perplexity find recent
+// articles from the open web. Returns articles in the same shape
+// as /api/news so the existing render pipeline works unchanged.
+app.post('/api/web-search', async (req, res) => {
+  try {
+    const { query } = req.body;
+    if (!query || !query.trim()) {
+      return res.status(400).json({ error: 'Missing query' });
+    }
+    if (!PERPLEXITY_API_KEY) {
+      return res.status(503).json({
+        error: 'Web search is not configured. Set PERPLEXITY_API_KEY in .env.'
+      });
+    }
+
+    const cacheKey = 'websearch::' + query.trim().toLowerCase();
+    const cached = cacheGet('briefing', cacheKey);
+    if (cached) return res.json(cached);
+
+    const systemPrompt = 'You are a research assistant that finds recent, credible news articles on a given topic. You return ONLY valid JSON in the specified schema — no prose, no markdown fences. Only include articles you are confident actually exist and whose URLs you have seen in your search results.';
+
+    const userPrompt = `Find up to 6 recent, credible news articles about: "${query.trim()}"
+
+Prefer reputable outlets (major newswires, mainstream international press, established think tanks, regional specialists). Prefer articles published within the last 14 days when available.
+
+Return ONLY this JSON structure (no markdown, no code fences, no commentary):
+{
+  "articles": [
+    {
+      "title": "Exact article headline",
+      "source": "Publication name (e.g. Reuters, Financial Times)",
+      "url": "https://...",
+      "publishedAt": "ISO-8601 date if known, else empty string",
+      "description": "2-3 sentence factual summary of what the article says. Specific — names, dates, numbers."
+    }
+  ]
+}
+
+If you cannot find any credible articles, return {"articles": []}.`;
+
+    const completion = await perplexityChat(
+      [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      { temperature: 0.1, max_tokens: 1400 }
+    );
+
+    const raw = completion?.choices?.[0]?.message?.content || '';
+    const cleaned = stripCodeFences(raw);
+
+    let parsed;
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch {
+      const match = cleaned.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error('Web search returned non-JSON output');
+      parsed = JSON.parse(match[0]);
+    }
+
+    const found = Array.isArray(parsed.articles) ? parsed.articles : [];
+    const articles = found
+      .filter(a => a && a.title && a.url)
+      .slice(0, 8)
+      .map(a => {
+        const source = (a.source || '').trim() || 'Web';
+        const description = (a.description || '').trim();
+        return {
+          title: a.title.trim(),
+          source,
+          sourceTier: 'mainstream',
+          publishedAt: a.publishedAt || new Date().toISOString(),
+          description,
+          content: description,
+          url: a.url,
+          region: 'Global',
+          isOfficial: false,
+          score: 10,
+          thumbnail: '',
+          articleType: classifyArticleType({
+            title: a.title, url: a.url, source, sourceTier: 'mainstream'
+          }),
+          country: extractPrimaryCountry({ title: a.title, description }),
+          sourceDescription: getSourceDescription(source),
+          fromWebSearch: true
+        };
+      });
+
+    const response = { articles, governmentCaveat: GOVERNMENT_CAVEAT, fromWebSearch: true };
+    cacheSet('briefing', cacheKey, response);
+    res.json(response);
+  } catch (err) {
+    console.error('Web-search error:', err.message);
+    res.status(500).json({ error: 'Web search failed. ' + err.message });
   }
 });
 
