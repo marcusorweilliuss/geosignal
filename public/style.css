@@ -571,6 +571,69 @@ h1 {
   font-weight: 600;
 }
 
+/* Concise / Detailed briefing-length toggle — segmented control
+   that sits in the header utility bar. Default "concise" is active. */
+.brief-length-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  height: 38px;
+}
+
+.brief-length-label-prefix {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  padding: 0 6px 0 8px;
+}
+
+.brief-len-btn {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.brief-len-btn:hover:not(.active) {
+  color: var(--text-primary);
+  background: var(--bg-card);
+}
+
+.brief-len-btn.active {
+  background: var(--accent);
+  color: #FFFFFF;
+  box-shadow: 0 1px 2px rgba(15, 110, 86, 0.25);
+}
+
+@media (max-width: 720px) {
+  .brief-length-label-prefix { display: none; }
+}
+
+/* When concise mode is active (body.briefing-concise), collapse each
+   briefing section to the first sentence or first bullet only. The
+   full content stays in the DOM so switching back to Detailed shows
+   everything without a refetch. */
+body.briefing-concise .briefing-content .briefing-sentence:not(:first-of-type) {
+  display: none;
+}
+body.briefing-concise .briefing-content .briefing-bullets li:not(:first-child) {
+  display: none;
+}
+
 /* "NEW" badge + pulsing ring on the annotate toggle — shown to
    first-time users until they use the feature once. */
 .annotate-toggle.has-new-indicator {

@@ -59,6 +59,33 @@ applyTextSize(getTextSize());
 if (textSizeBtn) textSizeBtn.addEventListener('click', cycleTextSize);
 const profileBtnText = document.getElementById('profile-btn-text');
 
+// ── Briefing length toggle (concise vs detailed) ──────────────
+const BRIEF_LENGTH_KEY = 'geosignal_brief_length';
+
+function getBriefLength() {
+  return localStorage.getItem(BRIEF_LENGTH_KEY) || 'concise';
+}
+
+function applyBriefLength(mode) {
+  document.body.classList.toggle('briefing-concise', mode === 'concise');
+  document.querySelectorAll('.brief-len-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.len === mode);
+  });
+}
+
+function setBriefLength(mode) {
+  if (mode !== 'concise' && mode !== 'detailed') return;
+  localStorage.setItem(BRIEF_LENGTH_KEY, mode);
+  applyBriefLength(mode);
+}
+
+// Apply on load so concise-mode kicks in before the first briefing renders
+applyBriefLength(getBriefLength());
+
+document.querySelectorAll('.brief-len-btn').forEach(btn => {
+  btn.addEventListener('click', () => setBriefLength(btn.dataset.len));
+});
+
 // Profile UI elements (welcome modal, slide-in panel, banner, toast)
 const welcomeOverlay = document.getElementById('welcome-overlay');
 const welcomeFormMount = document.getElementById('welcome-form-mount');
@@ -878,12 +905,30 @@ function getChipClass(tagName) {
 }
 
 // Convert lines starting with - into clean bullet list HTML
+// Splits a block of prose into individual sentences so that concise
+// briefing mode can hide everything but the first one. Uses a
+// lookbehind for [.!?] followed by whitespace and a capital letter —
+// imperfect but handles ~95% of English prose without fragmenting
+// common abbreviations.
+function splitIntoSentences(text) {
+  if (!text) return [];
+  const parts = text.split(/(?<=[.!?])\s+(?=[A-Z0-9"'\u201C\u2018])/);
+  return parts.map(p => p.trim()).filter(Boolean);
+}
+
 function formatBullets(text, citationMap) {
   if (!text) return '';
   text = stripMd(text);
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
   const hasBullets = lines.some(l => l.startsWith('- ') || l.startsWith('* '));
-  if (!hasBullets) return renderCitations(text, citationMap);
+  if (!hasBullets) {
+    // Prose: wrap each sentence in a span so concise mode can hide the rest
+    const sentences = splitIntoSentences(text);
+    if (sentences.length <= 1) return renderCitations(text, citationMap);
+    return sentences
+      .map(s => '<span class="briefing-sentence">' + renderCitations(s, citationMap) + '</span>')
+      .join(' ');
+  }
 
   let html = '';
   let inList = false;
