@@ -108,6 +108,7 @@ function saveProfile(profile) {
   const normalized = {
     role: (profile.role || '').trim(),
     industries: Array.isArray(profile.industries) ? profile.industries.filter(Boolean) : [],
+    company: (profile.company || '').trim(),
     location: (profile.location || '').trim(),
     focus: (profile.focus || '').trim()
   };
@@ -151,6 +152,12 @@ function renderProfileForm(mountEl, idPrefix) {
     </div>
 
     <div class="form-group">
+      <label for="${idPrefix}-company">Company you work for <span class="optional">(optional)</span></label>
+      <input type="text" id="${idPrefix}-company" data-field="company"
+             placeholder="e.g., Goldman Sachs, Maersk, Shell, your startup..." autocomplete="organization" />
+    </div>
+
+    <div class="form-group">
       <label for="${idPrefix}-location">Country you're based in</label>
       <input type="text" id="${idPrefix}-location" data-field="location"
              placeholder="e.g., Singapore, United States, UK..." autocomplete="off" />
@@ -165,6 +172,7 @@ function renderProfileForm(mountEl, idPrefix) {
 
   // Populate from existing profile
   mountEl.querySelector(`#${idPrefix}-role`).value = profile.role || '';
+  mountEl.querySelector(`#${idPrefix}-company`).value = profile.company || '';
   mountEl.querySelector(`#${idPrefix}-location`).value = profile.location || '';
   mountEl.querySelector(`#${idPrefix}-focus`).value = profile.focus || '';
   mountEl.querySelectorAll(`#${idPrefix}-sectors input[data-sector]`).forEach(cb => {
@@ -184,11 +192,12 @@ function renderProfileForm(mountEl, idPrefix) {
 
 function readProfileFromForm(mountEl, idPrefix) {
   const role = mountEl.querySelector(`#${idPrefix}-role`).value;
+  const company = mountEl.querySelector(`#${idPrefix}-company`).value;
   const location = mountEl.querySelector(`#${idPrefix}-location`).value;
   const focus = mountEl.querySelector(`#${idPrefix}-focus`).value;
   const industries = Array.from(mountEl.querySelectorAll(`#${idPrefix}-sectors input:checked`))
     .map(cb => cb.value);
-  return { role, industries, location, focus };
+  return { role, industries, company, location, focus };
 }
 
 // ── Welcome onboarding modal ──

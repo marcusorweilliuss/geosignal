@@ -959,6 +959,7 @@ app.post('/api/impact', async (req, res) => {
     // profiles get different impact analyses for the same article
     const profileHash = hashString(JSON.stringify({
       role: profile.role, industry: profile.industry,
+      company: profile.company,
       location: profile.location, focus: profile.focus
     }));
     const impactCacheKey = (url || title) + '::' + profileHash;
@@ -988,11 +989,12 @@ app.post('/api/impact', async (req, res) => {
     const profileDesc = [
       profile.role && `Role: ${profile.role}`,
       profile.industry && `Industry: ${profile.industry}`,
+      profile.company && `Company: ${profile.company}`,
       profile.location && `Based in: ${profile.location}`,
       profile.focus && `Focus areas: ${profile.focus}`
     ].filter(Boolean).join(' | ');
 
-    const prompt = `You are an analyst providing a personalized impact assessment. Be specific to this person's role, industry, and location. Use bullet points — no filler.
+    const prompt = `You are an analyst providing a personalized impact assessment. Be specific to this person's role, industry, company (if given), and location. When a Company is listed in the profile, reason about how this story affects that specific company's operations, revenue streams, regulatory exposure, or competitive position — but only make claims you can ground in the article or well-known public information about that company. Do not fabricate details about the company. Use bullet points — no filler.
 
 PROFILE: ${profileDesc}
 ARTICLE: ${title} (${source})
