@@ -55,6 +55,61 @@ async function groqChat(messages, options = {}) {
   throw new Error('All Groq API keys and models are rate limited. Try again later.');
 }
 
+// ── Perplexity (sonar) for briefing generation ──────────────────
+// Higher-quality, web-search-grounded briefings. Falls back to Groq
+// in the /api/briefing handler if this call fails or times out.
+
+const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
+const PERPLEXITY_MODEL = process.env.PERPLEXITY_MODEL || 'sonar';
+const PERPLEXITY_TIMEOUT_MS = 15000;
+
+async function perplexityChat(messages, options = {}) {
+  if (!PERPLEXITY_API_KEY) {
+    throw new Error('PERPLEXITY_API_KEY is not configured');
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), options.timeoutMs || PERPLEXITY_TIMEOUT_MS);
+
+  try {
+    const res = await fetch('https://api.perplexity.ai/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${PERPLEXITY_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: options.model || PERPLEXITY_MODEL,
+        messages,
+        temperature: typeof options.temperature === 'number' ? options.temperature : 0.3,
+        max_tokens: options.max_tokens || 900
+      }),
+      signal: controller.signal
+    });
+
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      throw new Error(`Perplexity ${res.status}: ${body.slice(0, 200)}`);
+    }
+    return await res.json();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Strips ```json ... ``` / ``` ... ``` fences that models sometimes wrap
+// JSON output in. Returns the inner content or the original string if
+// no fences are present.
+function stripCodeFences(s) {
+  if (!s) return s;
+  let t = s.trim();
+  // Opening fence with optional language
+  t = t.replace(/^```(?:json|JSON)?\s*\n?/, '');
+  // Closing fence
+  t = t.replace(/\n?```\s*$/, '');
+  return t.trim();
+}
+
 // ── Full Article Text Fetching ──────────────────────────────────
 // Fetches the full article body from a URL, strips HTML, returns plain text
 
@@ -297,6 +352,7 @@ const groqCaches = {
 // Bump this whenever TL;DR parsing logic changes to invalidate cached entries
 // from previous versions that may have wrong summaries under right keys
 const TLDR_CACHE_VERSION = 'v2-indexed';
+const BRIEFING_CACHE_VERSION = 'v3-perplexity';
 
 function cacheGet(bucket, key) {
   const entry = groqCaches[bucket]?.get(key);
@@ -635,63 +691,120 @@ No other text, no markdown, no prose. Just the JSON object.`;
 
 // ── Intelligence Briefing ───────────────────────────────────────
 
-app.post('/api/briefing', async (req, res) => {
+// ── Perplexity briefing generator ───────────────────────────────
+// Returns { briefing, citationMap } in the same shape as Groq so the
+// /api/briefing handler can use either source transparently.
+async function generateBriefingWithPerplexity({ title, articleContent, isOfficial, articleUrl }) {
+  const systemPrompt = "You are a geopolitical intelligence analyst. You produce structured, factual briefings for professional audiences — consultants, investors, and policy professionals. You have access to real-time information. Your output must be specific, named, and concrete — never vague. Always cite specific actors, dates, and sources where possible.";
+
+  const userPrompt = `Produce a structured intelligence briefing on the following news article. Use your knowledge and any relevant context to enrich the analysis beyond what is stated in the article alone.
+
+Article title: ${title}
+Article text: ${articleContent}
+
+Return your response in exactly this JSON structure (and nothing else — no prose before or after, no markdown fences):
+{
+  "what_happened": "3-5 sentence factual summary with specific named actors, dates, and concrete events",
+  "what_led_to_this": "2-4 sentences of relevant historical and political background explaining why this is happening now. Reference specific prior events with dates.",
+  "what_experts_say": "2-4 sentences synthesising perspectives from named analysts, think tanks, or officials who have commented on this development or related issues. Only cite real sources — if you cannot find genuine expert commentary, say so explicitly rather than fabricating citations.",
+  "why_it_matters": "2-3 sentences on the strategic significance and broader implications of this development"
+}`;
+
+  const completion = await perplexityChat(
+    [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt }
+    ],
+    { temperature: 0.2, max_tokens: 900 }
+  );
+
+  const raw = completion?.choices?.[0]?.message?.content || '';
+  const cleaned = stripCodeFences(raw);
+
+  let parsed;
   try {
-    const { title, source, description, content, isOfficial, url, region } = req.body;
+    parsed = JSON.parse(cleaned);
+  } catch (e) {
+    // Some models wrap the JSON in surrounding prose — try to extract the first {...} block
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('Perplexity returned non-JSON output');
+    parsed = JSON.parse(match[0]);
+  }
 
-    // Return cached briefing if we've seen this article before
-    const cacheKey = url || title;
-    const cached = cacheGet('briefing', cacheKey);
-    if (cached) return res.json(cached);
+  const whatHappened = (parsed.what_happened || '').trim();
+  const whatLed = (parsed.what_led_to_this || '').trim();
+  const whatExperts = (parsed.what_experts_say || '').trim();
+  const whyMatters = (parsed.why_it_matters || '').trim();
 
-    // Fetch full article text for richer analysis
-    const fullText = url ? await fetchFullArticleText(url) : '';
-    const articleContent = fullText || content || description || '';
+  if (!whatHappened || !whatLed || !whatExperts || !whyMatters) {
+    throw new Error('Perplexity JSON is missing one or more required sections');
+  }
 
-    // Find related think tank articles from this region
-    const regionSlug = regionSlugMap[region] || 'global';
-    const expertArticles = findRelatedThinkTankArticles(title, regionSlug);
+  // Reformat into the text shape the frontend already parses
+  // (four labelled sections: WHAT HAPPENED / WHAT LED TO THIS /
+  //  WHAT REGIONAL EXPERTS ARE SAYING / WHY THIS MATTERS).
+  const expertsLabel = isOfficial
+    ? 'WHAT THE GOVERNMENT IS CLAIMING AND ITS LIKELY STRATEGIC INTENT'
+    : 'WHAT REGIONAL EXPERTS ARE SAYING';
 
-    // Build expert context from real think tank articles
-    let expertContext = '';
-    const hasExperts = expertArticles.length > 0;
+  const briefingText =
+    `WHAT HAPPENED:\n${whatHappened}\n\n` +
+    `WHAT LED TO THIS:\n${whatLed}\n\n` +
+    `${expertsLabel}:\n${whatExperts}\n\n` +
+    `WHY THIS MATTERS:\n${whyMatters}`;
 
-    if (hasExperts && !isOfficial) {
-      expertContext = '\n\nAVAILABLE EXPERT SOURCES — YOU MUST CITE AT LEAST 2 OF THESE IN YOUR BRIEFING:\n';
-      expertArticles.forEach((ea, i) => {
-        expertContext += `[${ea.source}] "${ea.title}" — ${ea.description}\n`;
-      });
-      expertContext += '\nMANDATORY: At least 2 bullets in your briefing (especially in "WHAT LED TO THIS" and "WHAT REGIONAL EXPERTS ARE SAYING" sections) MUST cite one of these expert sources by name. Paraphrase their analysis to inform your briefing — do not just cite [Article] for everything. Think tank analysis adds depth the article alone cannot provide.\n';
-    }
+  // Perplexity returns a `citations` array of URLs (and/or a search_results
+  // array). Map them to numeric citation tags ([1], [2], ...) so they
+  // render as clickable chips on the frontend.
+  const citations = Array.isArray(completion.citations)
+    ? completion.citations
+    : (Array.isArray(completion.search_results) ? completion.search_results.map(r => r.url).filter(Boolean) : []);
 
-    // Build the list of allowed citation tags
-    const citationTags = ['[Article]'];
-    if (hasExperts) {
-      expertArticles.forEach(ea => citationTags.push(`[${ea.source}]`));
-    }
-    const citationList = citationTags.join(', ');
+  const citationMap = { 'Article': articleUrl || '' };
+  citations.forEach((url, i) => {
+    if (url && typeof url === 'string') citationMap[String(i + 1)] = url;
+  });
 
-    let expertSection, officialNote;
+  return { briefing: briefingText, citationMap, citations };
+}
 
-    if (isOfficial) {
-      officialNote = '\nThis is an official government source. Distinguish claims from verified facts.';
-      expertSection = `GOVERNMENT CLAIM & STRATEGIC INTENT:
+// ── Groq briefing generator (existing implementation, extracted) ─
+async function generateBriefingWithGroq({ title, source, articleContent, isOfficial, url, region, expertArticles }) {
+  const hasExperts = expertArticles.length > 0;
+
+  let expertContext = '';
+  if (hasExperts && !isOfficial) {
+    expertContext = '\n\nAVAILABLE EXPERT SOURCES — YOU MUST CITE AT LEAST 2 OF THESE IN YOUR BRIEFING:\n';
+    expertArticles.forEach((ea) => {
+      expertContext += `[${ea.source}] "${ea.title}" — ${ea.description}\n`;
+    });
+    expertContext += '\nMANDATORY: At least 2 bullets in your briefing (especially in "WHAT LED TO THIS" and "WHAT REGIONAL EXPERTS ARE SAYING" sections) MUST cite one of these expert sources by name. Paraphrase their analysis to inform your briefing — do not just cite [Article] for everything. Think tank analysis adds depth the article alone cannot provide.\n';
+  }
+
+  const citationTags = ['[Article]'];
+  if (hasExperts) expertArticles.forEach(ea => citationTags.push(`[${ea.source}]`));
+  const citationList = citationTags.join(', ');
+
+  let expertSection, officialNote;
+  if (isOfficial) {
+    officialNote = '\nThis is an official government source. Distinguish claims from verified facts.';
+    expertSection = `GOVERNMENT CLAIM & STRATEGIC INTENT:
 - [What the government is asserting and why now.] [Article]
 - [Target audience and likely strategic objective.] [Article]
 - [Any tension with independent reporting.] [Article]`;
-    } else if (hasExperts) {
-      officialNote = '';
-      expertSection = `WHAT REGIONAL EXPERTS ARE SAYING:
+  } else if (hasExperts) {
+    officialNote = '';
+    expertSection = `WHAT REGIONAL EXPERTS ARE SAYING:
 - [Expert perspective paraphrased from the think tank source.] [ExactSourceName]
 - [Second expert view or divergence.] [ExactSourceName]`;
-    } else {
-      officialNote = '';
-      expertSection = `WHAT REGIONAL EXPERTS ARE SAYING:
+  } else {
+    officialNote = '';
+    expertSection = `WHAT REGIONAL EXPERTS ARE SAYING:
 - [How regional analysts would likely view this.] [Article]
 - [Any notable dissenting or contrarian view.] [Article]`;
-    }
+  }
 
-    const prompt = `You are a senior geopolitical intelligence analyst. Produce a tight, scannable briefing using bullet points. Every bullet must deliver a concrete insight — no filler, no vague language.${officialNote}
+  const prompt = `You are a senior geopolitical intelligence analyst. Produce a tight, scannable briefing using bullet points. Every bullet must deliver a concrete insight — no filler, no vague language.${officialNote}
 
 ARTICLE: ${title}
 SOURCE: ${source}
@@ -722,25 +835,88 @@ WHY THIS MATTERS:
 - Biggest implication or second-order effect. [Article]
 - Who else is affected and what to watch next. [Article]`;
 
-    const chatCompletion = await groqChat(
-      [{ role: 'user', content: prompt }],
-      { temperature: 0.4, max_tokens: 600 }
-    );
+  const chatCompletion = await groqChat(
+    [{ role: 'user', content: prompt }],
+    { temperature: 0.4, max_tokens: 600 }
+  );
 
-    const briefing = chatCompletion.choices[0]?.message?.content || 'Unable to generate briefing.';
+  const briefing = chatCompletion.choices[0]?.message?.content || 'Unable to generate briefing.';
 
-    // Build citation map: tag name → URL for clickable chips
-    const citationMap = { 'Article': url || '' };
-    expertArticles.forEach(ea => {
-      if (ea.source && ea.url) citationMap[ea.source] = ea.url;
-    });
+  const citationMap = { 'Article': url || '' };
+  expertArticles.forEach(ea => {
+    if (ea.source && ea.url) citationMap[ea.source] = ea.url;
+  });
+
+  return { briefing, citationMap };
+}
+
+app.post('/api/briefing', async (req, res) => {
+  try {
+    const { title, source, description, content, isOfficial, url, region } = req.body;
+
+    // Return cached briefing if we've seen this article before.
+    // Cache key is prefixed with the briefing-format version so bumping
+    // the version (e.g. when switching providers) invalidates old entries.
+    const cacheKey = BRIEFING_CACHE_VERSION + '::' + (url || title);
+    const cached = cacheGet('briefing', cacheKey);
+    if (cached) return res.json(cached);
+
+    // Fetch full article text for richer analysis
+    const fullText = url ? await fetchFullArticleText(url) : '';
+    const articleContent = fullText || content || description || '';
+
+    // Find related think tank articles from this region (used by Groq fallback)
+    const regionSlug = regionSlugMap[region] || 'global';
+    const expertArticles = findRelatedThinkTankArticles(title, regionSlug);
+
+    let briefing, citationMap, source_provider;
+    let expertSourcesForResponse = [];
+
+    // Prefer Perplexity (sonar) for richer, web-grounded briefings.
+    // Fall back to Groq if Perplexity fails, times out, or returns malformed JSON.
+    let usedPerplexity = false;
+    if (PERPLEXITY_API_KEY) {
+      try {
+        const pplx = await generateBriefingWithPerplexity({
+          title, articleContent, isOfficial, articleUrl: url
+        });
+        briefing = pplx.briefing;
+        citationMap = pplx.citationMap;
+        // Map numeric Perplexity citations into expertSources for the
+        // frontend's "Sources referenced" chip list.
+        expertSourcesForResponse = (pplx.citations || []).map((u, i) => ({
+          title: `Source ${i + 1}`,
+          source: String(i + 1),
+          url: u
+        }));
+        usedPerplexity = true;
+        source_provider = 'perplexity';
+      } catch (err) {
+        console.error('Perplexity briefing failed, falling back to Groq:', err.message);
+      }
+    } else {
+      console.warn('PERPLEXITY_API_KEY not set — using Groq for briefings.');
+    }
+
+    if (!usedPerplexity) {
+      const groqResult = await generateBriefingWithGroq({
+        title, source, articleContent, isOfficial, url, region, expertArticles
+      });
+      briefing = groqResult.briefing;
+      citationMap = groqResult.citationMap;
+      expertSourcesForResponse = expertArticles.map(ea => ({
+        title: ea.title, source: ea.source, url: ea.url
+      }));
+      source_provider = 'groq';
+    }
 
     const responsePayload = {
       briefing,
       isOfficial: !!isOfficial,
-      expertSources: expertArticles.map(ea => ({ title: ea.title, source: ea.source, url: ea.url })),
+      expertSources: expertSourcesForResponse,
       citationMap,
-      fullTextAvailable: !!fullText
+      fullTextAvailable: !!fullText,
+      provider: source_provider
     };
     cacheSet('briefing', cacheKey, responsePayload);
     res.json(responsePayload);
