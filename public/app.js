@@ -564,6 +564,82 @@ filtersToggle.addEventListener('click', () => {
   filtersContainer.classList.toggle('expanded');
 });
 
+// ── Filter state: applied vs pending ──────────────────────────
+// Snapshot the filter state every time fetchStories() successfully
+// applies. Comparing current form state against this lets us
+// highlight the Apply button whenever filters are dirty.
+let lastAppliedFilters = null;
+
+const activeFiltersBadge = document.getElementById('active-filters-badge');
+const activeFiltersBadgeCount = document.getElementById('active-filters-badge-count');
+const activeFiltersBadgeText = document.getElementById('active-filters-badge-text');
+const refreshBtnLabel = document.getElementById('refresh-btn-label');
+
+function snapshotFilterState() {
+  return {
+    region: regionSelect.value,
+    sectors: getActivePills(sectorPills).slice().sort().join('|'),
+    sourceTypes: getActivePills(sourcePills).slice().sort().join('|'),
+    search: (searchInput ? searchInput.value.trim() : '')
+  };
+}
+
+function countActiveFilters() {
+  // "Active" here means filters that actually narrow the feed from the default.
+  // - Region: anything other than "Global" counts as 1
+  // - Sectors: count how many are OFF (each deselected sector is a narrower filter) — but
+  //   a more intuitive UX is to show how many sectors are ON.
+  // - Source types: same — show how many are selected
+  // - Search: 1 if non-empty
+  // We'll report: region (if not Global) + sectors selected + source types selected + search
+  let count = 0;
+  if (regionSelect.value && regionSelect.value !== 'Global') count += 1;
+  count += getActivePills(sectorPills).length;
+  count += getActivePills(sourcePills).length;
+  if (searchInput && searchInput.value.trim()) count += 1;
+  return count;
+}
+
+function updateActiveFiltersBadge() {
+  const count = countActiveFilters();
+  if (count === 0) {
+    activeFiltersBadge.classList.remove('visible');
+    return;
+  }
+  activeFiltersBadge.classList.add('visible');
+  activeFiltersBadgeCount.textContent = String(count);
+  activeFiltersBadgeText.textContent = count === 1 ? 'filter active' : 'filters active';
+}
+
+function updatePendingState() {
+  if (!refreshBtn || !refreshBtnLabel) return;
+  const applied = lastAppliedFilters;
+  const current = snapshotFilterState();
+  const isDirty = applied !== null && (
+    applied.region !== current.region ||
+    applied.sectors !== current.sectors ||
+    applied.sourceTypes !== current.sourceTypes ||
+    applied.search !== current.search
+  );
+
+  if (isDirty) {
+    refreshBtn.classList.add('has-pending');
+    refreshBtnLabel.textContent = 'Apply changes';
+    refreshBtn.setAttribute('title',
+      'You have unapplied filter changes. Click to load articles with your current selections.');
+  } else {
+    refreshBtn.classList.remove('has-pending');
+    refreshBtnLabel.textContent = 'Refresh results';
+    refreshBtn.setAttribute('title',
+      "Click to load articles based on your current filter selections. Do not use your browser's refresh button — that will reset your filters.");
+  }
+}
+
+function markFiltersApplied() {
+  lastAppliedFilters = snapshotFilterState();
+  updatePendingState();
+}
+
 function updateFiltersSummary() {
   const region = regionSelect.value;
   const activeSectors = getActivePills(sectorPills);
@@ -580,11 +656,20 @@ function updateFiltersSummary() {
   filtersSummary.textContent = parts.join(' · ');
 }
 
-// Update summary when filters change
-regionSelect.addEventListener('change', updateFiltersSummary);
-sectorPills.addEventListener('click', (e) => { if (e.target.classList.contains('pill')) setTimeout(updateFiltersSummary, 0); });
-sourcePills.addEventListener('click', (e) => { if (e.target.classList.contains('pill')) setTimeout(updateFiltersSummary, 0); });
-updateFiltersSummary();
+function handleFiltersChanged() {
+  updateFiltersSummary();
+  updateActiveFiltersBadge();
+  updatePendingState();
+}
+
+// Update summary/badge/pending state whenever filters change
+regionSelect.addEventListener('change', handleFiltersChanged);
+sectorPills.addEventListener('click', (e) => { if (e.target.classList.contains('pill')) setTimeout(handleFiltersChanged, 0); });
+sourcePills.addEventListener('click', (e) => { if (e.target.classList.contains('pill')) setTimeout(handleFiltersChanged, 0); });
+if (searchInput) {
+  searchInput.addEventListener('input', () => { updateActiveFiltersBadge(); updatePendingState(); });
+}
+handleFiltersChanged();
 
 // ── Utilities ───────────────────────────────────────────────────
 
@@ -843,6 +928,10 @@ async function fetchStories() {
     updateDispatchHeader(currentArticles);
     renderFeed(currentArticles);
     generateTldrs(currentArticles);
+
+    // Filter state is now "applied" — clear the pending indicator and
+    // snapshot the state that produced these results.
+    markFiltersApplied();
 
     showRefreshConfirmation();
 
@@ -1789,7 +1878,8 @@ document.addEventListener('mousedown', (e) => {
 // ── Event Listeners ─────────────────────────────────────────────
 
 refreshBtn.addEventListener('click', fetchStories);
-regionSelect.addEventListener('change', fetchStories);
+// Region changes no longer auto-fetch — they queue up as pending
+// changes that the user commits by pressing "Apply changes".
 
 // Keyboard navigation: j/k to move, Enter to expand, / to search, Esc to collapse
 document.addEventListener('keydown', (e) => {

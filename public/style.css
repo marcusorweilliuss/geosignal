@@ -358,6 +358,59 @@ h1 {
   box-shadow: var(--shadow-md, var(--shadow-sm));
 }
 
+/* Pending / dirty state — filters have changed since last apply */
+.refresh-btn.has-pending {
+  background: #C86A2C;
+  border-color: #C86A2C;
+  color: #FFFFFF;
+  animation: refresh-pulse 2s ease-in-out infinite;
+}
+
+.refresh-btn.has-pending:hover {
+  background: #A8521E;
+  border-color: #A8521E;
+  animation: none;
+}
+
+@keyframes refresh-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(200, 106, 44, 0.45), var(--shadow-sm); }
+  50%      { box-shadow: 0 0 0 6px rgba(200, 106, 44, 0), var(--shadow-sm); }
+}
+
+/* Active filters badge — sits in the control bar */
+.active-filters-badge {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-soft);
+  border-radius: 12px;
+  white-space: nowrap;
+  align-self: stretch;
+}
+
+.active-filters-badge.visible { display: inline-flex; }
+
+.active-filters-badge-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background: var(--accent);
+  color: #FFFFFF;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
 .refresh-btn:active {
   transform: translateY(0);
 }
@@ -812,30 +865,63 @@ select:focus {
 }
 
 .pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   font-family: var(--sans);
   font-size: 12.5px;
-  padding: 8px 15px;
-  border: 1px solid var(--border);
+  padding: 8px 15px 8px 13px;
+  border: 1.5px solid var(--border-strong);
   border-radius: 999px;
-  background: transparent;
+  background: var(--bg-card);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   font-weight: 500;
   letter-spacing: 0.1px;
 }
 
-.pill:hover:not(.active) {
-  border-color: var(--border-hover);
-  color: var(--text-primary);
-  background: var(--bg-secondary);
+/* Unselected: outlined/ghost style with a visible empty circle indicator */
+.pill::before {
+  content: '';
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
+  background: transparent;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
 }
 
+.pill:hover:not(.active) {
+  border-color: var(--accent);
+  color: var(--text-primary);
+  background: var(--accent-dim);
+}
+
+.pill:hover:not(.active)::before {
+  border-color: var(--accent);
+}
+
+/* Selected: solid accent-filled with an embedded checkmark */
 .pill.active {
   background: var(--accent);
   color: #FFFFFF;
   border-color: var(--accent);
   font-weight: 600;
+  box-shadow: 0 1px 3px rgba(15, 110, 86, 0.25);
+}
+
+.pill.active::before {
+  content: '';
+  background: #FFFFFF;
+  border-color: #FFFFFF;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%230F6E56' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 5.5l2 2 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 10px 10px;
 }
 
 .pill.active:hover {
@@ -843,10 +929,16 @@ select:focus {
   border-color: var(--accent-hover);
 }
 
+/* Official is amber when selected — checkmark adapts */
 .pill-official.active {
   background: var(--amber);
   color: #FFFFFF;
   border-color: var(--amber);
+  box-shadow: 0 1px 3px rgba(200, 106, 44, 0.3);
+}
+
+.pill-official.active::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%23C86A2C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 5.5l2 2 4-4'/%3E%3C/svg%3E");
 }
 
 .pill-official.active:hover {
