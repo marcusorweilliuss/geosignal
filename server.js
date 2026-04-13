@@ -352,7 +352,7 @@ const groqCaches = {
 // Bump this whenever TL;DR parsing logic changes to invalidate cached entries
 // from previous versions that may have wrong summaries under right keys
 const TLDR_CACHE_VERSION = 'v2-indexed';
-const BRIEFING_CACHE_VERSION = 'v4-specific-what-happened';
+const BRIEFING_CACHE_VERSION = 'v5-tight-bullets';
 
 function cacheGet(bucket, key) {
   const entry = groqCaches[bucket]?.get(key);
@@ -734,20 +734,36 @@ No other text, no markdown, no prose. Just the JSON object.`;
 // Returns { briefing, citationMap } in the same shape as Groq so the
 // /api/briefing handler can use either source transparently.
 async function generateBriefingWithPerplexity({ title, articleContent, isOfficial, articleUrl }) {
-  const systemPrompt = "You are a geopolitical intelligence analyst. You produce structured, factual briefings for professional audiences — consultants, investors, and policy professionals. You have access to real-time information. Your output must be specific, named, and concrete — never vague. Always cite specific actors, dates, and sources where possible.";
+  const systemPrompt = "You are a geopolitical intelligence briefer for busy professionals. Produce SHORT, BULLETED briefings — never essays, never flowing prose. Every bullet must be a concrete fact or insight with specific actors, numbers, dates, or places. No filler, no throat-clearing, no hedges like 'could potentially', 'some observers', 'it is important to note'. If you do not have a specific fact, do not write the bullet.";
 
-  const userPrompt = `Produce a structured intelligence briefing on the following news article. Use your knowledge and any relevant context to enrich the analysis beyond what is stated in the article alone.
+  const userPrompt = `Produce a BULLETED intelligence briefing on the following news article. Use real-time information to enrich the analysis beyond the article where helpful.
 
 Article title: ${title}
 Article text: ${articleContent}
 
-Return your response in exactly this JSON structure (and nothing else — no prose before or after, no markdown fences):
+Return ONLY this JSON (no prose outside, no markdown fences):
 {
-  "what_happened": "A 3-5 sentence factual summary that MUST answer all of: (1) WHO is involved — specific named actors, organisations, and countries, never generic collective nouns like 'the government' or 'officials'; (2) WHAT specifically happened — the concrete event, decision, signing, announcement, or change, including the substantive content (e.g. not 'a trade deal was reached' but 'X and Y signed a 10-year agreement covering semiconductors and critical minerals, with Z percent tariff reductions'); (3) WHEN it happened — specific date or precise timeframe; (4) the core factual claim — what was actually said, decided, signed, announced, or changed, with concrete figures, titles, or terms where present. Every sentence must be specific. Do NOT use vague filler language. CRITICAL: If the source article does not contain enough specific information to answer these questions, the entire what_happened field must be exactly: 'Limited detail available — see original article for full context' and nothing else.",
-  "what_led_to_this": "2-4 sentences of relevant historical and political background explaining why this is happening now. Reference specific prior events with dates.",
-  "what_experts_say": "2-4 sentences synthesising perspectives from named analysts, think tanks, or officials who have commented on this development or related issues. Only cite real sources — if you cannot find genuine expert commentary, say so explicitly rather than fabricating citations.",
-  "why_it_matters": "2-3 sentences on the strategic significance and broader implications of this development"
-}`;
+  "what_happened": [
+    "3-5 short bullets. Each bullet is ONE sentence, max 25 words, answering WHO did WHAT, WHEN, and the core factual claim with concrete figures, named actors, titles, or terms where present. Never generic — no 'officials', no 'a trade deal was reached' without saying what it covers. If the article is too thin for specifics, return exactly: ['Limited detail available — see original article for full context.']"
+  ],
+  "what_led_to_this": [
+    "2-4 short bullets. Each bullet names a specific prior event with a specific date or period, explaining why this is happening now. No vague backgrounders."
+  ],
+  "what_experts_say": [
+    "2-4 short bullets. Each bullet paraphrases a named analyst, think tank, official, or publication with a concrete position. Only cite real sources you actually know of — if none, return exactly: ['No substantive expert commentary available for this specific development.']"
+  ],
+  "why_it_matters": [
+    "2-3 short bullets. Each bullet is a concrete strategic consequence — a specific sector, region, price, deadline, or actor that is affected. No abstract 'has significant implications'."
+  ]
+}
+
+HARD RULES:
+- Bullets must be declarative, complete sentences.
+- Max 25 words per bullet. Aim for 12-20.
+- Every bullet must contain at least one concrete noun (name, place, date, number, title).
+- Do not repeat the same fact across sections.
+- No bullet may start with "This", "It", "The situation", or any pronoun referring to the whole story — name the subject explicitly.
+- Output only the JSON object. No preamble, no code fences.`;
 
   const completion = await perplexityChat(
     [
@@ -770,27 +786,43 @@ Return your response in exactly this JSON structure (and nothing else — no pro
     parsed = JSON.parse(match[0]);
   }
 
-  const whatHappened = (parsed.what_happened || '').trim();
-  const whatLed = (parsed.what_led_to_this || '').trim();
-  const whatExperts = (parsed.what_experts_say || '').trim();
-  const whyMatters = (parsed.why_it_matters || '').trim();
+  // Normalise each section into a bullet list. Accepts array-of-strings
+  // (preferred) or a newline-separated string (tolerant fallback).
+  const asBullets = (val) => {
+    const lines = Array.isArray(val)
+      ? val
+      : String(val || '').split(/\n+/);
+    return lines
+      .map(s => String(s || '')
+        .replace(/^\s*[-*\u2022]\s*/, '')
+        .replace(/^\s*\d+[.)]\s*/, '')
+        .trim())
+      .filter(Boolean);
+  };
 
-  if (!whatHappened || !whatLed || !whatExperts || !whyMatters) {
+  const whatHappened = asBullets(parsed.what_happened);
+  const whatLed = asBullets(parsed.what_led_to_this);
+  const whatExperts = asBullets(parsed.what_experts_say);
+  const whyMatters = asBullets(parsed.why_it_matters);
+
+  if (!whatHappened.length || !whatLed.length || !whatExperts.length || !whyMatters.length) {
     throw new Error('Perplexity JSON is missing one or more required sections');
   }
 
-  // Reformat into the text shape the frontend already parses
-  // (four labelled sections: WHAT HAPPENED / WHAT LED TO THIS /
-  //  WHAT REGIONAL EXPERTS ARE SAYING / WHY THIS MATTERS).
+  // Convert bullet arrays to "- item" lines so the client's formatBullets()
+  // renders a proper <ul>, and the concise-mode CSS naturally hides all
+  // but the first <li>.
+  const bulletify = (arr) => arr.map(s => '- ' + s).join('\n');
+
   const expertsLabel = isOfficial
     ? 'WHAT THE GOVERNMENT IS CLAIMING AND ITS LIKELY STRATEGIC INTENT'
     : 'WHAT REGIONAL EXPERTS ARE SAYING';
 
   const briefingText =
-    `WHAT HAPPENED:\n${whatHappened}\n\n` +
-    `WHAT LED TO THIS:\n${whatLed}\n\n` +
-    `${expertsLabel}:\n${whatExperts}\n\n` +
-    `WHY THIS MATTERS:\n${whyMatters}`;
+    `WHAT HAPPENED:\n${bulletify(whatHappened)}\n\n` +
+    `WHAT LED TO THIS:\n${bulletify(whatLed)}\n\n` +
+    `${expertsLabel}:\n${bulletify(whatExperts)}\n\n` +
+    `WHY THIS MATTERS:\n${bulletify(whyMatters)}`;
 
   // Perplexity returns a `citations` array of URLs (and/or a search_results
   // array). Map them to numeric citation tags ([1], [2], ...) so they
@@ -967,6 +999,168 @@ app.post('/api/briefing', async (req, res) => {
 });
 
 // ── Personalized Impact Analysis ────────────────────────────────
+// Perplexity primary (web-grounded, higher quality), Groq fallback.
+// Returns bullet-style IMPACT SUMMARY + WHAT TO WATCH sections.
+
+const IMPACT_CACHE_VERSION = 'v2-perplexity-bullets';
+
+function buildImpactProfileDesc(profile) {
+  return [
+    profile.role && `Role: ${profile.role}`,
+    profile.industry && `Industry: ${profile.industry}`,
+    profile.company && `Company: ${profile.company}`,
+    profile.location && `Based in: ${profile.location}`,
+    profile.focus && `Focus areas: ${profile.focus}`
+  ].filter(Boolean).join(' | ');
+}
+
+async function generateImpactWithPerplexity({ title, source, articleContent, profile, expertArticles, url }) {
+  const profileDesc = buildImpactProfileDesc(profile);
+
+  let expertContext = '';
+  if (expertArticles.length > 0) {
+    expertContext = '\n\nAvailable expert sources you may cite by name:\n';
+    expertArticles.forEach(ea => {
+      expertContext += `- ${ea.source}: "${ea.title}" — ${ea.description}\n`;
+    });
+  }
+
+  const systemPrompt = "You are a senior intelligence analyst writing personalised impact briefings for a specific professional. You produce SHORT, BULLETED output — never prose, never essays. Every bullet must contain a concrete mechanism, named actor, number, or date. No filler, no hedges, no generic 'this could affect your industry' language. You have access to real-time information; use it to ground claims in specific recent context.";
+
+  const userPrompt = `Assess how this news story specifically impacts the reader below. Be direct and specific to their role, industry, company (if given), and location. When a Company is listed, reason about that specific company's operations, revenue, regulatory exposure, or competitive position — grounded in the article or well-known public information, never fabricated details.
+
+READER PROFILE: ${profileDesc}
+
+ARTICLE: ${title} (${source})
+ARTICLE TEXT: ${articleContent}${expertContext}
+
+Return ONLY this JSON (no prose outside, no markdown fences):
+{
+  "relevance": "HIGH | MEDIUM | LOW — one word only",
+  "impact_summary": [
+    "2-4 short bullets. Each bullet names a specific mechanism by which this story affects this reader's role/industry/company/location. Specific actor, number, or policy lever in each bullet. Max 25 words per bullet."
+  ],
+  "what_to_watch": [
+    "2-3 short bullets. Each bullet is a concrete upcoming trigger, date, data release, policy decision, or counterparty move to track. Not abstract — actionable."
+  ]
+}
+
+HARD RULES:
+- Bullets must be declarative, complete sentences.
+- Max 25 words per bullet. Aim for 12-20.
+- Every bullet must contain at least one concrete noun (named entity, date, number, deadline, figure, sector).
+- No bullet may start with "This", "It", "The situation", or any vague pronoun.
+- If the story genuinely doesn't affect this reader in a specific way, set relevance to LOW and return impact_summary bullets explaining WHY it's low-relevance for them specifically.
+- Output ONLY the JSON object. No preamble, no code fences.`;
+
+  const completion = await perplexityChat(
+    [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt }
+    ],
+    { temperature: 0.2, max_tokens: 700 }
+  );
+
+  const raw = completion?.choices?.[0]?.message?.content || '';
+  const cleaned = stripCodeFences(raw);
+
+  let parsed;
+  try {
+    parsed = JSON.parse(cleaned);
+  } catch {
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('Perplexity impact returned non-JSON');
+    parsed = JSON.parse(match[0]);
+  }
+
+  const asBullets = (val) => {
+    const lines = Array.isArray(val) ? val : String(val || '').split(/\n+/);
+    return lines
+      .map(s => String(s || '').replace(/^\s*[-*\u2022]\s*/, '').replace(/^\s*\d+[.)]\s*/, '').trim())
+      .filter(Boolean);
+  };
+
+  const summary = asBullets(parsed.impact_summary);
+  const watch = asBullets(parsed.what_to_watch);
+  if (!summary.length || !watch.length) throw new Error('Perplexity impact is missing bullets');
+
+  const relevanceRaw = String(parsed.relevance || 'MEDIUM').toUpperCase().trim();
+  const relevance = /^(HIGH|MEDIUM|LOW)$/.test(relevanceRaw) ? relevanceRaw : 'MEDIUM';
+
+  const bulletify = (arr) => arr.map(s => '- ' + s).join('\n');
+  const impact =
+    `RELEVANCE:\n${relevance}\n\n` +
+    `IMPACT SUMMARY:\n${bulletify(summary)}\n\n` +
+    `WHAT TO WATCH:\n${bulletify(watch)}`;
+
+  const citations = Array.isArray(completion.citations)
+    ? completion.citations
+    : (Array.isArray(completion.search_results) ? completion.search_results.map(r => r.url).filter(Boolean) : []);
+
+  const citationMap = { 'Article': url || '', 'Profile': '' };
+  citations.forEach((u, i) => {
+    if (u && typeof u === 'string') citationMap[String(i + 1)] = u;
+  });
+
+  return { impact, relevance, citationMap };
+}
+
+async function generateImpactWithGroq({ title, source, articleContent, profile, expertArticles, url }) {
+  const profileDesc = buildImpactProfileDesc(profile);
+
+  let expertContext = '';
+  if (expertArticles.length > 0) {
+    expertContext = '\n\nAVAILABLE EXPERT SOURCES (cite these by name using [SourceName] tags):\n';
+    expertArticles.forEach(ea => {
+      expertContext += `- [${ea.source}]: "${ea.title}" — ${ea.description}\n`;
+    });
+  }
+
+  const citationTags = ['[Article]', '[Profile]'];
+  expertArticles.forEach(ea => citationTags.push(`[${ea.source}]`));
+  const citationList = citationTags.join(', ');
+
+  const prompt = `You are an analyst producing a tight, bulleted impact briefing. Every bullet must contain a concrete mechanism, named actor, number, or date. No filler, no hedges.
+
+PROFILE: ${profileDesc}
+ARTICLE: ${title} (${source})
+TEXT: ${articleContent}${expertContext}
+
+CITATION RULES:
+- Every bullet ends with ONE citation tag in square brackets.
+- Allowed tags: ${citationList}
+- [Article] = fact from the article. [Profile] = reasoning based on reader's profile. Named source = paraphrasing expert.
+
+Use EXACTLY this format. Bullets with dashes (-), max 25 words each:
+
+RELEVANCE:
+[HIGH | MEDIUM | LOW]
+
+IMPACT SUMMARY:
+- Concrete mechanism affecting the reader's role/industry/company/location. [Article or Profile]
+- Second specific mechanism. [Article or Profile]
+- Third, if genuinely distinct. [Article or Profile]
+
+WHAT TO WATCH:
+- Specific trigger, date, or counterparty to track. [Article or Profile]
+- Second actionable item. [Article or Profile]`;
+
+  const chatCompletion = await groqChat(
+    [{ role: 'user', content: prompt }],
+    { temperature: 0.3, max_tokens: 400 }
+  );
+
+  const impact = chatCompletion.choices[0]?.message?.content || 'Unable to generate impact analysis.';
+  const relevanceMatch = impact.match(/RELEVANCE:\s*(HIGH|MEDIUM|LOW)/i);
+  const relevance = relevanceMatch ? relevanceMatch[1].toUpperCase() : 'MEDIUM';
+
+  const citationMap = { 'Article': url || '', 'Profile': '' };
+  expertArticles.forEach(ea => {
+    if (ea.source && ea.url) citationMap[ea.source] = ea.url;
+  });
+
+  return { impact, relevance, citationMap };
+}
 
 app.post('/api/impact', async (req, res) => {
   try {
@@ -976,89 +1170,44 @@ app.post('/api/impact', async (req, res) => {
       return res.status(400).json({ error: 'Profile required' });
     }
 
-    // Cache key combines article URL with profile hash so different
-    // profiles get different impact analyses for the same article
     const profileHash = hashString(JSON.stringify({
       role: profile.role, industry: profile.industry,
       company: profile.company,
       location: profile.location, focus: profile.focus
     }));
-    const impactCacheKey = (url || title) + '::' + profileHash;
+    const impactCacheKey = IMPACT_CACHE_VERSION + '::' + (url || title) + '::' + profileHash;
     const cachedImpact = cacheGet('impact', impactCacheKey);
     if (cachedImpact) return res.json(cachedImpact);
 
-    // Fetch full article text for richer analysis
     const fullText = url ? await fetchFullArticleText(url) : '';
     const articleContent = fullText || content || description || '';
 
-    // Find related think tank analysis for this region
     const regionSlug = regionSlugMap[region] || 'global';
     const expertArticles = findRelatedThinkTankArticles(title, regionSlug);
 
-    let expertContext = '';
-    if (expertArticles.length > 0) {
-      expertContext = '\n\nAVAILABLE EXPERT SOURCES (cite these by name using [SourceName] tags):\n';
-      expertArticles.forEach(ea => {
-        expertContext += `- [${ea.source}]: "${ea.title}" — ${ea.description}\n`;
-      });
+    let result = null;
+    let provider = 'groq';
+
+    if (PERPLEXITY_API_KEY) {
+      try {
+        result = await generateImpactWithPerplexity({
+          title, source, articleContent, profile, expertArticles, url
+        });
+        provider = 'perplexity';
+      } catch (err) {
+        console.error('Perplexity impact failed, falling back to Groq:', err.message);
+        result = null;
+      }
     }
 
-    const citationTags = ['[Article]', '[Profile]'];
-    expertArticles.forEach(ea => citationTags.push(`[${ea.source}]`));
-    const citationList = citationTags.join(', ');
+    if (!result) {
+      result = await generateImpactWithGroq({
+        title, source, articleContent, profile, expertArticles, url
+      });
+      provider = 'groq';
+    }
 
-    const profileDesc = [
-      profile.role && `Role: ${profile.role}`,
-      profile.industry && `Industry: ${profile.industry}`,
-      profile.company && `Company: ${profile.company}`,
-      profile.location && `Based in: ${profile.location}`,
-      profile.focus && `Focus areas: ${profile.focus}`
-    ].filter(Boolean).join(' | ');
-
-    const prompt = `You are an analyst providing a personalized impact assessment. Be specific to this person's role, industry, company (if given), and location. When a Company is listed in the profile, reason about how this story affects that specific company's operations, revenue streams, regulatory exposure, or competitive position — but only make claims you can ground in the article or well-known public information about that company. Do not fabricate details about the company. Use bullet points — no filler.
-
-PROFILE: ${profileDesc}
-ARTICLE: ${title} (${source})
-TEXT: ${articleContent}${expertContext}
-
-CITATION RULES — CRITICAL:
-- Every bullet MUST end with a citation tag in square brackets
-- Allowed tags: ${citationList}
-- [Article] — when the fact comes from the article
-- [Profile] — when the reasoning is based on the reader's profile/industry knowledge
-- Think tank name in brackets (e.g. [Brookings]) — when paraphrasing expert analysis
-- Only ONE citation at the end of each bullet
-- Never invent a source
-
-Use EXACTLY this format. Bullets with dashes (-), each ONE line max:
-
-RELEVANCE:
-[One word: HIGH, MEDIUM, or LOW]
-
-IMPACT SUMMARY:
-- How this specifically affects your role/industry. Name the mechanism. [Article or Profile]
-- Financial, regulatory, or operational consequence for your sector. [Article or Profile]
-
-WHAT TO WATCH:
-- Specific trigger, date, policy decision, or data release to monitor. [Article or Profile]
-- Second actionable item. [Article or Profile]`;
-
-    const chatCompletion = await groqChat(
-      [{ role: 'user', content: prompt }],
-      { temperature: 0.4, max_tokens: 300 }
-    );
-
-    const impact = chatCompletion.choices[0]?.message?.content || 'Unable to generate impact analysis.';
-    const relevanceMatch = impact.match(/RELEVANCE:\s*(HIGH|MEDIUM|LOW)/i);
-    const relevance = relevanceMatch ? relevanceMatch[1].toUpperCase() : 'MEDIUM';
-
-    // Build citation map for clickable chips
-    const citationMap = { 'Article': url || '', 'Profile': '' };
-    expertArticles.forEach(ea => {
-      if (ea.source && ea.url) citationMap[ea.source] = ea.url;
-    });
-
-    const impactResponse = { impact, relevance, citationMap };
+    const impactResponse = { ...result, provider };
     cacheSet('impact', impactCacheKey, impactResponse);
     res.json(impactResponse);
   } catch (err) {
