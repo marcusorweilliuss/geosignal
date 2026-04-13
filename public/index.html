@@ -11,6 +11,12 @@
 </head>
 <body>
   <div class="app-shell">
+    <div class="profile-banner" id="profile-banner" role="status" aria-live="polite">
+      <span class="profile-banner-text">Your feed isn&rsquo;t personalised yet.</span>
+      <button class="profile-banner-cta" id="profile-banner-cta" type="button">Set up your profile &rarr;</button>
+      <button class="profile-banner-dismiss" id="profile-banner-dismiss" type="button" title="Dismiss" aria-label="Dismiss">&times;</button>
+    </div>
+
     <header>
       <div class="header-utility">
         <button id="text-size-btn" class="icon-btn" title="Change text size">
@@ -27,12 +33,19 @@
           </svg>
           <span id="saved-btn-count" class="icon-btn-label"></span>
         </button>
-        <button id="profile-btn" class="icon-btn" title="Your profile">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-            <circle cx="8" cy="5.5" r="2.6"/>
-            <path d="M2.7 13.8c0-2.7 2.2-4.3 5.3-4.3s5.3 1.6 5.3 4.3"/>
-          </svg>
-          <span id="profile-btn-text" class="icon-btn-label"></span>
+        <button id="profile-btn" class="icon-btn profile-not-set" title="Set up your profile">
+          <span class="profile-btn-icon">
+            <svg class="profile-icon-outline" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="8" cy="5.5" r="2.6"/>
+              <path d="M2.7 13.8c0-2.7 2.2-4.3 5.3-4.3s5.3 1.6 5.3 4.3"/>
+            </svg>
+            <svg class="profile-icon-filled" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+              <circle cx="8" cy="5.5" r="2.8"/>
+              <path d="M2.7 13.8c0-2.7 2.2-4.3 5.3-4.3s5.3 1.6 5.3 4.3v.5H2.7z"/>
+            </svg>
+            <span class="profile-notification-dot" aria-hidden="true"></span>
+          </span>
+          <span id="profile-btn-text" class="icon-btn-label">My profile</span>
         </button>
         <label class="annotate-toggle" title="Annotate mode — click highlighted terms for explanations">
           <input type="checkbox" id="annotate-toggle" checked>
@@ -154,75 +167,47 @@
     </footer>
   </div>
 
-  <!-- Profile Setup Modal -->
-  <div class="modal-overlay" id="profile-modal">
-    <div class="modal">
-      <div class="modal-header">
-        <h2>Your Profile</h2>
-        <p class="modal-subtitle">Personalize your intelligence feed. GeoSignal will analyze how each story impacts you specifically.</p>
-        <button class="modal-close" id="modal-close">&times;</button>
+  <!-- Welcome Modal — first-use onboarding -->
+  <div class="welcome-overlay" id="welcome-overlay" role="dialog" aria-modal="true" aria-labelledby="welcome-heading">
+    <div class="welcome-modal">
+      <div class="welcome-header">
+        <div class="welcome-eyebrow">Welcome to GeoSignal</div>
+        <h2 id="welcome-heading">Make GeoSignal yours</h2>
+        <p class="welcome-subtitle">Tell us about your role so we can show you what each story means for you specifically. This takes 30 seconds.</p>
       </div>
 
-      <div class="modal-body">
-        <div class="form-group">
-          <label for="profile-role">What's your role?</label>
-          <select id="profile-role">
-            <option value="">Select your role...</option>
-            <option value="Analyst">Analyst</option>
-            <option value="Entrepreneur">Entrepreneur / Founder</option>
-            <option value="Investor">Investor / VC / PE</option>
-            <option value="Executive">Executive / C-Suite</option>
-            <option value="VP">VP / Director</option>
-            <option value="Consultant">Consultant / Advisor</option>
-            <option value="Journalist">Journalist / Reporter</option>
-            <option value="Researcher">Researcher / Academic</option>
-            <option value="Policy Maker">Policy Maker / Government</option>
-            <option value="Engineer">Engineer / Developer</option>
-            <option value="Student">Student</option>
-            <option value="Personal">Personal Use</option>
-          </select>
-        </div>
+      <div class="welcome-body" id="welcome-form-mount"></div>
 
-        <div class="form-group">
-          <label for="profile-industry">Industry / Sector</label>
-          <select id="profile-industry">
-            <option value="">Select your industry...</option>
-            <option value="Finance & Banking">Finance & Banking</option>
-            <option value="Oil & Gas / Energy">Oil & Gas / Energy</option>
-            <option value="Technology">Technology</option>
-            <option value="Healthcare & Pharma">Healthcare & Pharma</option>
-            <option value="Defense & Aerospace">Defense & Aerospace</option>
-            <option value="Real Estate">Real Estate</option>
-            <option value="Agriculture & Food">Agriculture & Food</option>
-            <option value="Manufacturing">Manufacturing</option>
-            <option value="Logistics & Supply Chain">Logistics & Supply Chain</option>
-            <option value="Media & Communications">Media & Communications</option>
-            <option value="Government & Public Sector">Government & Public Sector</option>
-            <option value="Education">Education</option>
-            <option value="Consulting">Consulting</option>
-            <option value="Legal">Legal</option>
-            <option value="Retail & Consumer">Retail & Consumer</option>
-            <option value="General / Multiple">General / Multiple</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="profile-location">Where are you based?</label>
-          <input type="text" id="profile-location" placeholder="e.g., Singapore, New York, London..." />
-        </div>
-
-        <div class="form-group">
-          <label for="profile-focus">What do you focus on? <span class="optional">(optional)</span></label>
-          <input type="text" id="profile-focus" placeholder="e.g., emerging markets, supply chain risk, ESG..." />
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn-secondary" id="profile-clear">Clear Profile</button>
-        <button class="btn-primary" id="profile-save">Save Profile</button>
+      <div class="welcome-footer">
+        <button class="btn-primary welcome-primary" id="welcome-save" type="button">Set up my profile</button>
+        <button class="welcome-skip" id="welcome-skip" type="button">Skip for now</button>
       </div>
     </div>
   </div>
+
+  <!-- Profile slide-in side panel -->
+  <div class="profile-panel-overlay" id="profile-panel-overlay" aria-hidden="true"></div>
+  <aside class="profile-panel" id="profile-panel" role="dialog" aria-modal="true" aria-labelledby="profile-panel-heading" aria-hidden="true">
+    <div class="profile-panel-header">
+      <div>
+        <h2 id="profile-panel-heading">Your profile</h2>
+        <p class="profile-panel-subtitle">Tailor how stories are analysed for you.</p>
+      </div>
+      <button class="profile-panel-close" id="profile-panel-close" type="button" aria-label="Close">&times;</button>
+    </div>
+
+    <div class="profile-panel-body" id="profile-form-mount"></div>
+
+    <div class="profile-panel-inline-success" id="profile-panel-success" aria-live="polite"></div>
+
+    <div class="profile-panel-footer">
+      <button class="btn-secondary" id="profile-clear" type="button">Clear profile</button>
+      <button class="btn-primary" id="profile-save" type="button">Save profile</button>
+    </div>
+  </aside>
+
+  <!-- Toast container (success messages + nudges) -->
+  <div class="toast-container" id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
   <div class="annotate-popup" id="annotate-popup">
     <button class="annotate-popup-close" id="annotate-popup-close">&times;</button>

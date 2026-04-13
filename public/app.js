@@ -56,28 +56,234 @@ function cycleTextSize() {
 applyTextSize(getTextSize());
 if (textSizeBtn) textSizeBtn.addEventListener('click', cycleTextSize);
 const profileBtnText = document.getElementById('profile-btn-text');
-const profileModal = document.getElementById('profile-modal');
-const modalClose = document.getElementById('modal-close');
+
+// Profile UI elements (welcome modal, slide-in panel, banner, toast)
+const welcomeOverlay = document.getElementById('welcome-overlay');
+const welcomeFormMount = document.getElementById('welcome-form-mount');
+const welcomeSaveBtn = document.getElementById('welcome-save');
+const welcomeSkipBtn = document.getElementById('welcome-skip');
+
+const profilePanel = document.getElementById('profile-panel');
+const profilePanelOverlay = document.getElementById('profile-panel-overlay');
+const profilePanelClose = document.getElementById('profile-panel-close');
+const profileFormMount = document.getElementById('profile-form-mount');
+const profilePanelSuccess = document.getElementById('profile-panel-success');
 const profileSave = document.getElementById('profile-save');
 const profileClear = document.getElementById('profile-clear');
 
+const profileBanner = document.getElementById('profile-banner');
+const profileBannerCta = document.getElementById('profile-banner-cta');
+const profileBannerDismiss = document.getElementById('profile-banner-dismiss');
+
+const toastContainer = document.getElementById('toast-container');
+
 // ── Profile Management ──────────────────────────────────────────
+
+const SECTOR_OPTIONS = [
+  'Finance & Banking', 'Oil & Gas / Energy', 'Technology', 'Healthcare & Pharma',
+  'Defense & Aerospace', 'Real Estate', 'Agriculture & Food', 'Manufacturing',
+  'Logistics & Supply Chain', 'Media & Communications', 'Government & Public Sector',
+  'Education', 'Consulting', 'Legal', 'Retail & Consumer', 'General / Multiple'
+];
 
 function getProfile() {
   try {
     const saved = localStorage.getItem('geosignal-profile');
-    return saved ? JSON.parse(saved) : null;
+    const p = saved ? JSON.parse(saved) : null;
+    if (p && !Array.isArray(p.industries)) {
+      // Back-compat: old single-industry profiles
+      p.industries = p.industry ? [p.industry] : [];
+    }
+    return p;
   } catch { return null; }
 }
 
+function isProfileSet() {
+  const p = getProfile();
+  return !!(p && p.role && p.role.trim());
+}
+
 function saveProfile(profile) {
-  localStorage.setItem('geosignal-profile', JSON.stringify(profile));
+  const normalized = {
+    role: (profile.role || '').trim(),
+    industries: Array.isArray(profile.industries) ? profile.industries.filter(Boolean) : [],
+    location: (profile.location || '').trim(),
+    focus: (profile.focus || '').trim()
+  };
+  // Keep `industry` as a joined string for backward compatibility with server prompts
+  normalized.industry = normalized.industries.join(', ');
+  localStorage.setItem('geosignal-profile', JSON.stringify(normalized));
+  localStorage.setItem('geosignal_profile_complete', 'true');
+  localStorage.removeItem('geosignal_profile_skipped');
+  localStorage.removeItem('geosignal_banner_dismissed');
   updateProfileButton();
+  hideBanner();
 }
 
 function clearProfile() {
   localStorage.removeItem('geosignal-profile');
+  localStorage.removeItem('geosignal_profile_complete');
   updateProfileButton();
+}
+
+// ── Profile form rendering (shared between welcome modal & side panel) ──
+function renderProfileForm(mountEl, idPrefix) {
+  const profile = getProfile() || {};
+  const industries = Array.isArray(profile.industries) ? profile.industries : [];
+
+  mountEl.innerHTML = `
+    <div class="form-group">
+      <label for="${idPrefix}-role">Your role</label>
+      <input type="text" id="${idPrefix}-role" data-field="role"
+             placeholder="e.g., Analyst, Founder, Consultant, Investor..." autocomplete="off" />
+    </div>
+
+    <div class="form-group">
+      <label>Sectors of interest <span class="sector-checkbox-count" id="${idPrefix}-sector-count"></span></label>
+      <div class="sector-checkbox-group" id="${idPrefix}-sectors">
+        ${SECTOR_OPTIONS.map(s => `
+          <label class="sector-checkbox">
+            <input type="checkbox" value="${s}" data-sector />
+            <span>${s}</span>
+          </label>`).join('')}
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="${idPrefix}-location">Country you're based in</label>
+      <input type="text" id="${idPrefix}-location" data-field="location"
+             placeholder="e.g., Singapore, United States, UK..." autocomplete="off" />
+    </div>
+
+    <div class="form-group">
+      <label for="${idPrefix}-focus">Key concerns / topics you track <span class="optional">(optional)</span></label>
+      <input type="text" id="${idPrefix}-focus" data-field="focus"
+             placeholder="e.g., supply chain risk, ESG, emerging markets..." autocomplete="off" />
+    </div>
+  `;
+
+  // Populate from existing profile
+  mountEl.querySelector(`#${idPrefix}-role`).value = profile.role || '';
+  mountEl.querySelector(`#${idPrefix}-location`).value = profile.location || '';
+  mountEl.querySelector(`#${idPrefix}-focus`).value = profile.focus || '';
+  mountEl.querySelectorAll(`#${idPrefix}-sectors input[data-sector]`).forEach(cb => {
+    cb.checked = industries.includes(cb.value);
+  });
+
+  const countEl = mountEl.querySelector(`#${idPrefix}-sector-count`);
+  const updateCount = () => {
+    const n = mountEl.querySelectorAll(`#${idPrefix}-sectors input:checked`).length;
+    countEl.textContent = n > 0 ? `· ${n} selected` : '· select any that apply';
+  };
+  updateCount();
+  mountEl.querySelectorAll(`#${idPrefix}-sectors input[data-sector]`).forEach(cb => {
+    cb.addEventListener('change', updateCount);
+  });
+}
+
+function readProfileFromForm(mountEl, idPrefix) {
+  const role = mountEl.querySelector(`#${idPrefix}-role`).value;
+  const location = mountEl.querySelector(`#${idPrefix}-location`).value;
+  const focus = mountEl.querySelector(`#${idPrefix}-focus`).value;
+  const industries = Array.from(mountEl.querySelectorAll(`#${idPrefix}-sectors input:checked`))
+    .map(cb => cb.value);
+  return { role, industries, location, focus };
+}
+
+// ── Welcome onboarding modal ──
+function showWelcomeModal() {
+  renderProfileForm(welcomeFormMount, 'welcome');
+  welcomeOverlay.classList.add('visible');
+  setTimeout(() => {
+    const first = welcomeFormMount.querySelector('#welcome-role');
+    if (first) first.focus();
+  }, 100);
+}
+
+function hideWelcomeModal() {
+  welcomeOverlay.classList.remove('visible');
+}
+
+// ── Slide-in profile panel ──
+let panelSaveCallback = null;
+
+function openProfilePanel(options = {}) {
+  panelSaveCallback = typeof options.onSave === 'function' ? options.onSave : null;
+  renderProfileForm(profileFormMount, 'profile');
+  profilePanelSuccess.classList.remove('visible');
+  profilePanelSuccess.textContent = '';
+  profilePanel.classList.add('visible');
+  profilePanel.setAttribute('aria-hidden', 'false');
+  profilePanelOverlay.classList.add('visible');
+  profilePanelOverlay.setAttribute('aria-hidden', 'false');
+  setTimeout(() => {
+    const first = profileFormMount.querySelector('#profile-role');
+    if (first) first.focus();
+  }, 300);
+}
+
+function closeProfilePanel() {
+  profilePanel.classList.remove('visible');
+  profilePanel.setAttribute('aria-hidden', 'true');
+  profilePanelOverlay.classList.remove('visible');
+  profilePanelOverlay.setAttribute('aria-hidden', 'true');
+  panelSaveCallback = null;
+}
+
+// ── Banner ──
+function showBanner() {
+  if (isProfileSet()) return;
+  if (localStorage.getItem('geosignal_banner_dismissed') === 'true') return;
+  profileBanner.classList.add('visible');
+}
+
+function hideBanner() {
+  profileBanner.classList.remove('visible');
+}
+
+// ── Toast stack ──
+function showToast(message, options = {}) {
+  if (!toastContainer) return;
+  const toast = document.createElement('div');
+  toast.className = 'toast' + (options.success ? ' toast-success' : '');
+
+  const text = document.createElement('span');
+  text.style.flex = '1';
+  text.textContent = message;
+  toast.appendChild(text);
+
+  if (options.actionLabel && typeof options.onAction === 'function') {
+    const btn = document.createElement('button');
+    btn.className = 'toast-action';
+    btn.type = 'button';
+    btn.textContent = options.actionLabel;
+    btn.addEventListener('click', () => {
+      options.onAction();
+      dismiss();
+    });
+    toast.appendChild(btn);
+  }
+
+  const close = document.createElement('button');
+  close.className = 'toast-close';
+  close.type = 'button';
+  close.setAttribute('aria-label', 'Dismiss');
+  close.textContent = '×';
+  toast.appendChild(close);
+
+  toastContainer.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add('visible'));
+
+  let timer = null;
+  const dismiss = () => {
+    if (timer) clearTimeout(timer);
+    toast.classList.remove('visible');
+    setTimeout(() => toast.remove(), 300);
+  };
+  close.addEventListener('click', dismiss);
+
+  const duration = options.duration || 3500;
+  timer = setTimeout(dismiss, duration);
 }
 
 // ── Saved Articles ──────────────────────────────────────────────
@@ -178,56 +384,162 @@ updateSavedButton();
 
 function updateProfileButton() {
   const profile = getProfile();
-  if (profile && profile.role) {
+  const set = isProfileSet();
+  if (set) {
     profileBtnText.textContent = profile.role;
     profileBtn.classList.add('has-profile');
-    profileBtn.title = `${profile.role} · ${profile.industry || 'General'} · ${profile.location || 'Global'}`;
+    profileBtn.classList.remove('profile-not-set');
+    const sectorLabel = (profile.industries && profile.industries.length)
+      ? profile.industries.slice(0, 2).join(', ') + (profile.industries.length > 2 ? '…' : '')
+      : 'General';
+    profileBtn.title = `${profile.role} · ${sectorLabel} · ${profile.location || 'Global'} — click to edit`;
   } else {
-    profileBtnText.textContent = 'Set Profile';
+    profileBtnText.textContent = 'My profile';
     profileBtn.classList.remove('has-profile');
-    profileBtn.title = 'Set up your profile for personalized impact analysis';
+    profileBtn.classList.add('profile-not-set');
+    profileBtn.title = 'Set up your profile for personalised impact analysis';
   }
 }
 
-function openModal() {
-  const profile = getProfile();
-  document.getElementById('profile-role').value = profile?.role || '';
-  document.getElementById('profile-industry').value = profile?.industry || '';
-  document.getElementById('profile-location').value = profile?.location || '';
-  document.getElementById('profile-focus').value = profile?.focus || '';
-  profileModal.classList.add('visible');
+// Handler used across welcome modal, side panel, and inline CTAs
+function handleProfileSaved(source) {
+  // source: 'welcome' | 'panel' | 'banner' | 'impact'
+  updateProfileButton();
+  hideBanner();
+
+  // Auto-apply to current view without a manual refresh
+  if (currentArticles && currentArticles.length > 0) {
+    // Reset any previously-loaded impact sections so they re-render with profile next open.
+    // Also re-run cross-sector analysis since it depends on profile.
+    const region = regionSelect ? regionSelect.value : 'Global';
+    if (currentArticles.length >= 3) {
+      fetchCrossSectorInsights(currentArticles, getProfile(), region);
+    }
+  }
+
+  // Invoke any impact-section callback waiting to re-render
+  if (source === 'panel' && typeof panelSaveCallback === 'function') {
+    try { panelSaveCallback(); } catch (e) { console.error(e); }
+  }
+
+  // Success toast (skip if panel already shows inline success)
+  if (source !== 'panel') {
+    showToast('Profile saved — your feed will now show what each story means for you', { success: true, duration: 3500 });
+  }
 }
 
-function closeModal() {
-  profileModal.classList.remove('visible');
+// ── Wire up welcome modal ──
+if (welcomeSaveBtn) {
+  welcomeSaveBtn.addEventListener('click', () => {
+    const data = readProfileFromForm(welcomeFormMount, 'welcome');
+    if (!data.role.trim()) {
+      const roleInput = welcomeFormMount.querySelector('#welcome-role');
+      if (roleInput) roleInput.focus();
+      return;
+    }
+    saveProfile(data);
+    hideWelcomeModal();
+    handleProfileSaved('welcome');
+  });
 }
 
-profileBtn.addEventListener('click', openModal);
-modalClose.addEventListener('click', closeModal);
-profileModal.addEventListener('click', (e) => {
-  if (e.target === profileModal) closeModal();
+if (welcomeSkipBtn) {
+  welcomeSkipBtn.addEventListener('click', () => {
+    localStorage.setItem('geosignal_profile_skipped', 'true');
+    hideWelcomeModal();
+    showBanner();
+  });
+}
+
+// ── Wire up side panel ──
+profileBtn.addEventListener('click', () => openProfilePanel());
+if (profilePanelClose) profilePanelClose.addEventListener('click', closeProfilePanel);
+if (profilePanelOverlay) profilePanelOverlay.addEventListener('click', closeProfilePanel);
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (profilePanel.classList.contains('visible')) closeProfilePanel();
+  }
 });
 
-profileSave.addEventListener('click', () => {
-  const role = document.getElementById('profile-role').value;
-  const industry = document.getElementById('profile-industry').value;
-  const location = document.getElementById('profile-location').value;
-  const focus = document.getElementById('profile-focus').value;
-  if (!role) { document.getElementById('profile-role').focus(); return; }
-  saveProfile({ role, industry, location, focus });
-  closeModal();
-});
+if (profileSave) {
+  profileSave.addEventListener('click', () => {
+    const data = readProfileFromForm(profileFormMount, 'profile');
+    if (!data.role.trim()) {
+      const roleInput = profileFormMount.querySelector('#profile-role');
+      if (roleInput) roleInput.focus();
+      return;
+    }
+    saveProfile(data);
 
-profileClear.addEventListener('click', () => {
-  clearProfile();
-  document.getElementById('profile-role').value = '';
-  document.getElementById('profile-industry').value = '';
-  document.getElementById('profile-location').value = '';
-  document.getElementById('profile-focus').value = '';
-  closeModal();
-});
+    // Show inline success in the panel
+    profilePanelSuccess.textContent = 'Profile saved — your feed will now show what each story means for you.';
+    profilePanelSuccess.classList.add('visible');
+
+    handleProfileSaved('panel');
+
+    // Auto-close after a moment so user sees confirmation then sees the updated view
+    setTimeout(() => {
+      closeProfilePanel();
+    }, 1400);
+  });
+}
+
+if (profileClear) {
+  profileClear.addEventListener('click', () => {
+    clearProfile();
+    renderProfileForm(profileFormMount, 'profile');
+    profilePanelSuccess.classList.remove('visible');
+  });
+}
+
+// ── Wire up banner ──
+if (profileBannerCta) {
+  profileBannerCta.addEventListener('click', () => openProfilePanel());
+}
+if (profileBannerDismiss) {
+  profileBannerDismiss.addEventListener('click', () => {
+    localStorage.setItem('geosignal_banner_dismissed', 'true');
+    hideBanner();
+  });
+}
+
+// ── First-visit logic ──
+(function firstVisitCheck() {
+  const complete = localStorage.getItem('geosignal_profile_complete') === 'true' || isProfileSet();
+  const skipped = localStorage.getItem('geosignal_profile_skipped') === 'true';
+  if (!complete && !skipped) {
+    // Slight delay so the rest of the UI paints first
+    setTimeout(showWelcomeModal, 400);
+  } else if (!complete && skipped) {
+    showBanner();
+  }
+})();
 
 updateProfileButton();
+
+// ── Smart nudge after 3 briefings per session ──
+const SESSION_BRIEFING_KEY = 'geosignal_session_briefings';
+const SESSION_NUDGE_SHOWN = 'geosignal_nudge_shown';
+
+function recordBriefingOpened() {
+  if (isProfileSet()) return;
+  let count = parseInt(sessionStorage.getItem(SESSION_BRIEFING_KEY) || '0', 10);
+  count += 1;
+  sessionStorage.setItem(SESSION_BRIEFING_KEY, String(count));
+
+  if (count >= 3 && sessionStorage.getItem(SESSION_NUDGE_SHOWN) !== 'true') {
+    sessionStorage.setItem(SESSION_NUDGE_SHOWN, 'true');
+    showToast(
+      "You've read 3 stories — set up your profile to see what they mean for your role specifically.",
+      {
+        actionLabel: 'Set up',
+        onAction: () => openProfilePanel(),
+        duration: 8000
+      }
+    );
+  }
+}
 
 // ── Pills & Filters ─────────────────────────────────────────────
 
@@ -689,10 +1001,25 @@ async function fetchImpact(article, container) {
 
   if (!profile || !profile.role) {
     container.innerHTML =
-      '<div class="no-profile-hint">' +
-        '<span>Set up your profile to see how this story impacts you personally.</span>' +
-        '<button onclick="document.getElementById(\'profile-btn\').click()">Set Profile</button>' +
+      '<div class="impact-section impact-empty">' +
+        '<div class="impact-header"><span class="impact-title">How This Impacts You</span></div>' +
+        '<div class="impact-empty-body">' +
+          '<p>This analysis is tailored to your role and sector. Set up your profile to see what this story means for you specifically.</p>' +
+          '<button class="impact-empty-cta" type="button">Set up your profile</button>' +
+        '</div>' +
       '</div>';
+    const cta = container.querySelector('.impact-empty-cta');
+    if (cta) {
+      cta.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openProfilePanel({
+          onSave: () => {
+            // Re-render this specific impact section with the fresh profile
+            fetchImpact(article, container);
+          }
+        });
+      });
+    }
     return;
   }
 
@@ -1026,8 +1353,10 @@ function renderFeed(articles) {
         }
 
         expanded = true;
+        const wasUnread = !readCards.has(articleId);
         card.classList.add('card-expanded', 'card-read');
         readCards.add(articleId);
+        if (wasUnread) recordBriefingOpened();
 
         briefingEl = document.createElement('div');
         briefingEl.className = 'briefing';
