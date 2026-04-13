@@ -330,17 +330,16 @@ h1 {
   color: var(--accent);
 }
 
-/* Refresh results — primary labeled action in header utility */
+/* Refresh results — primary action in the control bar */
 .refresh-btn {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  height: 38px;
-  padding: 0 14px;
+  gap: 9px;
+  padding: 0 20px;
   background: var(--accent);
   color: #ffffff;
   border: 1px solid var(--accent);
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
   font-family: var(--sans);
   font-size: 13px;
@@ -348,12 +347,15 @@ h1 {
   letter-spacing: 0.2px;
   transition: all 0.2s ease;
   white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+  align-self: stretch;
 }
 
 .refresh-btn:hover {
   background: var(--accent-hover, #0a5842);
   border-color: var(--accent-hover, #0a5842);
   transform: translateY(-1px);
+  box-shadow: var(--shadow-md, var(--shadow-sm));
 }
 
 .refresh-btn:active {
@@ -370,7 +372,7 @@ h1 {
 }
 
 .refresh-btn.is-loading {
-  opacity: 0.75;
+  opacity: 0.8;
   cursor: progress;
 }
 
@@ -387,8 +389,7 @@ h1 {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 38px;
-  padding: 0 10px;
+  padding: 0 12px;
   font-family: var(--sans);
   font-size: 12px;
   font-weight: 600;
@@ -396,12 +397,13 @@ h1 {
   color: var(--accent);
   background: var(--accent-dim);
   border: 1px solid var(--accent-soft);
-  border-radius: 10px;
+  border-radius: 12px;
   opacity: 0;
   transform: translateX(-4px);
   pointer-events: none;
   transition: opacity 0.25s ease, transform 0.25s ease;
   white-space: nowrap;
+  align-self: stretch;
 }
 
 .refresh-confirmation::before {
@@ -2656,6 +2658,17 @@ footer span {
   .filters-toggle {
     justify-content: center;
     height: 44px;
+  }
+
+  .refresh-btn {
+    justify-content: center;
+    height: 44px;
+    padding: 0 20px;
+  }
+
+  .refresh-confirmation {
+    justify-content: center;
+    height: 36px;
   }
 
   .filter-group {
