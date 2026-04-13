@@ -352,7 +352,7 @@ const groqCaches = {
 // Bump this whenever TL;DR parsing logic changes to invalidate cached entries
 // from previous versions that may have wrong summaries under right keys
 const TLDR_CACHE_VERSION = 'v2-indexed';
-const BRIEFING_CACHE_VERSION = 'v3-perplexity';
+const BRIEFING_CACHE_VERSION = 'v4-specific-what-happened';
 
 function cacheGet(bucket, key) {
   const entry = groqCaches[bucket]?.get(key);
@@ -704,7 +704,7 @@ Article text: ${articleContent}
 
 Return your response in exactly this JSON structure (and nothing else — no prose before or after, no markdown fences):
 {
-  "what_happened": "3-5 sentence factual summary with specific named actors, dates, and concrete events",
+  "what_happened": "A 3-5 sentence factual summary that MUST answer all of: (1) WHO is involved — specific named actors, organisations, and countries, never generic collective nouns like 'the government' or 'officials'; (2) WHAT specifically happened — the concrete event, decision, signing, announcement, or change, including the substantive content (e.g. not 'a trade deal was reached' but 'X and Y signed a 10-year agreement covering semiconductors and critical minerals, with Z percent tariff reductions'); (3) WHEN it happened — specific date or precise timeframe; (4) the core factual claim — what was actually said, decided, signed, announced, or changed, with concrete figures, titles, or terms where present. Every sentence must be specific. Do NOT use vague filler language. CRITICAL: If the source article does not contain enough specific information to answer these questions, the entire what_happened field must be exactly: 'Limited detail available — see original article for full context' and nothing else.",
   "what_led_to_this": "2-4 sentences of relevant historical and political background explaining why this is happening now. Reference specific prior events with dates.",
   "what_experts_say": "2-4 sentences synthesising perspectives from named analysts, think tanks, or officials who have commented on this development or related issues. Only cite real sources — if you cannot find genuine expert commentary, say so explicitly rather than fabricating citations.",
   "why_it_matters": "2-3 sentences on the strategic significance and broader implications of this development"
@@ -822,8 +822,9 @@ CITATION RULES — CRITICAL:
 Use EXACTLY this format. Each section: 2-3 bullet points, each bullet ONE line max. Use a dash (-) for bullets:
 
 WHAT HAPPENED:
-- Key fact: who, what, when, where with specific names and figures. [Article]
-- Second key fact or consequence. [Article]
+The WHAT HAPPENED bullets must collectively answer all of: WHO (named actors, organisations, countries — never generic like "the government" or "officials"), WHAT specifically happened (concrete event/decision with substantive content — never vague phrasing like "a trade deal was reached" without specifying what it covers), WHEN (specific date or timeframe), and the core factual claim (what was actually said, signed, announced, or changed, with figures and terms where available). Every bullet must be specific — no filler. If the article does not contain enough specific information to answer these questions, replace this entire section with a single bullet that reads exactly: "- Limited detail available — see original article for full context. [Article]" and nothing else.
+- Key fact: specific named actors + what they did + when, with concrete figures or terms. [Article]
+- Second specific fact (scope, conditions, counterparties, or immediate consequence). [Article]
 
 WHAT LED TO THIS:
 - Most important preceding event or structural cause. [Article]
