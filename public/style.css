@@ -1396,6 +1396,40 @@ select:focus {
   letter-spacing: 0.1px;
 }
 
+/* Flow variant — pill-chain visual used for every cross-sector type */
+.cs-chain-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 4px;
+  padding: 14px 16px;
+  line-height: 1.5;
+}
+
+.cs-chain-node {
+  display: inline-block;
+  padding: 4px 10px;
+  background: #FFFFFF;
+  color: var(--accent);
+  border: 1px solid var(--accent-soft);
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cs-chain-arrow {
+  display: inline-block;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 0 2px;
+  user-select: none;
+}
+
 .cross-sector-bullets {
   list-style: none;
   padding: 0;

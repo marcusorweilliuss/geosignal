@@ -1211,9 +1211,20 @@ async function fetchCrossSectorInsights(articles, profile, region) {
         html += '<div class="cross-sector-stories">Connecting: ' + escapeHtml(stripMd(insight.stories)) + '</div>';
       }
 
-      // Show the arrow chain only for causal type
-      if (insight.chain) {
-        html += '<div class="cross-sector-chain">' + escapeHtml(stripMd(insight.chain)) + '</div>';
+      // Arrow-chain synopsis — shown for every insight type. The chain
+      // node format is: "Actor/event → next node → final effect". We
+      // emphasise the arrows by wrapping each node in a chip-like pill.
+      if (insight.chain && insight.chain.trim()) {
+        const nodes = insight.chain.split(/\s*→\s*|\s*->\s*/).map(s => s.trim()).filter(Boolean);
+        if (nodes.length >= 2) {
+          const nodesHtml = nodes
+            .map(n => '<span class="cs-chain-node">' + escapeHtml(stripMd(n)) + '</span>')
+            .join('<span class="cs-chain-arrow" aria-hidden="true">&rarr;</span>');
+          html += '<div class="cross-sector-chain cs-chain-flow">' + nodesHtml + '</div>';
+        } else {
+          // Single node or unparsed — fall back to plain text
+          html += '<div class="cross-sector-chain">' + escapeHtml(stripMd(insight.chain)) + '</div>';
+        }
       }
 
       // Mechanism and takeaway as separate labeled bullets with citation chips
@@ -1488,10 +1499,21 @@ const readCards = new Set();
 function groupArticlesByTime(articles) {
   const now = Date.now();
   const groups = { breaking: [], today: [], week: [] };
+
+  // "Breaking" must actually be breaking: published within the last 3
+  // hours AND scoring at or above the 60th percentile of the feed.
+  // Low-score articles — even if very recent — go into Today so they
+  // don't pollute the Breaking header.
+  const scores = articles.map(a => a.score || 0).sort((x, y) => x - y);
+  const breakingThreshold = scores.length
+    ? scores[Math.floor(scores.length * 0.6)]
+    : 0;
+
   articles.forEach(a => {
     const pub = new Date(a.publishedAt).getTime();
     const hoursAgo = (now - pub) / (1000 * 60 * 60);
-    if (hoursAgo <= 3) groups.breaking.push(a);
+    const scoreOk = (a.score || 0) >= breakingThreshold;
+    if (hoursAgo <= 3 && scoreOk) groups.breaking.push(a);
     else if (hoursAgo <= 24) groups.today.push(a);
     else groups.week.push(a);
   });

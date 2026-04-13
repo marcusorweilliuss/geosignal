@@ -1081,7 +1081,9 @@ function getSourcesForRegion(region, sourceTypeFilters) {
  * @returns {number} Relevance score (0-100)
  */
 function scoreArticle(article, region, userProfile, activeSectors) {
-  const headline = ((article.title || '') + ' ' + (article.description || '')).toLowerCase();
+  const titleLower = (article.title || '').toLowerCase();
+  const descLower = (article.description || '').toLowerCase();
+  const headline = titleLower + ' ' + descLower;
 
   // ── Junk filter — return -1 to flag for removal ──
   for (const pattern of JUNK_PATTERNS) {
@@ -1091,15 +1093,21 @@ function scoreArticle(article, region, userProfile, activeSectors) {
 
   let score = 0;
 
-  // ── Region relevance (0-30) ──
+  // ── Region relevance (0-36) — title hits worth ~1.5x description hits
   const countries = REGION_COUNTRIES[region] || [];
-  let countryMatches = 0;
+  let countryTitleMatches = 0;
+  let countryDescMatches = 0;
   for (const country of countries) {
-    if (headline.includes(country.toLowerCase())) countryMatches++;
+    const c = country.toLowerCase();
+    if (titleLower.includes(c)) countryTitleMatches++;
+    else if (descLower.includes(c)) countryDescMatches++;
   }
-  if (countryMatches >= 3) score += 30;
-  else if (countryMatches >= 2) score += 25;
-  else if (countryMatches === 1) score += 18;
+  const countryMatches = countryTitleMatches + countryDescMatches;
+  if (countryTitleMatches >= 2) score += 36;
+  else if (countryTitleMatches === 1) score += 26;
+  else if (countryMatches >= 3) score += 24;
+  else if (countryMatches >= 2) score += 18;
+  else if (countryMatches === 1) score += 12;
 
   // Source IS from the selected region — strong signal even without country mention
   if (article.region === region && region !== 'global') {
@@ -1119,7 +1127,7 @@ function scoreArticle(article, region, userProfile, activeSectors) {
     score -= 15;
   }
 
-  // ── Sector relevance (0-35) ──
+  // ── Sector relevance (0-40) — title hits get a precision multiplier ──
   if (activeSectors && activeSectors.length > 0) {
     const activeKws = activeSectors
       .map(s => SECTOR_KEYWORDS[s])
@@ -1132,27 +1140,35 @@ function scoreArticle(article, region, userProfile, activeSectors) {
 
     let matchScore = 0;
     let matchedSectors = new Set();
-    // Multi-word matches worth more (precision)
+    // Multi-word phrase hits: 18 in title, 10 in description
     for (const phrase of multiWord) {
-      if (headline.includes(phrase)) {
-        matchScore += 12;
-        // Track which sector this phrase belongs to
-        for (const s of activeSectors) {
-          if ((SECTOR_KEYWORDS[s] || []).some(k => k.toLowerCase() === phrase)) matchedSectors.add(s);
-        }
+      if (titleLower.includes(phrase)) {
+        matchScore += 18;
+      } else if (descLower.includes(phrase)) {
+        matchScore += 10;
+      } else {
+        continue;
+      }
+      for (const s of activeSectors) {
+        if ((SECTOR_KEYWORDS[s] || []).some(k => k.toLowerCase() === phrase)) matchedSectors.add(s);
       }
     }
+    // Single-word hits: 8 in title, 3 in description
     for (const word of singleWord) {
-      if (headline.includes(word)) {
-        matchScore += 5;
-        for (const s of activeSectors) {
-          if ((SECTOR_KEYWORDS[s] || []).some(k => k.toLowerCase() === word)) matchedSectors.add(s);
-        }
+      if (titleLower.includes(word)) {
+        matchScore += 8;
+      } else if (descLower.includes(word)) {
+        matchScore += 3;
+      } else {
+        continue;
+      }
+      for (const s of activeSectors) {
+        if ((SECTOR_KEYWORDS[s] || []).some(k => k.toLowerCase() === word)) matchedSectors.add(s);
       }
     }
     // Cross-sector bonus: article relevant to 2+ selected sectors
     if (matchedSectors.size >= 2) matchScore += 10;
-    score += Math.min(matchScore, 35);
+    score += Math.min(matchScore, 40);
   } else {
     const allKeywords = Object.values(SECTOR_KEYWORDS).flat();
     for (const keyword of allKeywords) {
@@ -1166,17 +1182,21 @@ function scoreArticle(article, region, userProfile, activeSectors) {
   if (hasNumbers) score += 3;
   if (titleWords >= 8 && titleWords <= 20) score += 2;
 
-  // Significance boost — breaking/urgent/high-impact language
-  let sigMatches = 0;
+  // Significance boost — breaking/urgent/high-impact language.
+  // Title hits count for more than description hits because headlines
+  // are drafted to telegraph significance.
+  let sigTitleMatches = 0;
+  let sigDescMatches = 0;
   for (const word of SIGNIFICANCE_WORDS) {
-    if (headline.includes(word.toLowerCase())) {
-      sigMatches++;
-      if (sigMatches >= 3) break;
-    }
+    const w = word.toLowerCase();
+    if (titleLower.includes(w)) sigTitleMatches++;
+    else if (descLower.includes(w)) sigDescMatches++;
+    if (sigTitleMatches + sigDescMatches >= 4) break;
   }
-  if (sigMatches >= 3) score += 15;
-  else if (sigMatches >= 2) score += 10;
-  else if (sigMatches === 1) score += 5;
+  if (sigTitleMatches >= 2) score += 18;
+  else if (sigTitleMatches === 1) score += 12;
+  else if (sigDescMatches >= 2) score += 6;
+  else if (sigDescMatches === 1) score += 3;
 
   // Low-value penalty — opinion, editorials, explainers
   for (const pattern of LOW_VALUE_PATTERNS) {
@@ -1186,15 +1206,29 @@ function scoreArticle(article, region, userProfile, activeSectors) {
     }
   }
 
-  // ── Recency (0-25) ──
+  // ── Recency (-15 to +35) ──
+  // Fresh content dominates; stale content is actively penalised so
+  // last-week articles don't rank above today's reporting just because
+  // their keywords happen to match.
+  // Think-tank / academic pieces are time-insensitive by nature and
+  // skip the stale penalty (their analysis ages slowly).
   if (article.publishedAt) {
     const pubDate = new Date(article.publishedAt);
     const hoursAgo = (Date.now() - pubDate.getTime()) / (1000 * 60 * 60);
-    if (hoursAgo <= 3) score += 25;
+    if (hoursAgo <= 1) score += 35;            // breaking-news window
+    else if (hoursAgo <= 3) score += 28;
     else if (hoursAgo <= 6) score += 22;
-    else if (hoursAgo <= 12) score += 18;
-    else if (hoursAgo <= 24) score += 12;
-    else if (hoursAgo <= 48) score += 5;
+    else if (hoursAgo <= 12) score += 15;
+    else if (hoursAgo <= 24) score += 8;
+    else if (hoursAgo <= 48) score += 2;
+    else if (hoursAgo <= 72) {
+      if (article.sourceTier !== 'think-tank-academic') score -= 5;
+    } else {
+      if (article.sourceTier !== 'think-tank-academic') score -= 15;
+    }
+  } else {
+    // No timestamp — treat as mildly stale
+    if (article.sourceTier !== 'think-tank-academic') score -= 3;
   }
 
   // ── Source credibility (0-8) ──

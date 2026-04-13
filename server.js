@@ -1313,7 +1313,7 @@ app.post('/api/cross-sector', async (req, res) => {
 
     // Cache key: profile + region + sorted top article URLs. Same inputs
     // return the same insights without re-hitting Groq.
-    const CS_CACHE_VERSION = 'v2-perplexity';
+    const CS_CACHE_VERSION = 'v3-chains-all-types';
     const csKey = hashString(
       CS_CACHE_VERSION + '|' +
       (region || 'global') + '|' +
@@ -1406,7 +1406,12 @@ INSIGHT 1
 TYPE: [CAUSAL CHAIN | SHARED ENTITY | SECOND-ORDER EFFECT | CONTRADICTION]
 TOPIC: [Short topic, max 8 words. Actual subject matter — NEVER "Headline 1" or "Story A"]
 STORIES: [Comma-separated actual subjects being connected]
-CHAIN: [ONLY for CAUSAL CHAIN type — the event flow with arrows. e.g. "Red Sea attacks → Suez delays → LNG prices +12% → EU fuel costs rise". Leave empty for other types. Just the chain, no prose, no citation.]
+CHAIN: [REQUIRED for every type. Produce a visual 3-5 node flow using "→" arrows. Each node should be 2-6 words max, naming concrete actors, places, or effects — no full sentences. No citation tag inside the chain. Tailor the chain shape to the TYPE:
+  - CAUSAL CHAIN: event flow. e.g. "Red Sea attacks → Suez delays → LNG prices +12% → EU fuel costs rise"
+  - SHARED ENTITY: the entity + contexts it appears in. e.g. "BlackRock → buys EU grid assets → backs Saudi AI fund → lobbies US Treasury"
+  - SECOND-ORDER EFFECT: trigger to downstream impact. e.g. "US export controls → TSMC capex cut → Taiwan GDP dip → Asian chip supply tighter"
+  - CONTRADICTION: the tension between claims. e.g. "Beijing says zero stimulus → PBoC cuts rates 25bp → mixed investor signal"
+]
 MECHANISM: [ONE sentence naming the specific mechanism: actors, numbers, dates, percentages. End with a citation tag. Example: "EU cut Russian oil cap to \$50 while India boosted imports 18%, arbitraging the gap. [Carnegie Endowment]"]
 TAKEAWAY: [ONE sentence on what you should track, adjust, or reconsider. End with a citation tag. Example: "Watch Indian refinery throughput reports — arbitrage ends when capacity maxes out in Q2. [Profile]"]
 
@@ -1414,7 +1419,7 @@ CRITICAL RULES:
 - MECHANISM and TAKEAWAY must NEVER repeat each other or the CHAIN
 - Every MECHANISM and TAKEAWAY ends with exactly ONE citation tag
 - Prefer think tank citations when experts are available — cite them by exact name
-- CHAIN is ONLY for CAUSAL CHAIN type — leave blank for other types
+- CHAIN is REQUIRED for every insight — 3-5 arrow-separated short nodes, not prose
 - Never write phrases like "for the [role] in [location]"
 - Use REAL topic names, never "Headline 1"
 - If you can't find 2 genuinely substantive patterns, return only 1`;
