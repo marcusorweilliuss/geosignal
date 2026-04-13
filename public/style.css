@@ -330,6 +330,91 @@ h1 {
   color: var(--accent);
 }
 
+/* Refresh results — primary labeled action in header utility */
+.refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 14px;
+  background: var(--accent);
+  color: #ffffff;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.refresh-btn:hover {
+  background: var(--accent-hover, #0a5842);
+  border-color: var(--accent-hover, #0a5842);
+  transform: translateY(-1px);
+}
+
+.refresh-btn:active {
+  transform: translateY(0);
+}
+
+.refresh-btn svg {
+  stroke: currentColor;
+  flex-shrink: 0;
+}
+
+.refresh-btn-label {
+  white-space: nowrap;
+}
+
+.refresh-btn.is-loading {
+  opacity: 0.75;
+  cursor: progress;
+}
+
+.refresh-btn.is-loading svg {
+  animation: refresh-spin 0.9s linear infinite;
+}
+
+@keyframes refresh-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.refresh-confirmation {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 10px;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-soft);
+  border-radius: 10px;
+  opacity: 0;
+  transform: translateX(-4px);
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  white-space: nowrap;
+}
+
+.refresh-confirmation::before {
+  content: "\2713";
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.refresh-confirmation.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
 /* Card save button (bookmark toggle inside each card) */
 .card-save-btn {
   display: inline-flex;

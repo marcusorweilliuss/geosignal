@@ -39,12 +39,14 @@
           <span class="annotate-slider"></span>
           <span class="annotate-label">Annotate</span>
         </label>
-        <button id="refresh-btn" class="icon-btn" title="Refresh feed">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <button id="refresh-btn" class="refresh-btn" title="Click to load articles based on your current filter selections. Do not use your browser's refresh button — that will reset your filters.">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M2 8.5a6 6 0 1 1 1.3 3.8"/>
             <path d="M1.5 4v3.5H5"/>
           </svg>
+          <span class="refresh-btn-label">Refresh results</span>
         </button>
+        <span class="refresh-confirmation" id="refresh-confirmation" aria-live="polite">Results updated</span>
       </div>
 
       <div class="masthead">

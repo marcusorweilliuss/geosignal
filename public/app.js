@@ -3,6 +3,21 @@ const regionSelect = document.getElementById('region-select');
 const sectorPills = document.getElementById('sector-pills');
 const sourcePills = document.getElementById('source-pills');
 const refreshBtn = document.getElementById('refresh-btn');
+const refreshConfirmation = document.getElementById('refresh-confirmation');
+let refreshConfirmationTimer = null;
+
+function showRefreshConfirmation() {
+  if (!refreshConfirmation) return;
+  if (refreshConfirmationTimer) {
+    clearTimeout(refreshConfirmationTimer);
+    refreshConfirmationTimer = null;
+  }
+  refreshConfirmation.classList.add('visible');
+  refreshConfirmationTimer = setTimeout(() => {
+    refreshConfirmation.classList.remove('visible');
+    refreshConfirmationTimer = null;
+  }, 2000);
+}
 const feedCount = document.getElementById('feed-count');
 const feedTimestamp = document.getElementById('feed-timestamp');
 const searchInput = document.getElementById('search-input');
@@ -477,6 +492,9 @@ async function fetchStories() {
   feedCount.textContent = '';
   feedTimestamp.textContent = '';
 
+  if (refreshBtn) refreshBtn.classList.add('is-loading');
+  if (refreshConfirmation) refreshConfirmation.classList.remove('visible');
+
   try {
     const profile = getProfile();
     const searchQuery = searchInput.value.trim();
@@ -514,6 +532,8 @@ async function fetchStories() {
     renderFeed(currentArticles);
     generateTldrs(currentArticles);
 
+    showRefreshConfirmation();
+
     // Generate cross-sector analysis if profile exists
     const crossProfile = getProfile();
     if (crossProfile && crossProfile.role && currentArticles.length >= 3) {
@@ -522,6 +542,8 @@ async function fetchStories() {
   } catch (err) {
     console.error('Fetch error:', err);
     feed.innerHTML = '<div class="empty-feed">Couldn\u2019t reach the feed. Check your connection and try again.</div>';
+  } finally {
+    if (refreshBtn) refreshBtn.classList.remove('is-loading');
   }
 }
 
