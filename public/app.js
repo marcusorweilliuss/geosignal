@@ -551,6 +551,47 @@ function initPills(container) {
   });
 }
 
+// ── Filter persistence ────────────────────────────────────────
+// Remember region + sector pills + source pills so a browser refresh
+// doesn't wipe the user's selections. Fetching new results still
+// requires the Apply button — this only restores the *selection*.
+const FILTERS_KEY = 'geosignal-filters';
+
+function saveFilters() {
+  try {
+    const state = {
+      region: regionSelect.value,
+      sectors: getActivePills(sectorPills),
+      sourceTypes: getActivePills(sourcePills)
+    };
+    localStorage.setItem(FILTERS_KEY, JSON.stringify(state));
+  } catch { /* storage unavailable — nothing we can do */ }
+}
+
+function applyPillState(container, activeValues) {
+  const set = new Set(activeValues || []);
+  container.querySelectorAll('.pill').forEach(pill => {
+    pill.classList.toggle('active', set.has(pill.dataset.value));
+  });
+}
+
+function restoreFilters() {
+  try {
+    const raw = localStorage.getItem(FILTERS_KEY);
+    if (!raw) return;
+    const state = JSON.parse(raw);
+    if (state && typeof state.region === 'string') {
+      const hasOpt = Array.from(regionSelect.options).some(o => o.value === state.region);
+      if (hasOpt) regionSelect.value = state.region;
+    }
+    if (state && Array.isArray(state.sectors)) applyPillState(sectorPills, state.sectors);
+    if (state && Array.isArray(state.sourceTypes)) applyPillState(sourcePills, state.sourceTypes);
+  } catch { /* ignore */ }
+}
+
+// Restore before wiring click listeners so the initial fetch uses saved state
+restoreFilters();
+
 initPills(sectorPills);
 initPills(sourcePills);
 
@@ -657,6 +698,7 @@ function updateFiltersSummary() {
 }
 
 function handleFiltersChanged() {
+  saveFilters();
   updateFiltersSummary();
   updateActiveFiltersBadge();
   updatePendingState();
@@ -1625,6 +1667,10 @@ async function fetchBriefing(article, container) {
     html += '</div>';
     container.innerHTML = html;
 
+    // Show the one-time annotate onboarding hint on the first briefing
+    // the user sees (dismissable; never shown again after dismissed).
+    maybeShowAnnotateHint(container);
+
     // Auto-highlight terms when annotate mode is on
     if (isAnnotateActive()) {
       highlightTermsInElement(container);
@@ -1717,6 +1763,63 @@ const ANNOTATE_TERMS = [
 
 function isAnnotateActive() {
   return annotateToggle && annotateToggle.checked;
+}
+
+// ── Annotate onboarding (first-use hint + NEW badge) ──────────
+const ANNOTATE_HINT_DISMISSED_KEY = 'geosignal_annotate_hint_dismissed';
+const ANNOTATE_USED_KEY = 'geosignal_annotate_used';
+
+function isAnnotateHintDismissed() {
+  return localStorage.getItem(ANNOTATE_HINT_DISMISSED_KEY) === 'true';
+}
+
+function markAnnotateHintDismissed() {
+  localStorage.setItem(ANNOTATE_HINT_DISMISSED_KEY, 'true');
+}
+
+function hasUsedAnnotate() {
+  return localStorage.getItem(ANNOTATE_USED_KEY) === 'true';
+}
+
+function markAnnotateUsed() {
+  if (hasUsedAnnotate()) return;
+  localStorage.setItem(ANNOTATE_USED_KEY, 'true');
+  const toggleEl = document.querySelector('.annotate-toggle');
+  if (toggleEl) toggleEl.classList.remove('has-new-indicator');
+}
+
+// Show the "NEW" indicator on the annotate toggle for users who
+// haven't used it yet.
+(function initAnnotateIndicator() {
+  if (hasUsedAnnotate()) return;
+  const toggleEl = document.querySelector('.annotate-toggle');
+  if (toggleEl) toggleEl.classList.add('has-new-indicator');
+})();
+
+// Inject a one-time in-briefing hint pointing out the annotate feature
+function maybeShowAnnotateHint(container) {
+  if (!container) return;
+  if (isAnnotateHintDismissed()) return;
+  if (container.querySelector('.annotate-hint')) return; // already shown in this briefing
+
+  const hint = document.createElement('div');
+  hint.className = 'annotate-hint';
+  hint.innerHTML =
+    '<span class="annotate-hint-icon" aria-hidden="true">i</span>' +
+    '<div class="annotate-hint-body">' +
+      '<strong>Tip:</strong> highlight any word or phrase for an instant plain-English explanation.' +
+    '</div>' +
+    '<button class="annotate-hint-dismiss" type="button" aria-label="Dismiss tip">&times;</button>';
+
+  // Insert as the very first child of the briefing content block
+  const content = container.querySelector('.briefing-content') || container;
+  content.insertBefore(hint, content.firstChild);
+
+  hint.querySelector('.annotate-hint-dismiss').addEventListener('click', (e) => {
+    e.stopPropagation();
+    markAnnotateHintDismissed();
+    hint.remove();
+  });
 }
 
 function hideAnnotatePopup() {
@@ -1820,6 +1923,8 @@ function removeHighlightsFromElement(el) {
 
 // When annotate toggle changes, highlight/unhighlight all open briefings + cross-sector
 annotateToggle.addEventListener('change', () => {
+  // Any interaction with the toggle counts as "used" for onboarding purposes
+  markAnnotateUsed();
   const targets = [
     ...document.querySelectorAll('.briefing'),
     ...document.querySelectorAll('.cross-sector-bubble')
@@ -1838,6 +1943,7 @@ document.addEventListener('click', (e) => {
   if (!keyword || !isAnnotateActive()) return;
 
   e.stopPropagation();
+  markAnnotateUsed();
   const term = keyword.dataset.term || keyword.textContent;
   const { headline, briefingText } = getBriefingContext(keyword);
   const rect = keyword.getBoundingClientRect();
@@ -1860,6 +1966,7 @@ document.addEventListener('mouseup', (e) => {
   const parentEl = anchorNode.parentElement || anchorNode;
   if (!parentEl.closest('.briefing') && !parentEl.closest('.impact-section') && !parentEl.closest('.sentiment-section') && !parentEl.closest('.cross-sector-bubble')) return;
 
+  markAnnotateUsed();
   const { headline, briefingText } = getBriefingContext(anchorNode);
   explainTerm(term, headline, briefingText, e.clientX, e.clientY);
 });

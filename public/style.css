@@ -571,6 +571,101 @@ h1 {
   font-weight: 600;
 }
 
+/* "NEW" badge + pulsing ring on the annotate toggle — shown to
+   first-time users until they use the feature once. */
+.annotate-toggle.has-new-indicator {
+  position: relative;
+  box-shadow: 0 0 0 0 rgba(232, 118, 58, 0.55);
+  animation: annotate-toggle-pulse 2s ease-in-out infinite;
+}
+
+.annotate-toggle.has-new-indicator::after {
+  content: 'NEW';
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  font-family: var(--sans);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  color: #FFFFFF;
+  background: #E8763A;
+  padding: 2px 6px;
+  border-radius: 999px;
+  box-shadow: 0 1px 3px rgba(232, 118, 58, 0.45);
+  pointer-events: none;
+}
+
+@keyframes annotate-toggle-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(232, 118, 58, 0.45); }
+  50%      { box-shadow: 0 0 0 6px rgba(232, 118, 58, 0); }
+}
+
+/* First-use annotation hint banner — appears inside a briefing */
+.annotate-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px 12px 16px;
+  margin-bottom: 16px;
+  background: linear-gradient(to right, rgba(232, 118, 58, 0.10), rgba(232, 118, 58, 0.04));
+  border: 1px dashed rgba(232, 118, 58, 0.5);
+  border-radius: 10px;
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.5;
+  animation: annotate-hint-in 0.35s ease;
+}
+
+@keyframes annotate-hint-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.annotate-hint-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #E8763A;
+  color: #FFFFFF;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 800;
+  font-family: var(--serif);
+  margin-top: 1px;
+}
+
+.annotate-hint-body {
+  flex: 1;
+  color: var(--text-secondary);
+}
+
+.annotate-hint-body strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.annotate-hint-dismiss {
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 6px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.annotate-hint-dismiss:hover {
+  color: var(--text-primary);
+  background: rgba(0, 0, 0, 0.04);
+}
+
 /* Annotate Popup — warm editorial tooltip */
 .annotate-popup {
   display: none;
