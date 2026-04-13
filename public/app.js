@@ -1133,7 +1133,6 @@ async function fetchStories() {
           '<div class="empty-feed">' +
             'No articles in GeoSignal\u2019s sources match &ldquo;' + escapeHtml(q) + '&rdquo; right now.<br><br>' +
             '<button id="web-search-fallback-btn" class="btn-primary" type="button">Search the web for &ldquo;' + escapeHtml(q) + '&rdquo;</button>' +
-            '<div style="margin-top:10px;font-size:12px;color:var(--text-tertiary)">Uses Perplexity to find recent articles across the open web.</div>' +
           '</div>';
         const btn = document.getElementById('web-search-fallback-btn');
         if (btn) btn.addEventListener('click', () => runWebSearch(q));

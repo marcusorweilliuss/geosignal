@@ -1536,7 +1536,7 @@ app.post('/api/web-search', async (req, res) => {
     }
     if (!PERPLEXITY_API_KEY) {
       return res.status(503).json({
-        error: 'Web search is not configured. Set PERPLEXITY_API_KEY in .env.'
+        error: 'Web search is not available right now. Please try again later.'
       });
     }
 
