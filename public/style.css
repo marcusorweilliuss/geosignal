@@ -252,6 +252,74 @@ h1 {
   50% { opacity: 0.65; box-shadow: 0 0 0 5px rgba(15, 110, 86, 0); }
 }
 
+/* Intro hero — explains what GeoSignal is on arrival */
+.intro-hero {
+  max-width: 740px;
+  margin: -4px auto 44px;
+  padding: 0 8px;
+  text-align: center;
+}
+
+.intro-hero-headline {
+  font-family: var(--serif);
+  font-size: 30px;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.2;
+  letter-spacing: -0.4px;
+  margin: 0 0 12px;
+}
+
+.intro-hero-subline {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 16.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin: 0 auto;
+  max-width: 640px;
+}
+
+@media (max-width: 720px) {
+  .intro-hero { margin-bottom: 28px; }
+  .intro-hero-headline { font-size: 24px; }
+  .intro-hero-subline { font-size: 15px; }
+}
+
+/* Filter footer — holds the Clear all link */
+.filter-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+  margin-top: 6px;
+  border-top: 1px dashed var(--border);
+}
+
+.clear-all-filters {
+  display: none;
+  background: transparent;
+  border: none;
+  padding: 6px 2px;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  letter-spacing: 0.2px;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.clear-all-filters.visible { display: inline-block; }
+
+.clear-all-filters:hover {
+  color: var(--red, #B54534);
+  text-decoration-style: solid;
+}
+
 /* Icon buttons — warm, tactile */
 .icon-btn {
   display: flex;
@@ -378,39 +446,6 @@ h1 {
 }
 
 /* Active filters badge — sits in the control bar */
-.active-filters-badge {
-  display: none;
-  align-items: center;
-  gap: 6px;
-  padding: 0 12px;
-  font-family: var(--sans);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.2px;
-  color: var(--accent);
-  background: var(--accent-dim);
-  border: 1px solid var(--accent-soft);
-  border-radius: 12px;
-  white-space: nowrap;
-  align-self: stretch;
-}
-
-.active-filters-badge.visible { display: inline-flex; }
-
-.active-filters-badge-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  background: var(--accent);
-  color: #FFFFFF;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
-}
-
 .refresh-btn:active {
   transform: translateY(0);
 }

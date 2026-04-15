@@ -658,10 +658,8 @@ filtersToggle.addEventListener('click', () => {
 // highlight the Apply button whenever filters are dirty.
 let lastAppliedFilters = null;
 
-const activeFiltersBadge = document.getElementById('active-filters-badge');
-const activeFiltersBadgeCount = document.getElementById('active-filters-badge-count');
-const activeFiltersBadgeText = document.getElementById('active-filters-badge-text');
 const refreshBtnLabel = document.getElementById('refresh-btn-label');
+const clearAllFiltersBtn = document.getElementById('clear-all-filters');
 
 function snapshotFilterState() {
   return {
@@ -692,15 +690,30 @@ function countActiveFilters() {
   return count;
 }
 
-function updateActiveFiltersBadge() {
-  const count = countActiveFilters();
-  if (count === 0) {
-    activeFiltersBadge.classList.remove('visible');
-    return;
+function updateClearAllVisibility() {
+  if (!clearAllFiltersBtn) return;
+  const anyActive = countActiveFilters() > 0;
+  clearAllFiltersBtn.classList.toggle('visible', anyActive);
+}
+
+function clearAllFilters() {
+  // Reset region to default
+  if (regionSelect) regionSelect.value = 'Global';
+  // Deselect every pill in every group
+  [sectorPills, sourcePills, articleTypePills].forEach(group => {
+    if (!group) return;
+    group.querySelectorAll('.pill.active').forEach(p => p.classList.remove('active'));
+  });
+  // Clear text-based filters
+  if (locationsInput) locationsInput.value = '';
+  if (searchInput) {
+    searchInput.value = '';
+    if (searchClear) searchClear.style.display = 'none';
   }
-  activeFiltersBadge.classList.add('visible');
-  activeFiltersBadgeCount.textContent = String(count);
-  activeFiltersBadgeText.textContent = count === 1 ? 'filter active' : 'filters active';
+  // Wipe persisted filters so the next page load starts fresh too
+  try { localStorage.removeItem(FILTERS_KEY); } catch {}
+  // Update UI state without fetching — user still has to press Apply
+  handleFiltersChanged();
 }
 
 function updatePendingState() {
@@ -766,11 +779,11 @@ function updateFiltersSummary() {
 function handleFiltersChanged() {
   saveFilters();
   updateFiltersSummary();
-  updateActiveFiltersBadge();
+  updateClearAllVisibility();
   updatePendingState();
 }
 
-// Update summary/badge/pending state whenever filters change
+// Update summary / clear-all visibility / pending state whenever filters change
 regionSelect.addEventListener('change', handleFiltersChanged);
 sectorPills.addEventListener('click', (e) => { if (e.target.classList.contains('pill')) setTimeout(handleFiltersChanged, 0); });
 sourcePills.addEventListener('click', (e) => { if (e.target.classList.contains('pill')) setTimeout(handleFiltersChanged, 0); });
@@ -780,10 +793,13 @@ if (articleTypePills) {
   });
 }
 if (searchInput) {
-  searchInput.addEventListener('input', () => { updateActiveFiltersBadge(); updatePendingState(); });
+  searchInput.addEventListener('input', () => { updateClearAllVisibility(); updatePendingState(); });
 }
 if (locationsInput) {
   locationsInput.addEventListener('input', () => setTimeout(handleFiltersChanged, 0));
+}
+if (clearAllFiltersBtn) {
+  clearAllFiltersBtn.addEventListener('click', clearAllFilters);
 }
 handleFiltersChanged();
 

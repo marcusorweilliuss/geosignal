@@ -80,6 +80,11 @@
       </div>
     </header>
 
+    <section class="intro-hero" aria-label="What GeoSignal does">
+      <h2 class="intro-hero-headline">Make sense of the world, on your terms.</h2>
+      <p class="intro-hero-subline">GeoSignal distils every story into a structured intelligence briefing &mdash; the facts, the context, and what it actually means for your role.</p>
+    </section>
+
     <div class="control-bar">
       <div class="search-bar">
         <svg class="search-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -96,11 +101,6 @@
         </svg>
         <span id="filters-summary">Global</span>
       </button>
-
-      <span class="active-filters-badge" id="active-filters-badge" aria-live="polite">
-        <span class="active-filters-badge-count" id="active-filters-badge-count">0</span>
-        <span id="active-filters-badge-text">filters active</span>
-      </span>
 
       <button id="refresh-btn" class="refresh-btn" type="button" title="Click to load articles based on your current filter selections. Do not use your browser's refresh button — that will reset your filters.">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -170,6 +170,12 @@
           <button class="pill active" data-value="Analysis" title="Analysis — explainers, features, and think-tank research that interpret events rather than just report them.">Analysis</button>
           <button class="pill" data-value="Opinion" title="Opinion &amp; op-ed — editorials and columns. Arguments and personal viewpoints, not reporting. Off by default.">Opinion / Op-ed</button>
         </div>
+      </div>
+
+      <div class="filter-footer">
+        <button class="clear-all-filters" id="clear-all-filters" type="button" title="Reset every filter to an empty state. You'll still need to press Apply to fetch.">
+          Clear all
+        </button>
       </div>
       </div>
     </div>
