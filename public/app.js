@@ -129,7 +129,15 @@ function getProfile() {
 
 function isProfileSet() {
   const p = getProfile();
-  return !!(p && p.role && p.role.trim());
+  if (!p) return false;
+  // Any filled field counts as "profile set" — role is no longer required.
+  return !!(
+    (p.role && String(p.role).trim()) ||
+    (p.location && String(p.location).trim()) ||
+    (p.focus && String(p.focus).trim()) ||
+    (p.company && String(p.company).trim()) ||
+    (Array.isArray(p.industries) && p.industries.length > 0)
+  );
 }
 
 function saveProfile(profile) {
@@ -470,9 +478,15 @@ function handleProfileSaved(source) {
 if (welcomeSaveBtn) {
   welcomeSaveBtn.addEventListener('click', () => {
     const data = readProfileFromForm(welcomeFormMount, 'welcome');
-    if (!data.role.trim()) {
-      const roleInput = welcomeFormMount.querySelector('#welcome-role');
-      if (roleInput) roleInput.focus();
+    // All fields are optional — at least one field filled is enough.
+    const anyFilled = data.role.trim() || data.location.trim() ||
+      data.focus.trim() || data.company.trim() ||
+      (Array.isArray(data.industries) && data.industries.length > 0);
+    if (!anyFilled) {
+      // Nothing at all was entered; treat as Skip.
+      localStorage.setItem('geosignal_profile_skipped', 'true');
+      hideWelcomeModal();
+      showBanner();
       return;
     }
     saveProfile(data);
@@ -494,6 +508,20 @@ profileBtn.addEventListener('click', () => openProfilePanel());
 if (profilePanelClose) profilePanelClose.addEventListener('click', closeProfilePanel);
 if (profilePanelOverlay) profilePanelOverlay.addEventListener('click', closeProfilePanel);
 
+const profilePanelSkipBtn = document.getElementById('profile-panel-skip');
+if (profilePanelSkipBtn) {
+  profilePanelSkipBtn.addEventListener('click', () => {
+    // Skip: close the panel without saving. If the user has never
+    // saved a profile before, also set the skipped flag so the
+    // banner appears — same behaviour as the welcome modal's skip.
+    if (!isProfileSet()) {
+      localStorage.setItem('geosignal_profile_skipped', 'true');
+      showBanner();
+    }
+    closeProfilePanel();
+  });
+}
+
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     if (profilePanel.classList.contains('visible')) closeProfilePanel();
@@ -503,7 +531,11 @@ document.addEventListener('keydown', (e) => {
 if (profileSave) {
   profileSave.addEventListener('click', () => {
     const data = readProfileFromForm(profileFormMount, 'profile');
-    if (!data.role.trim()) {
+    // Every field is optional — allow saving as long as SOMETHING is set.
+    const anyFilled = data.role.trim() || data.location.trim() ||
+      data.focus.trim() || data.company.trim() ||
+      (Array.isArray(data.industries) && data.industries.length > 0);
+    if (!anyFilled) {
       const roleInput = profileFormMount.querySelector('#profile-role');
       if (roleInput) roleInput.focus();
       return;
@@ -660,6 +692,9 @@ let lastAppliedFilters = null;
 
 const refreshBtnLabel = document.getElementById('refresh-btn-label');
 const clearAllFiltersBtn = document.getElementById('clear-all-filters');
+const stickyApplyBar = document.getElementById('sticky-apply-bar');
+const stickyApplyBtn = document.getElementById('sticky-apply-btn');
+const stickyApplyClear = document.getElementById('sticky-apply-clear');
 
 function snapshotFilterState() {
   return {
@@ -740,6 +775,12 @@ function updatePendingState() {
     refreshBtn.setAttribute('title',
       "Click to load articles based on your current filter selections. Do not use your browser's refresh button — that will reset your filters.");
   }
+
+  // Mirror the dirty state into the sticky bottom bar so users don't
+  // have to scroll up to hit Apply.
+  if (stickyApplyBar) {
+    stickyApplyBar.classList.toggle('visible', !!isDirty);
+  }
 }
 
 function markFiltersApplied() {
@@ -800,6 +841,12 @@ if (locationsInput) {
 }
 if (clearAllFiltersBtn) {
   clearAllFiltersBtn.addEventListener('click', clearAllFilters);
+}
+if (stickyApplyBtn) {
+  stickyApplyBtn.addEventListener('click', fetchStories);
+}
+if (stickyApplyClear) {
+  stickyApplyClear.addEventListener('click', clearAllFilters);
 }
 handleFiltersChanged();
 
@@ -1083,6 +1130,7 @@ async function runWebSearch(query) {
     feed.innerHTML = '<div class="empty-feed">Couldn\u2019t reach the web-search service. Try again in a moment.</div>';
   } finally {
     if (refreshBtn) refreshBtn.classList.remove('is-loading');
+    if (stickyApplyBtn) stickyApplyBtn.classList.remove('is-loading');
   }
 }
 
@@ -1112,6 +1160,7 @@ async function fetchStories() {
   feedTimestamp.textContent = '';
 
   if (refreshBtn) refreshBtn.classList.add('is-loading');
+  if (stickyApplyBtn) stickyApplyBtn.classList.add('is-loading');
   if (refreshConfirmation) refreshConfirmation.classList.remove('visible');
 
   try {
@@ -1185,6 +1234,7 @@ async function fetchStories() {
     feed.innerHTML = '<div class="empty-feed">Couldn\u2019t reach the feed. Check your connection and try again.</div>';
   } finally {
     if (refreshBtn) refreshBtn.classList.remove('is-loading');
+    if (stickyApplyBtn) stickyApplyBtn.classList.remove('is-loading');
   }
 }
 
@@ -1203,8 +1253,9 @@ async function fetchCrossSectorInsights(articles, profile, region) {
     '<div class="cross-sector-bubble loading">' +
       '<div class="cross-sector-header">' +
         '<span class="cross-sector-icon">&#9670;</span>' +
-        '<span class="cross-sector-title">Related impacts across sectors</span>' +
+        '<span class="cross-sector-title">Cross-sector signals</span>' +
       '</div>' +
+      '<div class="cross-sector-description">How this story connects to other sectors and areas beyond its primary topic.</div>' +
       '<div class="cross-sector-loading"><div class="spinner"></div><span>Reading across the day\u2019s stories&hellip;</span></div>' +
     '</div>';
 
@@ -1246,15 +1297,14 @@ async function fetchCrossSectorInsights(articles, profile, region) {
       }
     };
 
-    const count = data.insights.length;
     let html =
       '<div class="cross-sector-bubble collapsed">' +
         '<button class="cross-sector-header" type="button" onclick="this.parentElement.classList.toggle(\'collapsed\')">' +
           '<span class="cross-sector-icon">&#9670;</span>' +
-          '<span class="cross-sector-title">Related impacts across sectors</span>' +
-          '<span class="cross-sector-subtitle">' + count + ' pattern' + (count > 1 ? 's' : '') + ' detected — click to expand</span>' +
+          '<span class="cross-sector-title">Cross-sector signals</span>' +
           '<svg class="cross-sector-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 5l3 3 3-3"/></svg>' +
         '</button>' +
+        '<div class="cross-sector-description">How this story connects to other sectors and areas beyond its primary topic.</div>' +
         '<div class="cross-sector-body">';
 
     data.insights.forEach(insight => {
@@ -1352,7 +1402,10 @@ async function generateTldrs(articles) {
 async function fetchImpact(article, container) {
   const profile = getProfile();
 
-  if (!profile || !profile.role) {
+  // Show the empty state only when NO profile fields are set. If the
+  // user has filled any field (role, sectors, company, location, or
+  // focus), the server can still produce a useful impact analysis.
+  if (!isProfileSet()) {
     container.innerHTML =
       '<div class="impact-section impact-empty">' +
         '<div class="impact-header"><span class="impact-title">How This Impacts You</span></div>' +

@@ -235,13 +235,34 @@
     <div class="profile-panel-inline-success" id="profile-panel-success" aria-live="polite"></div>
 
     <div class="profile-panel-footer">
-      <button class="btn-secondary" id="profile-clear" type="button">Clear profile</button>
-      <button class="btn-primary" id="profile-save" type="button">Save profile</button>
+      <div class="profile-panel-footer-row">
+        <button class="btn-secondary" id="profile-clear" type="button">Clear profile</button>
+        <button class="btn-primary" id="profile-save" type="button">Save profile</button>
+      </div>
+      <button class="profile-skip-link" id="profile-panel-skip" type="button" title="Close without saving">Skip for now</button>
     </div>
   </aside>
 
   <!-- Toast container (success messages + nudges) -->
   <div class="toast-container" id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Sticky Apply bar — appears when filters are dirty so users don't
+       have to scroll back up to hit Apply. Hides after results load. -->
+  <div class="sticky-apply-bar" id="sticky-apply-bar" aria-live="polite">
+    <div class="sticky-apply-bar-inner">
+      <span class="sticky-apply-bar-hint">You have unapplied filter changes</span>
+      <div class="sticky-apply-bar-actions">
+        <button class="sticky-apply-clear" id="sticky-apply-clear" type="button">Clear all</button>
+        <button class="sticky-apply-btn" id="sticky-apply-btn" type="button">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2 8.5a6 6 0 1 1 1.3 3.8"/>
+            <path d="M1.5 4v3.5H5"/>
+          </svg>
+          <span>Apply filters</span>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <div class="annotate-popup" id="annotate-popup">
     <button class="annotate-popup-close" id="annotate-popup-close">&times;</button>

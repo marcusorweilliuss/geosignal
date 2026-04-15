@@ -1025,7 +1025,7 @@ async function generateImpactWithPerplexity({ title, source, articleContent, pro
     });
   }
 
-  const systemPrompt = "You are a senior intelligence analyst writing personalised impact briefings for a specific professional. You produce SHORT, BULLETED output — never prose, never essays. Every bullet must contain a concrete mechanism, named actor, number, or date. No filler, no hedges, no generic 'this could affect your industry' language. You have access to real-time information; use it to ground claims in specific recent context.";
+  const systemPrompt = "You are a senior intelligence analyst writing personalised impact briefings for a specific professional. You produce SHORT, BULLETED output — never prose, never essays. Every bullet must contain a concrete mechanism, named actor, number, or date. No filler, no hedges, no generic 'this could affect your industry' language. If the reader's role is unusual, non-standard, or simply says 'Professional', base the analysis on their industry, company, location, and focus areas instead — never refuse to produce an analysis just because the role is unfamiliar. You have access to real-time information; use it to ground claims in specific recent context.";
 
   const userPrompt = `Assess how this news story specifically impacts the reader below. Be direct and specific to their role, industry, company (if given), and location. When a Company is listed, reason about that specific company's operations, revenue, regulatory exposure, or competitive position — grounded in the article or well-known public information, never fabricated details.
 
@@ -1120,7 +1120,7 @@ async function generateImpactWithGroq({ title, source, articleContent, profile, 
   expertArticles.forEach(ea => citationTags.push(`[${ea.source}]`));
   const citationList = citationTags.join(', ');
 
-  const prompt = `You are an analyst producing a tight, bulleted impact briefing. Every bullet must contain a concrete mechanism, named actor, number, or date. No filler, no hedges.
+  const prompt = `You are an analyst producing a tight, bulleted impact briefing. Every bullet must contain a concrete mechanism, named actor, number, or date. No filler, no hedges. If the reader's role is unusual or just says "Professional", base the analysis on their industry, company, location, and focus areas — never refuse to produce an analysis just because the role is unfamiliar.
 
 PROFILE: ${profileDesc}
 ARTICLE: ${title} (${source})
@@ -1166,8 +1166,21 @@ app.post('/api/impact', async (req, res) => {
   try {
     const { title, source, description, content, profile, url, region } = req.body;
 
-    if (!profile || !profile.role) {
+    if (!profile) {
       return res.status(400).json({ error: 'Profile required' });
+    }
+    // Role is optional. If the user left role blank or typed something
+    // nonsensical, we still want to produce a useful impact analysis
+    // based on whatever other fields they did fill in. Fall back to a
+    // generic "Professional" label so the prompt always has a subject.
+    const hasAnyField = profile.role || profile.industry ||
+      profile.company || profile.location || profile.focus ||
+      (Array.isArray(profile.industries) && profile.industries.length > 0);
+    if (!hasAnyField) {
+      return res.status(400).json({ error: 'Profile has no usable fields' });
+    }
+    if (!profile.role || !String(profile.role).trim()) {
+      profile = { ...profile, role: 'Professional' };
     }
 
     const profileHash = hashString(JSON.stringify({

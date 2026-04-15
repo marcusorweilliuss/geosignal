@@ -320,6 +320,115 @@ h1 {
   text-decoration-style: solid;
 }
 
+/* Sticky Apply bar — fixed at the bottom of the viewport, visible
+   only while filter state is dirty. Gives the user a one-click exit
+   from wherever they've scrolled to. */
+.sticky-apply-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 900;
+  padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+  background: rgba(250, 248, 245, 0.96);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border-strong);
+  box-shadow: 0 -8px 24px rgba(28, 25, 23, 0.08);
+  transform: translateY(120%);
+  transition: transform 0.28s cubic-bezier(0.2, 0, 0, 1);
+  pointer-events: none;
+}
+
+.sticky-apply-bar.visible {
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.sticky-apply-bar-inner {
+  max-width: 880px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.sticky-apply-bar-hint {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: #C4581F;
+}
+
+.sticky-apply-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sticky-apply-clear {
+  background: transparent;
+  border: none;
+  padding: 8px 6px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  letter-spacing: 0.2px;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.sticky-apply-clear:hover {
+  color: var(--red, #B54534);
+  text-decoration-style: solid;
+}
+
+.sticky-apply-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #C86A2C;
+  color: #FFFFFF;
+  border: 1px solid #C86A2C;
+  border-radius: 10px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 8px rgba(200, 106, 44, 0.28);
+}
+
+.sticky-apply-btn:hover {
+  background: #A8521E;
+  border-color: #A8521E;
+  transform: translateY(-1px);
+}
+
+.sticky-apply-btn:active { transform: translateY(0); }
+
+.sticky-apply-btn.is-loading { opacity: 0.75; cursor: progress; }
+.sticky-apply-btn.is-loading svg { animation: refresh-spin 0.9s linear infinite; }
+
+@media (max-width: 640px) {
+  .sticky-apply-bar-inner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .sticky-apply-bar-hint { text-align: center; }
+  .sticky-apply-bar-actions { justify-content: space-between; }
+  .sticky-apply-btn { flex: 1; justify-content: center; }
+}
+
 /* Icon buttons — warm, tactile */
 .icon-btn {
   display: flex;
@@ -1384,6 +1493,17 @@ select:focus {
   font-size: 12px;
   color: var(--text-tertiary);
   font-weight: 400;
+}
+
+/* Always-visible explanatory subtext below the cross-sector header */
+.cross-sector-description {
+  padding: 6px 24px 14px;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+  font-weight: 400;
+  line-height: 1.5;
+  border-bottom: 1px solid var(--border);
 }
 
 .cross-sector-loading {
@@ -3092,12 +3212,41 @@ select:focus {
 .profile-panel-inline-success.visible { display: block; }
 
 .profile-panel-footer {
-  padding: 16px 28px 22px;
+  padding: 16px 28px 18px;
   border-top: 1px solid var(--border);
   background: var(--bg-primary);
   display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profile-panel-footer-row {
+  display: flex;
   justify-content: space-between;
   gap: 12px;
+}
+
+.profile-skip-link {
+  align-self: center;
+  background: transparent;
+  border: none;
+  padding: 6px 10px 4px;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  letter-spacing: 0.2px;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.profile-skip-link:hover {
+  color: var(--text-secondary);
+  text-decoration-style: solid;
 }
 
 /* ── Sector checkbox group (multi-select) ── */
