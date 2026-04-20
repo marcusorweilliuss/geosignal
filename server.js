@@ -4,7 +4,7 @@ const fetch = require('node-fetch');
 const Groq = require('groq-sdk');
 const Parser = require('rss-parser');
 
-const { SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT, classifyArticleType, extractPrimaryCountry, getSourceDescription } = require('./sources');
+const { SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT, classifyArticleType, extractPrimaryCountry, getSourceDescription, SECTOR_KEYWORDS } = require('./sources');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -472,7 +472,7 @@ const regionSlugMap = {
 
 app.get('/api/news', async (req, res) => {
   try {
-    const { region, sectors, sourceTypes, profile: profileStr, search, articleTypes, locations } = req.query;
+    const { region, sectors, sourceTypes, profile: profileStr, search, articleTypes, locations, keywords } = req.query;
     const regionSlug = regionSlugMap[region] || 'global';
     const typeList = sourceTypes ? sourceTypes.split(',') : ['Mainstream news', 'Independent journalism', 'Think tanks & academic'];
     const activeSectors = sectors ? sectors.split(',') : [];
@@ -484,6 +484,11 @@ app.get('/api/news', async (req, res) => {
     // must mention at least one (case-insensitive) in title or description.
     const locationTerms = locations
       ? locations.split(',').map(s => s.trim().toLowerCase()).filter(s => s.length > 1)
+      : [];
+    // Free-text keyword filter — comma-separated terms. Articles mentioning
+    // any term are boosted (heavily in title, softly in description).
+    const keywordTerms = keywords
+      ? keywords.split(',').map(s => s.trim().toLowerCase()).filter(s => s.length > 1)
       : [];
 
     // Get filtered sources from registry
@@ -554,14 +559,24 @@ app.get('/api/news', async (req, res) => {
     }
 
     // Apply sector filter — article must match at least one active sector's keywords
-    if (activeSectors.length > 0 && activeSectors.length < 8) {
-      // Build keyword list from only the active sectors
-      const { SECTOR_KEYWORDS: sectorKw } = require('./sources');
+    // When every sector is selected we skip the filter (nothing to narrow);
+    // otherwise require at least one sector-keyword match. Total-sector
+    // count is tracked dynamically so adding new sectors doesn't require
+    // touching the server.
+    const totalSectorCount = Object.keys(SECTOR_KEYWORDS || {}).length;
+    if (activeSectors.length > 0 && activeSectors.length < totalSectorCount) {
+      // Build keyword list from only the active sectors. Sectors the
+      // user typed as free-text ("Other" entries) have no pre-defined
+      // keyword list, so we treat the sector label itself as the
+      // match term.
       const activeSectorKeywords = activeSectors
-        .map(s => sectorKw[s])
-        .filter(Boolean)
-        .flat()
-        .map(k => k.toLowerCase());
+        .flatMap(s => {
+          const list = SECTOR_KEYWORDS[s];
+          if (Array.isArray(list) && list.length) return list;
+          return [s]; // custom sector: literal match
+        })
+        .map(k => String(k || '').toLowerCase())
+        .filter(Boolean);
 
       if (activeSectorKeywords.length > 0) {
         unique = unique.filter(a => {
@@ -583,6 +598,16 @@ app.get('/api/news', async (req, res) => {
         const titleLower = (a.title || '').toLowerCase();
         const titleHit = locationTerms.some(term => titleLower.includes(term));
         if (titleHit) a.score += 15;
+      }
+      if (keywordTerms.length > 0) {
+        const titleLower = (a.title || '').toLowerCase();
+        const descLower = (a.description || '').toLowerCase();
+        let kwBoost = 0;
+        for (const term of keywordTerms) {
+          if (titleLower.includes(term)) kwBoost += 20;
+          else if (descLower.includes(term)) kwBoost += 8;
+        }
+        a.score += Math.min(kwBoost, 50);
       }
     });
     // Remove junk articles (score -1)
@@ -824,19 +849,57 @@ HARD RULES:
     `${expertsLabel}:\n${bulletify(whatExperts)}\n\n` +
     `WHY THIS MATTERS:\n${bulletify(whyMatters)}`;
 
-  // Perplexity returns a `citations` array of URLs (and/or a search_results
-  // array). Map them to numeric citation tags ([1], [2], ...) so they
-  // render as clickable chips on the frontend.
-  const citations = Array.isArray(completion.citations)
+  // Perplexity returns a `search_results` array (objects with title + url +
+  // date) and/or a `citations` array of URL strings. Prefer search_results
+  // because it gives us titles. Map them to numeric tags [1], [2], ... so
+  // inline numeric citations become clickable chips on the frontend.
+  const searchResults = Array.isArray(completion.search_results)
+    ? completion.search_results
+    : [];
+  const citationUrls = Array.isArray(completion.citations)
     ? completion.citations
-    : (Array.isArray(completion.search_results) ? completion.search_results.map(r => r.url).filter(Boolean) : []);
+    : searchResults.map(r => r && r.url).filter(Boolean);
 
   const citationMap = { 'Article': articleUrl || '' };
-  citations.forEach((url, i) => {
+  citationUrls.forEach((url, i) => {
     if (url && typeof url === 'string') citationMap[String(i + 1)] = url;
   });
 
-  return { briefing: briefingText, citationMap, citations };
+  // Build the richer "sources referenced" list the client renders.
+  // For each numeric citation, we want a publication name, article
+  // title (if known), and the URL.
+  const sourcesList = citationUrls.map((url, i) => {
+    const match = searchResults.find(r => r && r.url === url) ||
+                  searchResults[i] || null;
+    const title = (match && match.title) ? String(match.title) : '';
+    const publication = prettyPublicationName(url) || title || ('Source ' + (i + 1));
+    return {
+      publication,
+      title: title || 'Article',
+      url
+    };
+  });
+
+  return { briefing: briefingText, citationMap, citations: citationUrls, sourcesList };
+}
+
+// Derives a friendly publication name from a URL's hostname.
+// "https://www.ft.com/content/abc" → "ft.com"
+// "https://www.reuters.com/world/..." → "reuters.com"
+// Falls back to empty string for garbage input.
+function prettyPublicationName(url) {
+  if (!url || typeof url !== 'string') return '';
+  try {
+    const u = new URL(url);
+    let host = u.hostname || '';
+    host = host.replace(/^www\./, '');
+    // Strip an obvious "news." / "m." subdomain for cleaner output,
+    // but leave brand-like subdomains (e.g. "theguardian.com").
+    host = host.replace(/^(m|mobile|news|edition|amp)\./, '');
+    return host;
+  } catch {
+    return '';
+  }
 }
 
 // ── Groq briefing generator (existing implementation, extracted) ─
@@ -954,12 +1017,15 @@ app.post('/api/briefing', async (req, res) => {
         });
         briefing = pplx.briefing;
         citationMap = pplx.citationMap;
-        // Map numeric Perplexity citations into expertSources for the
-        // frontend's "Sources referenced" chip list.
-        expertSourcesForResponse = (pplx.citations || []).map((u, i) => ({
-          title: `Source ${i + 1}`,
-          source: String(i + 1),
-          url: u
+        // Build the "Sources Referenced" list from Perplexity's
+        // search_results (title + url) with a friendly publication
+        // name derived from the URL hostname. Keeps numeric inline
+        // citations working while showing readable source names
+        // in the collapsible sources list.
+        expertSourcesForResponse = (pplx.sourcesList || []).map(s => ({
+          source: s.publication,
+          title: s.title || 'Article',
+          url: s.url
         }));
         usedPerplexity = true;
         source_provider = 'perplexity';

@@ -142,14 +142,27 @@
       <div class="filter-group">
         <label>Sectors</label>
         <div class="pill-group" id="sector-pills">
-          <button class="pill active" data-value="Geopolitics">Geopolitics</button>
-          <button class="pill active" data-value="Economy & Trade">Economy & Trade</button>
-          <button class="pill active" data-value="Technology & AI">Technology & AI</button>
-          <button class="pill active" data-value="Climate & Energy">Climate & Energy</button>
-          <button class="pill active" data-value="Defence & Security">Defence & Security</button>
-          <button class="pill active" data-value="Society & Culture">Society & Culture</button>
-          <button class="pill active" data-value="Space & Frontier">Space & Frontier</button>
-          <button class="pill active" data-value="Health & Biotech">Health & Biotech</button>
+          <button class="pill active" data-value="Geopolitics & International Relations">Geopolitics &amp; International Relations</button>
+          <button class="pill active" data-value="Economics & Trade">Economics &amp; Trade</button>
+          <button class="pill active" data-value="Technology & AI">Technology &amp; AI</button>
+          <button class="pill active" data-value="Climate & Environment">Climate &amp; Environment</button>
+          <button class="pill active" data-value="Energy & Resources">Energy &amp; Resources</button>
+          <button class="pill active" data-value="Defence & Security">Defence &amp; Security</button>
+          <button class="pill active" data-value="Finance & Markets">Finance &amp; Markets</button>
+          <button class="pill active" data-value="Public Policy & Governance">Public Policy &amp; Governance</button>
+          <button class="pill" data-value="Society & Culture">Society &amp; Culture</button>
+          <button class="pill" data-value="Health & Pandemic">Health &amp; Pandemic</button>
+          <button class="pill" data-value="Space & Frontier Tech">Space &amp; Frontier Tech</button>
+          <button class="pill" data-value="Media & Disinformation">Media &amp; Disinformation</button>
+          <button class="pill" data-value="Human Rights & Migration">Human Rights &amp; Migration</button>
+          <button class="pill" data-value="Legal & Regulatory">Legal &amp; Regulatory</button>
+          <button class="pill" data-value="Food & Agriculture">Food &amp; Agriculture</button>
+        </div>
+        <div class="sector-other-row">
+          <input type="text" id="sector-other-input" class="sector-other-input"
+                 placeholder="Other (type a custom sector and press Enter)..."
+                 autocomplete="off" />
+          <div class="sector-other-chips" id="sector-other-chips"></div>
         </div>
       </div>
 
@@ -170,6 +183,14 @@
           <button class="pill active" data-value="Analysis" title="Analysis — explainers, features, and think-tank research that interpret events rather than just report them.">Analysis</button>
           <button class="pill" data-value="Opinion" title="Opinion &amp; op-ed — editorials and columns. Arguments and personal viewpoints, not reporting. Off by default.">Opinion / Op-ed</button>
         </div>
+      </div>
+
+      <div class="filter-group">
+        <label>Keywords &amp; topics</label>
+        <input type="text" id="keywords-input" class="keyword-input"
+               placeholder="Type a keyword and press Enter or comma..." autocomplete="off" />
+        <div class="keyword-chips" id="keyword-chips"></div>
+        <button type="button" class="keyword-clear-all" id="keyword-clear-all">Clear all keywords</button>
       </div>
 
       <div class="filter-footer">

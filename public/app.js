@@ -4,6 +4,15 @@ const sectorPills = document.getElementById('sector-pills');
 const sourcePills = document.getElementById('source-pills');
 const articleTypePills = document.getElementById('article-type-pills');
 const locationsInput = document.getElementById('locations-input');
+const sectorOtherInput = document.getElementById('sector-other-input');
+const sectorOtherChips = document.getElementById('sector-other-chips');
+const keywordsInput = document.getElementById('keywords-input');
+const keywordChips = document.getElementById('keyword-chips');
+const keywordClearAll = document.getElementById('keyword-clear-all');
+
+// Live arrays — persisted as part of geosignal-filters on change.
+let customFilterSectors = [];
+let filterKeywords = [];
 const refreshBtn = document.getElementById('refresh-btn');
 const refreshConfirmation = document.getElementById('refresh-confirmation');
 let refreshConfirmationTimer = null;
@@ -109,10 +118,21 @@ const toastContainer = document.getElementById('toast-container');
 // ── Profile Management ──────────────────────────────────────────
 
 const SECTOR_OPTIONS = [
-  'Finance & Banking', 'Oil & Gas / Energy', 'Technology', 'Healthcare & Pharma',
-  'Defense & Aerospace', 'Real Estate', 'Agriculture & Food', 'Manufacturing',
-  'Logistics & Supply Chain', 'Media & Communications', 'Government & Public Sector',
-  'Education', 'Consulting', 'Legal', 'Retail & Consumer', 'General / Multiple'
+  'Geopolitics & International Relations',
+  'Economics & Trade',
+  'Technology & AI',
+  'Climate & Environment',
+  'Energy & Resources',
+  'Defence & Security',
+  'Finance & Markets',
+  'Public Policy & Governance',
+  'Society & Culture',
+  'Health & Pandemic',
+  'Space & Frontier Tech',
+  'Media & Disinformation',
+  'Human Rights & Migration',
+  'Legal & Regulatory',
+  'Food & Agriculture'
 ];
 
 function getProfile() {
@@ -136,7 +156,9 @@ function isProfileSet() {
     (p.location && String(p.location).trim()) ||
     (p.focus && String(p.focus).trim()) ||
     (p.company && String(p.company).trim()) ||
-    (Array.isArray(p.industries) && p.industries.length > 0)
+    (Array.isArray(p.industries) && p.industries.length > 0) ||
+    (Array.isArray(p.customSectors) && p.customSectors.length > 0) ||
+    (Array.isArray(p.keywords) && p.keywords.length > 0)
   );
 }
 
@@ -144,12 +166,15 @@ function saveProfile(profile) {
   const normalized = {
     role: (profile.role || '').trim(),
     industries: Array.isArray(profile.industries) ? profile.industries.filter(Boolean) : [],
+    customSectors: Array.isArray(profile.customSectors) ? profile.customSectors.filter(Boolean) : [],
+    keywords: Array.isArray(profile.keywords) ? profile.keywords.filter(Boolean) : [],
     company: (profile.company || '').trim(),
     location: (profile.location || '').trim(),
     focus: (profile.focus || '').trim()
   };
-  // Keep `industry` as a joined string for backward compatibility with server prompts
-  normalized.industry = normalized.industries.join(', ');
+  // Keep `industry` as a joined string (including custom sectors) for
+  // backward compatibility with server prompts that expect a scalar.
+  normalized.industry = [...normalized.industries, ...normalized.customSectors].join(', ');
   localStorage.setItem('geosignal-profile', JSON.stringify(normalized));
   localStorage.setItem('geosignal_profile_complete', 'true');
   localStorage.removeItem('geosignal_profile_skipped');
@@ -185,6 +210,12 @@ function renderProfileForm(mountEl, idPrefix) {
             <span>${s}</span>
           </label>`).join('')}
       </div>
+      <div class="sector-other-row">
+        <input type="text" id="${idPrefix}-sector-other" class="sector-other-input"
+               placeholder="Other (type a custom sector and press Enter)..."
+               autocomplete="off" />
+        <div class="sector-other-chips" id="${idPrefix}-sector-other-chips"></div>
+      </div>
     </div>
 
     <div class="form-group">
@@ -200,7 +231,16 @@ function renderProfileForm(mountEl, idPrefix) {
     </div>
 
     <div class="form-group">
-      <label for="${idPrefix}-focus">Key concerns / topics you track <span class="optional">(optional)</span></label>
+      <label>Keywords &amp; topics you track <span class="optional">(optional)</span></label>
+      <div class="keyword-input-row">
+        <input type="text" id="${idPrefix}-keywords-input" class="keyword-input"
+               placeholder="Type a keyword and press Enter or comma..." autocomplete="off" />
+      </div>
+      <div class="keyword-chips" id="${idPrefix}-keyword-chips"></div>
+    </div>
+
+    <div class="form-group">
+      <label for="${idPrefix}-focus">Key concerns / focus areas <span class="optional">(optional)</span></label>
       <input type="text" id="${idPrefix}-focus" data-field="focus"
              placeholder="e.g., supply chain risk, ESG, emerging markets..." autocomplete="off" />
     </div>
@@ -214,6 +254,89 @@ function renderProfileForm(mountEl, idPrefix) {
   mountEl.querySelectorAll(`#${idPrefix}-sectors input[data-sector]`).forEach(cb => {
     cb.checked = industries.includes(cb.value);
   });
+
+  // Wire the "Other" sector free-text — each term the user types
+  // becomes a chip and gets treated as a custom sector.
+  const customSectors = Array.isArray(profile.customSectors)
+    ? profile.customSectors.slice()
+    : [];
+  const chipsEl = mountEl.querySelector(`#${idPrefix}-sector-other-chips`);
+  const otherInput = mountEl.querySelector(`#${idPrefix}-sector-other`);
+  const renderCustomSectorChips = () => {
+    chipsEl.innerHTML = customSectors
+      .map((s, i) => `<span class="sector-other-chip" data-idx="${i}">${escapeHtml(s)}<button type="button" aria-label="Remove ${escapeHtml(s)}">&times;</button></span>`)
+      .join('');
+  };
+  renderCustomSectorChips();
+  chipsEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const chip = btn.closest('.sector-other-chip');
+    if (!chip) return;
+    const idx = parseInt(chip.dataset.idx, 10);
+    if (!isNaN(idx)) {
+      customSectors.splice(idx, 1);
+      renderCustomSectorChips();
+    }
+  });
+  const commitOther = () => {
+    const raw = otherInput.value.trim().replace(/,+$/, '').trim();
+    if (!raw) return;
+    raw.split(',').map(s => s.trim()).filter(Boolean).forEach(term => {
+      if (!customSectors.includes(term)) customSectors.push(term);
+    });
+    otherInput.value = '';
+    renderCustomSectorChips();
+  };
+  otherInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      commitOther();
+    }
+  });
+  otherInput.addEventListener('blur', commitOther);
+
+  // Wire keywords & topics — same chip pattern as Other sectors
+  const keywords = Array.isArray(profile.keywords) ? profile.keywords.slice() : [];
+  const keywordChipsEl = mountEl.querySelector(`#${idPrefix}-keyword-chips`);
+  const keywordInput = mountEl.querySelector(`#${idPrefix}-keywords-input`);
+  const renderKeywordChips = () => {
+    keywordChipsEl.innerHTML = keywords
+      .map((k, i) => `<span class="keyword-chip" data-idx="${i}">${escapeHtml(k)}<button type="button" aria-label="Remove ${escapeHtml(k)}">&times;</button></span>`)
+      .join('');
+  };
+  renderKeywordChips();
+  keywordChipsEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const chip = btn.closest('.keyword-chip');
+    if (!chip) return;
+    const idx = parseInt(chip.dataset.idx, 10);
+    if (!isNaN(idx)) {
+      keywords.splice(idx, 1);
+      renderKeywordChips();
+    }
+  });
+  const commitKeyword = () => {
+    const raw = keywordInput.value.trim().replace(/,+$/, '').trim();
+    if (!raw) return;
+    raw.split(',').map(s => s.trim()).filter(Boolean).forEach(term => {
+      if (!keywords.includes(term)) keywords.push(term);
+    });
+    keywordInput.value = '';
+    renderKeywordChips();
+  };
+  keywordInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      commitKeyword();
+    }
+  });
+  keywordInput.addEventListener('blur', commitKeyword);
+
+  // Stash the live arrays on the mount so readProfileFromForm can pick them up
+  mountEl._customSectors = customSectors;
+  mountEl._keywords = keywords;
 
   const countEl = mountEl.querySelector(`#${idPrefix}-sector-count`);
   const updateCount = () => {
@@ -233,7 +356,21 @@ function readProfileFromForm(mountEl, idPrefix) {
   const focus = mountEl.querySelector(`#${idPrefix}-focus`).value;
   const industries = Array.from(mountEl.querySelectorAll(`#${idPrefix}-sectors input:checked`))
     .map(cb => cb.value);
-  return { role, industries, company, location, focus };
+
+  // Flush any unfinished text in the chip inputs so a user who typed
+  // a term but never pressed Enter doesn't lose it on save.
+  const otherInput = mountEl.querySelector(`#${idPrefix}-sector-other`);
+  if (otherInput && otherInput.value.trim()) {
+    otherInput.dispatchEvent(new Event('blur'));
+  }
+  const kwInput = mountEl.querySelector(`#${idPrefix}-keywords-input`);
+  if (kwInput && kwInput.value.trim()) {
+    kwInput.dispatchEvent(new Event('blur'));
+  }
+
+  const customSectors = Array.isArray(mountEl._customSectors) ? mountEl._customSectors.slice() : [];
+  const keywords = Array.isArray(mountEl._keywords) ? mountEl._keywords.slice() : [];
+  return { role, industries, company, location, focus, customSectors, keywords };
 }
 
 // ── Welcome onboarding modal ──
@@ -481,7 +618,9 @@ if (welcomeSaveBtn) {
     // All fields are optional — at least one field filled is enough.
     const anyFilled = data.role.trim() || data.location.trim() ||
       data.focus.trim() || data.company.trim() ||
-      (Array.isArray(data.industries) && data.industries.length > 0);
+      (Array.isArray(data.industries) && data.industries.length > 0) ||
+      (Array.isArray(data.customSectors) && data.customSectors.length > 0) ||
+      (Array.isArray(data.keywords) && data.keywords.length > 0);
     if (!anyFilled) {
       // Nothing at all was entered; treat as Skip.
       localStorage.setItem('geosignal_profile_skipped', 'true');
@@ -534,7 +673,9 @@ if (profileSave) {
     // Every field is optional — allow saving as long as SOMETHING is set.
     const anyFilled = data.role.trim() || data.location.trim() ||
       data.focus.trim() || data.company.trim() ||
-      (Array.isArray(data.industries) && data.industries.length > 0);
+      (Array.isArray(data.industries) && data.industries.length > 0) ||
+      (Array.isArray(data.customSectors) && data.customSectors.length > 0) ||
+      (Array.isArray(data.keywords) && data.keywords.length > 0);
     if (!anyFilled) {
       const roleInput = profileFormMount.querySelector('#profile-role');
       if (roleInput) roleInput.focus();
@@ -634,7 +775,9 @@ function saveFilters() {
       sectors: getActivePills(sectorPills),
       sourceTypes: getActivePills(sourcePills),
       articleTypes: articleTypePills ? getActivePills(articleTypePills) : ['News', 'Analysis'],
-      locations: locationsInput ? locationsInput.value.trim() : ''
+      locations: locationsInput ? locationsInput.value.trim() : '',
+      customSectors: customFilterSectors.slice(),
+      keywords: filterKeywords.slice()
     };
     localStorage.setItem(FILTERS_KEY, JSON.stringify(state));
   } catch { /* storage unavailable — nothing we can do */ }
@@ -664,6 +807,12 @@ function restoreFilters() {
     if (state && typeof state.locations === 'string' && locationsInput) {
       locationsInput.value = state.locations;
     }
+    if (state && Array.isArray(state.customSectors)) {
+      customFilterSectors = state.customSectors.slice();
+    }
+    if (state && Array.isArray(state.keywords)) {
+      filterKeywords = state.keywords.slice();
+    }
   } catch { /* ignore */ }
 }
 
@@ -677,6 +826,103 @@ if (articleTypePills) initPills(articleTypePills);
 function getActivePills(container) {
   return Array.from(container.querySelectorAll('.pill.active'))
     .map(p => p.dataset.value);
+}
+
+// ── Filter-panel chip inputs (Other sectors + keywords) ───────
+function renderSectorOtherChips() {
+  if (!sectorOtherChips) return;
+  sectorOtherChips.innerHTML = customFilterSectors
+    .map((s, i) => '<span class="sector-other-chip" data-idx="' + i + '">' +
+      escapeHtml(s) +
+      '<button type="button" aria-label="Remove ' + escapeHtml(s) + '">&times;</button></span>')
+    .join('');
+}
+
+function renderKeywordChips() {
+  if (!keywordChips) return;
+  keywordChips.innerHTML = filterKeywords
+    .map((k, i) => '<span class="keyword-chip" data-idx="' + i + '">' +
+      escapeHtml(k) +
+      '<button type="button" aria-label="Remove ' + escapeHtml(k) + '">&times;</button></span>')
+    .join('');
+  if (keywordClearAll) {
+    keywordClearAll.classList.toggle('visible', filterKeywords.length > 0);
+  }
+}
+
+function commitChipInput(inputEl, arr, renderFn) {
+  if (!inputEl) return;
+  const raw = inputEl.value.trim().replace(/,+$/, '').trim();
+  if (!raw) return;
+  raw.split(',').map(s => s.trim()).filter(Boolean).forEach(term => {
+    if (!arr.includes(term)) arr.push(term);
+  });
+  inputEl.value = '';
+  renderFn();
+  handleFiltersChanged();
+}
+
+if (sectorOtherInput && sectorOtherChips) {
+  renderSectorOtherChips();
+  sectorOtherInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      commitChipInput(sectorOtherInput, customFilterSectors, renderSectorOtherChips);
+    }
+  });
+  sectorOtherInput.addEventListener('blur', () => {
+    if (sectorOtherInput.value.trim()) {
+      commitChipInput(sectorOtherInput, customFilterSectors, renderSectorOtherChips);
+    }
+  });
+  sectorOtherChips.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const chip = btn.closest('.sector-other-chip');
+    if (!chip) return;
+    const idx = parseInt(chip.dataset.idx, 10);
+    if (!isNaN(idx)) {
+      customFilterSectors.splice(idx, 1);
+      renderSectorOtherChips();
+      handleFiltersChanged();
+    }
+  });
+}
+
+if (keywordsInput && keywordChips) {
+  renderKeywordChips();
+  keywordsInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      commitChipInput(keywordsInput, filterKeywords, renderKeywordChips);
+    }
+  });
+  keywordsInput.addEventListener('blur', () => {
+    if (keywordsInput.value.trim()) {
+      commitChipInput(keywordsInput, filterKeywords, renderKeywordChips);
+    }
+  });
+  keywordChips.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const chip = btn.closest('.keyword-chip');
+    if (!chip) return;
+    const idx = parseInt(chip.dataset.idx, 10);
+    if (!isNaN(idx)) {
+      filterKeywords.splice(idx, 1);
+      renderKeywordChips();
+      handleFiltersChanged();
+    }
+  });
+}
+
+if (keywordClearAll) {
+  keywordClearAll.addEventListener('click', () => {
+    if (filterKeywords.length === 0) return;
+    filterKeywords = [];
+    renderKeywordChips();
+    handleFiltersChanged();
+  });
 }
 
 // Collapsible filters
@@ -703,6 +949,8 @@ function snapshotFilterState() {
     sourceTypes: getActivePills(sourcePills).slice().sort().join('|'),
     articleTypes: (articleTypePills ? getActivePills(articleTypePills) : []).slice().sort().join('|'),
     locations: (locationsInput ? locationsInput.value.trim() : ''),
+    customSectors: customFilterSectors.slice().sort().join('|'),
+    keywords: filterKeywords.slice().sort().join('|'),
     search: (searchInput ? searchInput.value.trim() : '')
   };
 }
@@ -721,6 +969,8 @@ function countActiveFilters() {
   count += getActivePills(sourcePills).length;
   if (articleTypePills) count += getActivePills(articleTypePills).length;
   if (locationsInput && locationsInput.value.trim()) count += 1;
+  count += customFilterSectors.length;
+  count += filterKeywords.length;
   if (searchInput && searchInput.value.trim()) count += 1;
   return count;
 }
@@ -741,10 +991,17 @@ function clearAllFilters() {
   });
   // Clear text-based filters
   if (locationsInput) locationsInput.value = '';
+  if (sectorOtherInput) sectorOtherInput.value = '';
+  if (keywordsInput) keywordsInput.value = '';
   if (searchInput) {
     searchInput.value = '';
     if (searchClear) searchClear.style.display = 'none';
   }
+  // Wipe chip arrays and re-render
+  customFilterSectors = [];
+  filterKeywords = [];
+  renderSectorOtherChips();
+  renderKeywordChips();
   // Wipe persisted filters so the next page load starts fresh too
   try { localStorage.removeItem(FILTERS_KEY); } catch {}
   // Update UI state without fetching — user still has to press Apply
@@ -761,6 +1018,8 @@ function updatePendingState() {
     applied.sourceTypes !== current.sourceTypes ||
     applied.articleTypes !== current.articleTypes ||
     applied.locations !== current.locations ||
+    applied.customSectors !== current.customSectors ||
+    applied.keywords !== current.keywords ||
     applied.search !== current.search
   );
 
@@ -1140,8 +1399,11 @@ async function fetchStories() {
   const sourceTypes = getActivePills(sourcePills);
   const articleTypes = articleTypePills ? getActivePills(articleTypePills) : ['News', 'Analysis'];
   const locations = locationsInput ? locationsInput.value.trim() : '';
+  // Custom sectors typed in the "Other" input add to the sector list
+  const allSectors = [...sectors, ...customFilterSectors];
+  const keywordsStr = filterKeywords.join(',');
 
-  if (sectors.length === 0 || sourceTypes.length === 0) {
+  if (allSectors.length === 0 || sourceTypes.length === 0) {
     feed.innerHTML = '<div class="empty-feed">You haven\u2019t selected anything to read. Pick a sector or a source type to get started.</div>';
     feedCount.textContent = '';
     return;
@@ -1168,7 +1430,7 @@ async function fetchStories() {
     const searchQuery = searchInput.value.trim();
     const params = new URLSearchParams({
       region,
-      sectors: sectors.join(','),
+      sectors: allSectors.join(','),
       sourceTypes: sourceTypes.join(','),
       articleTypes: articleTypes.join(',')
     });
@@ -1180,6 +1442,9 @@ async function fetchStories() {
     }
     if (locations) {
       params.set('locations', locations);
+    }
+    if (keywordsStr) {
+      params.set('keywords', keywordsStr);
     }
 
     const res = await fetch('/api/news?' + params);
