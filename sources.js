@@ -1262,45 +1262,76 @@ function scoreArticle(article, region, userProfile, activeSectors) {
   else if (article.sourceTier === 'mainstream') score += 5;
   else if (article.sourceTier === 'independent-critical') score += 6;
 
-  // ── User profile match (0-35) ──
+  // ── User profile match (0-55) ──
   if (userProfile) {
     if (userProfile.location) {
-      const loc = userProfile.location.toLowerCase();
+      const loc = String(userProfile.location).toLowerCase().trim();
+      // Title match on their country/city is a strong signal
+      if (loc && titleLower.includes(loc)) score += 18;
+      else if (loc && descLower.includes(loc)) score += 9;
+      // Also check if the source covers their location
       const sourceCountries = (article.sourceCountry || []).map(c => c.toLowerCase());
       for (const c of sourceCountries) {
-        if (loc.includes(c) || c.includes(loc)) { score += 12; break; }
+        if (loc && (loc.includes(c) || c.includes(loc))) { score += 10; break; }
       }
-      if (headline.includes(loc)) score += 8;
     }
 
     if (userProfile.industry) {
-      const industryWords = userProfile.industry.toLowerCase().split(/[\s&\/]+/).filter(w => w.length > 3);
+      const industryWords = userProfile.industry.toLowerCase().split(/[\s&\/,]+/).filter(w => w.length > 3);
       let industryMatches = 0;
       for (const word of industryWords) {
-        if (headline.includes(word)) industryMatches++;
+        if (titleLower.includes(word)) industryMatches += 2;
+        else if (descLower.includes(word)) industryMatches += 1;
       }
-      score += Math.min(industryMatches * 8, 15);
+      score += Math.min(industryMatches * 4, 18);
     }
 
     if (userProfile.focus) {
       const focusWords = userProfile.focus.toLowerCase().split(/[\s,]+/).filter(w => w.length > 3);
       let focusMatches = 0;
       for (const word of focusWords) {
-        if (headline.includes(word)) focusMatches++;
+        if (titleLower.includes(word)) focusMatches += 2;
+        else if (descLower.includes(word)) focusMatches += 1;
       }
-      score += Math.min(focusMatches * 10, 20);
+      score += Math.min(focusMatches * 5, 20);
+    }
+
+    // Profile-level keywords the user explicitly said they track.
+    // Stronger signal than filter keywords because they're durable —
+    // the user set these up front and they reflect real interests.
+    if (Array.isArray(userProfile.keywords) && userProfile.keywords.length) {
+      let kwBoost = 0;
+      for (const rawTerm of userProfile.keywords) {
+        const term = String(rawTerm || '').toLowerCase().trim();
+        if (!term || term.length < 2) continue;
+        if (titleLower.includes(term)) kwBoost += 22;
+        else if (descLower.includes(term)) kwBoost += 9;
+      }
+      score += Math.min(kwBoost, 55);
+    }
+
+    // Custom sectors the user typed in the "Other" field
+    if (Array.isArray(userProfile.customSectors) && userProfile.customSectors.length) {
+      let csBoost = 0;
+      for (const rawSec of userProfile.customSectors) {
+        const s = String(rawSec || '').toLowerCase().trim();
+        if (!s || s.length < 3) continue;
+        if (titleLower.includes(s)) csBoost += 12;
+        else if (descLower.includes(s)) csBoost += 5;
+      }
+      score += Math.min(csBoost, 25);
     }
 
     // Role-based boost: analysts/researchers care more about think-tank content
     if (userProfile.role && article.sourceTier === 'think-tank-academic') {
-      const analyticRoles = ['analyst', 'researcher', 'consultant', 'policy'];
+      const analyticRoles = ['analyst', 'researcher', 'consultant', 'policy', 'investor', 'founder'];
       if (analyticRoles.some(r => userProfile.role.toLowerCase().includes(r))) {
         score += 5;
       }
     }
   }
 
-  return Math.max(Math.min(score, 100), 0);
+  return Math.max(Math.min(score, 150), 0);
 }
 
 const GOVERNMENT_CAVEAT = 'This is an official government statement. The analysis below summarises the content as presented by the issuing government. It does not reflect independent verification or editorial judgment. Read alongside independent sources for full context.';
