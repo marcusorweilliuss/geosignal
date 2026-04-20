@@ -174,6 +174,10 @@
           <button class="pill active" data-value="Independent journalism" title="Independent journalism — outlets outside the mainstream commercial press, including investigative, non-profit, and critical-left / critical-right publications.">Independent</button>
           <button class="pill pill-official" data-value="Official statements" title="Official statements — direct releases from governments, ministries, and state agencies. Treat as claims rather than verified facts.">Official</button>
         </div>
+        <button type="button" class="manage-sources-btn" id="manage-sources-btn"
+                title="Pick specific outlets to include or exclude from your feed.">
+          Manage individual sources &rarr;
+        </button>
       </div>
 
       <div class="filter-group">
@@ -263,6 +267,60 @@
       <button class="profile-skip-link" id="profile-panel-skip" type="button" title="Close without saving">Skip for now</button>
     </div>
   </aside>
+
+  <!-- Source browser modal — pick specific sources to include/exclude -->
+  <div class="source-browser-overlay" id="source-browser-overlay" aria-hidden="true"></div>
+  <aside class="source-browser" id="source-browser" role="dialog" aria-modal="true" aria-labelledby="source-browser-heading" aria-hidden="true">
+    <div class="source-browser-header">
+      <div>
+        <h2 id="source-browser-heading">Manage sources</h2>
+        <p class="source-browser-subtitle">Include specific outlets (whitelist) or exclude ones you never want to see. Leave both empty to use every source.</p>
+      </div>
+      <button class="profile-panel-close" id="source-browser-close" type="button" aria-label="Close">&times;</button>
+    </div>
+
+    <div class="source-browser-toolbar">
+      <input type="text" id="source-browser-search" class="source-browser-search"
+             placeholder="Search by name, country, or outlet..." autocomplete="off" />
+      <button type="button" class="source-browser-add-custom" id="source-browser-add-custom">+ Add custom source</button>
+    </div>
+
+    <div class="source-browser-legend" id="source-browser-legend">
+      <span class="source-include-count">0 included</span>
+      <span class="source-exclude-count">0 excluded</span>
+    </div>
+
+    <div class="source-browser-body" id="source-browser-body">
+      <div class="source-browser-loading">Loading sources&hellip;</div>
+    </div>
+
+    <div class="source-browser-footer">
+      <button class="btn-secondary" id="source-browser-reset" type="button">Reset</button>
+      <button class="btn-primary" id="source-browser-save" type="button">Save</button>
+    </div>
+  </aside>
+
+  <!-- Add Custom Source mini-modal -->
+  <div class="custom-source-overlay" id="custom-source-overlay" aria-hidden="true">
+    <div class="custom-source-modal" role="dialog" aria-modal="true" aria-labelledby="custom-source-heading">
+      <div class="custom-source-header">
+        <h3 id="custom-source-heading">Add a custom source</h3>
+        <button class="modal-close" id="custom-source-close" type="button" aria-label="Close">&times;</button>
+      </div>
+      <div class="custom-source-body">
+        <div class="form-group">
+          <label for="custom-source-url">Publication URL <span class="optional">(or name)</span></label>
+          <input type="text" id="custom-source-url" placeholder="https://example-news.com OR Publication Name" autocomplete="off" />
+          <div class="custom-source-hint">We'll fetch public info and classify the outlet for you.</div>
+        </div>
+        <div class="custom-source-status" id="custom-source-status"></div>
+      </div>
+      <div class="custom-source-footer">
+        <button class="btn-secondary" id="custom-source-cancel" type="button">Cancel</button>
+        <button class="btn-primary" id="custom-source-submit" type="button">Add source</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Toast container (success messages + nudges) -->
   <div class="toast-container" id="toast-container" aria-live="polite" aria-atomic="true"></div>

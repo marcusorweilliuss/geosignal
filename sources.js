@@ -1580,6 +1580,131 @@ const SOURCE_DESCRIPTIONS = {
   'Coda Story': 'Independent outlet on disinformation, authoritarianism, and crises.'
 };
 
+// ── Source political-bias labels ───────────────────────────────
+// Coarse-grained labels for the top sources. Anything not listed
+// falls back via getSourceBias() using sensible tier-based defaults
+// (think-tank = Non-partisan, gov = State Media, mainstream = Centre).
+const SOURCE_BIAS = {
+  // Clearly state-controlled outlets
+  'Xinhua': 'State Media',
+  'TASS': 'State Media',
+  'RT': 'State Media',
+  'People\u2019s Daily': 'State Media',
+  'Global Times': 'State Media',
+  'CGTN': 'State Media',
+  'Sputnik': 'State Media',
+  'Press TV': 'State Media',
+  // US centre-left leaning
+  'The New York Times': 'Centre-Left',
+  'The Washington Post': 'Centre-Left',
+  'The Guardian': 'Centre-Left',
+  'The Atlantic': 'Centre-Left',
+  'MSNBC': 'Far Left',
+  'The Intercept': 'Far Left',
+  'Democracy Now!': 'Far Left',
+  // US centre-right leaning
+  'Wall Street Journal': 'Centre-Right',
+  'The Economist': 'Centre-Right',
+  'The Telegraph': 'Centre-Right',
+  'National Review': 'Far Right',
+  'Fox News': 'Far Right',
+  'The Daily Wire': 'Far Right',
+  'Breitbart': 'Far Right',
+  // Newswires — deliberately centrist
+  'Reuters': 'Centre',
+  'Reuters Top News': 'Centre',
+  'Reuters World': 'Centre',
+  'Reuters Business': 'Centre',
+  'Reuters Asia': 'Centre',
+  'Reuters Middle East': 'Centre',
+  'Reuters Europe': 'Centre',
+  'Reuters Africa': 'Centre',
+  'Reuters Latin America': 'Centre',
+  'Associated Press': 'Centre',
+  'AP News': 'Centre',
+  'AP Top Stories': 'Centre',
+  'AFP': 'Centre',
+  'AFP News': 'Centre',
+  'Bloomberg': 'Centre-Right',
+  'Financial Times': 'Centre-Right',
+  'BBC News': 'Centre',
+  'BBC World': 'Centre',
+  'Al Jazeera English': 'Centre-Left',
+  'Deutsche Welle': 'Centre',
+  'France 24': 'Centre',
+  'Nikkei Asia': 'Centre',
+  'South China Morning Post': 'Centre',
+  'Kyodo News': 'Centre',
+  'PTI': 'Centre',
+  'ANI': 'Centre'
+};
+
+function getSourceBias(source, tier) {
+  if (!source) return 'Non-partisan';
+  if (SOURCE_BIAS[source]) return SOURCE_BIAS[source];
+  // Tier-based default
+  if (tier === 'government-official') return 'State Media';
+  if (tier === 'think-tank-academic') return 'Non-partisan';
+  if (tier === 'independent-left') return 'Centre-Left';
+  if (tier === 'independent-right') return 'Centre-Right';
+  if (tier === 'independent-critical') return 'Centre-Left';
+  return 'Centre';
+}
+
+// Human-readable tier category label used in the source browser.
+const TIER_CATEGORY_MAP = {
+  'mainstream': 'Mainstream',
+  'business': 'Mainstream',
+  'regional': 'Mainstream',
+  'independent-left': 'Independent',
+  'independent-right': 'Independent',
+  'independent-critical': 'Independent',
+  'think-tank-academic': 'Think Tank',
+  'government-official': 'Official'
+};
+
+function getTierCategory(tier) {
+  return TIER_CATEGORY_MAP[tier] || 'Other';
+}
+
+// Human-readable region label for a region slug used in SOURCES
+const REGION_LABEL_MAP = {
+  'global': 'Global',
+  'north-america': 'North America',
+  'latin-america': 'Latin America',
+  'europe': 'Europe',
+  'middle-east': 'Middle East',
+  'africa': 'Africa',
+  'south-asia': 'South Asia',
+  'east-asia': 'East Asia',
+  'southeast-asia': 'Southeast Asia',
+  'central-asia-caucasus': 'Central Asia & Caucasus',
+  'oceania': 'Oceania'
+};
+
+// Returns the full flat list of sources, each annotated with the
+// metadata needed by the source browser UI.
+function getAllSourcesForBrowser() {
+  const out = [];
+  Object.keys(SOURCES).forEach(regionKey => {
+    const regionLabel = REGION_LABEL_MAP[regionKey] || regionKey;
+    (SOURCES[regionKey] || []).forEach(src => {
+      out.push({
+        name: src.name,
+        region: regionLabel,
+        regionKey,
+        tier: src.tier,
+        category: getTierCategory(src.tier),
+        country: Array.isArray(src.country) && src.country.length ? src.country.join(', ') : '',
+        language: src.language || '',
+        bias: getSourceBias(src.name, src.tier),
+        description: getSourceDescription(src.name) || ''
+      });
+    });
+  });
+  return out;
+}
+
 function getSourceDescription(source) {
   if (!source) return '';
   if (SOURCE_DESCRIPTIONS[source]) return SOURCE_DESCRIPTIONS[source];
@@ -1595,5 +1720,7 @@ module.exports = {
   SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT,
   SECTOR_KEYWORDS, REGION_COUNTRIES, JUNK_PATTERNS, SIGNIFICANCE_WORDS,
   classifyArticleType, extractPrimaryCountry,
-  SOURCE_DESCRIPTIONS, getSourceDescription
+  SOURCE_DESCRIPTIONS, getSourceDescription,
+  SOURCE_BIAS, getSourceBias, getTierCategory, getAllSourcesForBrowser,
+  REGION_LABEL_MAP
 };

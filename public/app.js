@@ -4,6 +4,22 @@ const sectorPills = document.getElementById('sector-pills');
 const sourcePills = document.getElementById('source-pills');
 const articleTypePills = document.getElementById('article-type-pills');
 const locationsInput = document.getElementById('locations-input');
+const manageSourcesBtn = document.getElementById('manage-sources-btn');
+const sourceBrowser = document.getElementById('source-browser');
+const sourceBrowserOverlay = document.getElementById('source-browser-overlay');
+const sourceBrowserClose = document.getElementById('source-browser-close');
+const sourceBrowserSearch = document.getElementById('source-browser-search');
+const sourceBrowserBody = document.getElementById('source-browser-body');
+const sourceBrowserSave = document.getElementById('source-browser-save');
+const sourceBrowserReset = document.getElementById('source-browser-reset');
+const sourceBrowserAddCustom = document.getElementById('source-browser-add-custom');
+const sourceBrowserLegend = document.getElementById('source-browser-legend');
+const customSourceOverlay = document.getElementById('custom-source-overlay');
+const customSourceInput = document.getElementById('custom-source-url');
+const customSourceStatus = document.getElementById('custom-source-status');
+const customSourceSubmit = document.getElementById('custom-source-submit');
+const customSourceCancel = document.getElementById('custom-source-cancel');
+const customSourceClose = document.getElementById('custom-source-close');
 const sectorOtherInput = document.getElementById('sector-other-input');
 const sectorOtherChips = document.getElementById('sector-other-chips');
 const keywordsInput = document.getElementById('keywords-input');
@@ -925,6 +941,296 @@ if (keywordClearAll) {
   });
 }
 
+// ── Source browser + custom sources ───────────────────────────
+const SOURCE_SELECTION_KEY = 'geosignal-source-selection';
+const CUSTOM_SOURCES_KEY = 'geosignal-custom-sources';
+
+// { include: Set<string>, exclude: Set<string> } — session copy that
+// the browser modal mutates before committing on Save.
+let registrySources = null;
+const sourceSelection = (() => {
+  try {
+    const raw = JSON.parse(localStorage.getItem(SOURCE_SELECTION_KEY) || '{}');
+    return {
+      include: new Set(Array.isArray(raw.include) ? raw.include : []),
+      exclude: new Set(Array.isArray(raw.exclude) ? raw.exclude : [])
+    };
+  } catch {
+    return { include: new Set(), exclude: new Set() };
+  }
+})();
+
+function getCustomSources() {
+  try { return JSON.parse(localStorage.getItem(CUSTOM_SOURCES_KEY) || '[]'); }
+  catch { return []; }
+}
+function saveCustomSources(arr) {
+  try { localStorage.setItem(CUSTOM_SOURCES_KEY, JSON.stringify(arr)); } catch {}
+}
+
+function slugifyBias(bias) {
+  return 'bias-' + String(bias || '').toLowerCase().replace(/[^a-z]+/g, '-').replace(/^-|-$/g, '');
+}
+
+async function loadRegistrySources() {
+  if (registrySources) return registrySources;
+  try {
+    const res = await fetch('/api/sources/list');
+    const data = await res.json();
+    registrySources = Array.isArray(data.sources) ? data.sources : [];
+  } catch (err) {
+    console.error('Source list fetch failed:', err);
+    registrySources = [];
+  }
+  return registrySources;
+}
+
+function updateSourceBrowserLegend() {
+  if (!sourceBrowserLegend) return;
+  const inc = sourceSelection.include.size;
+  const exc = sourceSelection.exclude.size;
+  sourceBrowserLegend.innerHTML =
+    '<span class="source-include-count">' + inc + ' included</span>' +
+    '<span class="source-exclude-count">' + exc + ' excluded</span>';
+}
+
+function renderSourceBrowserList(searchTerm) {
+  if (!sourceBrowserBody) return;
+  const all = (registrySources || []).concat(
+    getCustomSources().map(cs => ({
+      name: cs.name,
+      region: 'Custom',
+      regionKey: 'custom',
+      tier: (cs.sourceType || 'Independent').toLowerCase(),
+      category: cs.sourceType || 'Independent',
+      country: cs.country || '',
+      bias: cs.bias || 'Centre',
+      description: cs.description || '',
+      isCustom: true,
+      url: cs.url || ''
+    }))
+  );
+
+  const q = (searchTerm || '').trim().toLowerCase();
+  const filtered = q
+    ? all.filter(s =>
+        (s.name || '').toLowerCase().includes(q) ||
+        (s.country || '').toLowerCase().includes(q) ||
+        (s.description || '').toLowerCase().includes(q) ||
+        (s.region || '').toLowerCase().includes(q) ||
+        (s.bias || '').toLowerCase().includes(q))
+    : all;
+
+  if (filtered.length === 0) {
+    sourceBrowserBody.innerHTML = '<div class="source-browser-empty">No sources match your search.</div>';
+    return;
+  }
+
+  // Group by region
+  const byRegion = {};
+  filtered.forEach(s => {
+    const key = s.region || 'Other';
+    if (!byRegion[key]) byRegion[key] = [];
+    byRegion[key].push(s);
+  });
+  const regionOrder = ['Custom', 'Global', 'North America', 'Europe', 'Middle East',
+                       'South Asia', 'East Asia', 'Southeast Asia', 'Africa',
+                       'Latin America', 'Central Asia & Caucasus', 'Oceania', 'Other'];
+  const orderedRegions = Object.keys(byRegion).sort((a, b) => {
+    const ia = regionOrder.indexOf(a), ib = regionOrder.indexOf(b);
+    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+  });
+
+  const buildRow = (s) => {
+    const included = sourceSelection.include.has(s.name);
+    const excluded = sourceSelection.exclude.has(s.name);
+    const biasClass = slugifyBias(s.bias);
+    const customBadge = s.isCustom ? '<span class="source-custom-badge">Custom</span>' : '';
+    const meta = [
+      s.bias ? `<span class="source-meta-chip bias-chip ${biasClass}">${escapeHtml(s.bias)}</span>` : '',
+      s.category ? `<span class="source-meta-chip meta-tier">${escapeHtml(s.category)}</span>` : '',
+      s.country ? `<span class="source-meta-chip meta-country">${escapeHtml(s.country)}</span>` : ''
+    ].filter(Boolean).join('');
+    return `<div class="source-row" data-source="${escapeHtml(s.name)}">
+      <div class="source-row-main">
+        <div class="source-row-title">${escapeHtml(s.name)}${customBadge}</div>
+        <div class="source-row-meta">${meta}</div>
+        ${s.description ? `<div class="source-row-desc">${escapeHtml(s.description)}</div>` : ''}
+      </div>
+      <div class="source-row-actions">
+        <button class="source-action-btn ${included ? 'active-include' : ''}" data-act="include" type="button">${included ? '\u2713 Included' : 'Include'}</button>
+        <button class="source-action-btn ${excluded ? 'active-exclude' : ''}" data-act="exclude" type="button">${excluded ? '\u2717 Excluded' : 'Exclude'}</button>
+      </div>
+    </div>`;
+  };
+
+  const html = orderedRegions.map(region => {
+    const items = byRegion[region];
+    const expanded = q || region === 'Custom'; // open automatically on search / custom section
+    return `<div class="source-region-group ${expanded ? 'open' : ''}">
+      <div class="source-region-header" data-region-toggle>
+        <span>${escapeHtml(region)}</span>
+        <span class="source-region-count">${items.length}</span>
+      </div>
+      <div class="source-region-list">
+        ${items.map(buildRow).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  sourceBrowserBody.innerHTML = html;
+
+  // Region toggles (re-bound on each render — the elements are fresh)
+  sourceBrowserBody.querySelectorAll('[data-region-toggle]').forEach(h => {
+    h.addEventListener('click', () => h.closest('.source-region-group').classList.toggle('open'));
+  });
+}
+
+// Include / exclude click delegation — bound ONCE to the persistent
+// container so re-renders don't accumulate listeners.
+if (sourceBrowserBody) {
+  sourceBrowserBody.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-act]');
+    if (!btn) return;
+    const row = btn.closest('.source-row');
+    if (!row) return;
+    const name = row.dataset.source;
+    const act = btn.dataset.act;
+    if (act === 'include') {
+      if (sourceSelection.include.has(name)) sourceSelection.include.delete(name);
+      else { sourceSelection.include.add(name); sourceSelection.exclude.delete(name); }
+    } else if (act === 'exclude') {
+      if (sourceSelection.exclude.has(name)) sourceSelection.exclude.delete(name);
+      else { sourceSelection.exclude.add(name); sourceSelection.include.delete(name); }
+    }
+    renderSourceBrowserList(sourceBrowserSearch ? sourceBrowserSearch.value : '');
+    updateSourceBrowserLegend();
+  });
+}
+
+function openSourceBrowser() {
+  if (!sourceBrowser) return;
+  sourceBrowser.classList.add('visible');
+  sourceBrowser.setAttribute('aria-hidden', 'false');
+  sourceBrowserOverlay.classList.add('visible');
+  sourceBrowserOverlay.setAttribute('aria-hidden', 'false');
+  if (sourceBrowserSearch) sourceBrowserSearch.value = '';
+  updateSourceBrowserLegend();
+  loadRegistrySources().then(() => renderSourceBrowserList(''));
+}
+function closeSourceBrowser() {
+  if (!sourceBrowser) return;
+  sourceBrowser.classList.remove('visible');
+  sourceBrowser.setAttribute('aria-hidden', 'true');
+  sourceBrowserOverlay.classList.remove('visible');
+  sourceBrowserOverlay.setAttribute('aria-hidden', 'true');
+}
+
+if (manageSourcesBtn) manageSourcesBtn.addEventListener('click', openSourceBrowser);
+if (sourceBrowserClose) sourceBrowserClose.addEventListener('click', closeSourceBrowser);
+if (sourceBrowserOverlay) sourceBrowserOverlay.addEventListener('click', closeSourceBrowser);
+
+if (sourceBrowserSearch) {
+  let t = null;
+  sourceBrowserSearch.addEventListener('input', () => {
+    clearTimeout(t);
+    t = setTimeout(() => renderSourceBrowserList(sourceBrowserSearch.value), 120);
+  });
+}
+
+if (sourceBrowserSave) {
+  sourceBrowserSave.addEventListener('click', () => {
+    try {
+      localStorage.setItem(SOURCE_SELECTION_KEY, JSON.stringify({
+        include: Array.from(sourceSelection.include),
+        exclude: Array.from(sourceSelection.exclude)
+      }));
+    } catch {}
+    closeSourceBrowser();
+    handleFiltersChanged();
+    showToast('Source preferences saved — press Apply to reload the feed.', { success: true, duration: 3000 });
+  });
+}
+
+if (sourceBrowserReset) {
+  sourceBrowserReset.addEventListener('click', () => {
+    sourceSelection.include.clear();
+    sourceSelection.exclude.clear();
+    try { localStorage.removeItem(SOURCE_SELECTION_KEY); } catch {}
+    updateSourceBrowserLegend();
+    renderSourceBrowserList(sourceBrowserSearch ? sourceBrowserSearch.value : '');
+  });
+}
+
+// ── Custom source add flow ──
+function openCustomSource() {
+  if (!customSourceOverlay) return;
+  customSourceOverlay.classList.add('visible');
+  customSourceOverlay.setAttribute('aria-hidden', 'false');
+  if (customSourceInput) customSourceInput.value = '';
+  if (customSourceStatus) { customSourceStatus.textContent = ''; customSourceStatus.className = 'custom-source-status'; }
+  setTimeout(() => customSourceInput && customSourceInput.focus(), 80);
+}
+function closeCustomSource() {
+  if (!customSourceOverlay) return;
+  customSourceOverlay.classList.remove('visible');
+  customSourceOverlay.setAttribute('aria-hidden', 'true');
+}
+if (sourceBrowserAddCustom) sourceBrowserAddCustom.addEventListener('click', openCustomSource);
+if (customSourceCancel) customSourceCancel.addEventListener('click', closeCustomSource);
+if (customSourceClose) customSourceClose.addEventListener('click', closeCustomSource);
+
+if (customSourceSubmit) {
+  customSourceSubmit.addEventListener('click', async () => {
+    const val = (customSourceInput && customSourceInput.value || '').trim();
+    if (!val) {
+      customSourceStatus.textContent = 'Paste a URL or type a publication name first.';
+      customSourceStatus.className = 'custom-source-status error';
+      return;
+    }
+    const isUrl = /^https?:\/\//i.test(val);
+    customSourceStatus.textContent = 'Fetching and classifying source\u2026';
+    customSourceStatus.className = 'custom-source-status';
+    customSourceSubmit.disabled = true;
+    try {
+      const res = await fetch('/api/enrich-source', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(isUrl ? { url: val } : { name: val })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        customSourceStatus.textContent = data.error || 'Could not fetch details.';
+        customSourceStatus.className = 'custom-source-status error';
+        return;
+      }
+      const src = data.source;
+      const existing = getCustomSources();
+      // Dedup by name + url
+      const dedupKey = (s) => (s.name + '|' + (s.url || '')).toLowerCase();
+      if (!existing.some(s => dedupKey(s) === dedupKey(src))) {
+        existing.push(src);
+        saveCustomSources(existing);
+      }
+      if (src.enrichmentFailed) {
+        customSourceStatus.textContent = 'Could not fetch details — added with limited info.';
+        customSourceStatus.className = 'custom-source-status error';
+      } else {
+        customSourceStatus.textContent = 'Added. You can now include or exclude it.';
+        customSourceStatus.className = 'custom-source-status success';
+      }
+      // Refresh the browser list so the new custom source shows up
+      renderSourceBrowserList(sourceBrowserSearch ? sourceBrowserSearch.value : '');
+      setTimeout(closeCustomSource, 900);
+    } catch (err) {
+      customSourceStatus.textContent = 'Network error. Try again.';
+      customSourceStatus.className = 'custom-source-status error';
+    } finally {
+      customSourceSubmit.disabled = false;
+    }
+  });
+}
+
 // Collapsible filters
 filtersToggle.addEventListener('click', () => {
   filtersContainer.classList.toggle('expanded');
@@ -951,6 +1257,8 @@ function snapshotFilterState() {
     locations: (locationsInput ? locationsInput.value.trim() : ''),
     customSectors: customFilterSectors.slice().sort().join('|'),
     keywords: filterKeywords.slice().sort().join('|'),
+    includeSources: Array.from(sourceSelection.include).sort().join('|'),
+    excludeSources: Array.from(sourceSelection.exclude).sort().join('|'),
     search: (searchInput ? searchInput.value.trim() : '')
   };
 }
@@ -971,6 +1279,8 @@ function countActiveFilters() {
   if (locationsInput && locationsInput.value.trim()) count += 1;
   count += customFilterSectors.length;
   count += filterKeywords.length;
+  count += sourceSelection.include.size;
+  count += sourceSelection.exclude.size;
   if (searchInput && searchInput.value.trim()) count += 1;
   return count;
 }
@@ -1002,8 +1312,14 @@ function clearAllFilters() {
   filterKeywords = [];
   renderSectorOtherChips();
   renderKeywordChips();
+  // Clear source include/exclude selections as well
+  sourceSelection.include.clear();
+  sourceSelection.exclude.clear();
   // Wipe persisted filters so the next page load starts fresh too
-  try { localStorage.removeItem(FILTERS_KEY); } catch {}
+  try {
+    localStorage.removeItem(FILTERS_KEY);
+    localStorage.removeItem(SOURCE_SELECTION_KEY);
+  } catch {}
   // Update UI state without fetching — user still has to press Apply
   handleFiltersChanged();
 }
@@ -1020,6 +1336,8 @@ function updatePendingState() {
     applied.locations !== current.locations ||
     applied.customSectors !== current.customSectors ||
     applied.keywords !== current.keywords ||
+    applied.includeSources !== current.includeSources ||
+    applied.excludeSources !== current.excludeSources ||
     applied.search !== current.search
   );
 
@@ -1445,6 +1763,12 @@ async function fetchStories() {
     }
     if (keywordsStr) {
       params.set('keywords', keywordsStr);
+    }
+    if (sourceSelection.include.size > 0) {
+      params.set('includeSources', Array.from(sourceSelection.include).join(','));
+    }
+    if (sourceSelection.exclude.size > 0) {
+      params.set('excludeSources', Array.from(sourceSelection.exclude).join(','));
     }
 
     const res = await fetch('/api/news?' + params);

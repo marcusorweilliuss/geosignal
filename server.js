@@ -4,7 +4,7 @@ const fetch = require('node-fetch');
 const Groq = require('groq-sdk');
 const Parser = require('rss-parser');
 
-const { SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT, classifyArticleType, extractPrimaryCountry, getSourceDescription, SECTOR_KEYWORDS } = require('./sources');
+const { SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT, classifyArticleType, extractPrimaryCountry, getSourceDescription, SECTOR_KEYWORDS, getAllSourcesForBrowser } = require('./sources');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -472,7 +472,7 @@ const regionSlugMap = {
 
 app.get('/api/news', async (req, res) => {
   try {
-    const { region, sectors, sourceTypes, profile: profileStr, search, articleTypes, locations, keywords } = req.query;
+    const { region, sectors, sourceTypes, profile: profileStr, search, articleTypes, locations, keywords, includeSources, excludeSources } = req.query;
     const regionSlug = regionSlugMap[region] || 'global';
     const typeList = sourceTypes ? sourceTypes.split(',') : ['Mainstream news', 'Independent journalism', 'Think tanks & academic'];
     const activeSectors = sectors ? sectors.split(',') : [];
@@ -490,6 +490,15 @@ app.get('/api/news', async (req, res) => {
     const keywordTerms = keywords
       ? keywords.split(',').map(s => s.trim().toLowerCase()).filter(s => s.length > 1)
       : [];
+    // Source inclusion / exclusion lists (comma-separated source names).
+    // If includeSources has any entries, ONLY those sources are kept.
+    // excludeSources always filters out matching sources.
+    const includeSet = includeSources
+      ? new Set(includeSources.split(',').map(s => s.trim()).filter(Boolean))
+      : null;
+    const excludeSet = excludeSources
+      ? new Set(excludeSources.split(',').map(s => s.trim()).filter(Boolean))
+      : null;
 
     // Get filtered sources from registry
     const sources = getSourcesForRegion(regionSlug, typeList);
@@ -546,6 +555,14 @@ app.get('/api/news', async (req, res) => {
         const text = ((a.title || '') + ' ' + (a.description || '') + ' ' + (a.source || '')).toLowerCase();
         return searchTerms.every(term => text.includes(term));
       });
+    }
+
+    // Apply source include/exclude filters (by publication name)
+    if (includeSet && includeSet.size > 0) {
+      unique = unique.filter(a => includeSet.has(a.source));
+    }
+    if (excludeSet && excludeSet.size > 0) {
+      unique = unique.filter(a => !excludeSet.has(a.source));
     }
 
     // Apply location filter — article must mention at least one typed
@@ -1304,6 +1321,122 @@ app.get('/api/sources/stats', (req, res) => {
   });
   const total = Object.values(stats).reduce((a, b) => a + b, 0);
   res.json({ regions: stats, total, cachedFeeds: Object.keys(feedCache).length });
+});
+
+// Full list of sources with metadata for the source browser UI
+app.get('/api/sources/list', (req, res) => {
+  try {
+    res.json({ sources: getAllSourcesForBrowser() });
+  } catch (err) {
+    console.error('Sources list error:', err);
+    res.status(500).json({ error: 'Failed to list sources' });
+  }
+});
+
+// Enrich a custom source from a URL or a publication name. Best-effort:
+// tries to fetch the URL's title and meta description, then asks Groq
+// to produce structured metadata (description / country / bias / type).
+app.post('/api/enrich-source', async (req, res) => {
+  try {
+    const { url, name } = req.body || {};
+    const trimmedUrl = (url || '').trim();
+    const trimmedName = (name || '').trim();
+    if (!trimmedUrl && !trimmedName) {
+      return res.status(400).json({ error: 'Provide a URL or a publication name.' });
+    }
+
+    // Attempt a best-effort fetch to extract a title / meta description.
+    let fetchedTitle = '';
+    let fetchedDesc = '';
+    let hostname = '';
+    if (trimmedUrl) {
+      try {
+        const u = new URL(trimmedUrl);
+        hostname = u.hostname.replace(/^www\./, '');
+      } catch {}
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 6000);
+        const resp = await fetch(trimmedUrl, {
+          signal: controller.signal,
+          headers: { 'User-Agent': 'Mozilla/5.0 (GeoSignal)', 'Accept': 'text/html' }
+        });
+        clearTimeout(timer);
+        if (resp.ok) {
+          const html = await resp.text();
+          const titleMatch = html.match(/<title[^>]*>([^<]{3,200})<\/title>/i);
+          if (titleMatch) fetchedTitle = titleMatch[1].trim();
+          const descMatch = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']{10,400})["']/i) ||
+                            html.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']{10,400})["']/i);
+          if (descMatch) fetchedDesc = descMatch[1].trim();
+        }
+      } catch (e) {
+        console.log('Enrich source URL fetch failed:', e.message);
+      }
+    }
+
+    // Ask Groq for structured metadata. This is strictly JSON-only.
+    const subject = trimmedName || fetchedTitle || hostname || trimmedUrl;
+    const prompt = `Given this news publication: ${subject}${hostname ? ' (' + hostname + ')' : ''}${fetchedDesc ? '\n\nTheir own description: "' + fetchedDesc + '"' : ''}
+
+Return ONLY a JSON object (no prose, no markdown) with these exact keys:
+{
+  "description": "One concise sentence describing what this outlet is and what it covers.",
+  "country": "Country of origin (short — e.g. 'United States', 'India', 'Qatar'). Use 'Unknown' if genuinely unclear.",
+  "bias": "Exactly one of: Far Left | Centre-Left | Centre | Centre-Right | Far Right | State Media | Non-partisan",
+  "sourceType": "Exactly one of: Mainstream | Independent | Think Tank | Official"
+}
+
+If you genuinely don't know the outlet, return a best-effort description with bias 'Centre' and sourceType 'Independent'.`;
+
+    let enriched = null;
+    let parseNote = '';
+    try {
+      const completion = await groqChat(
+        [{ role: 'user', content: prompt }],
+        { temperature: 0.1, max_tokens: 250 }
+      );
+      const raw = completion?.choices?.[0]?.message?.content || '';
+      const cleaned = stripCodeFences(raw);
+      let parsed;
+      try { parsed = JSON.parse(cleaned); }
+      catch {
+        const m = cleaned.match(/\{[\s\S]*\}/);
+        if (m) parsed = JSON.parse(m[0]);
+      }
+      if (parsed) {
+        const biasOptions = ['Far Left', 'Centre-Left', 'Centre', 'Centre-Right', 'Far Right', 'State Media', 'Non-partisan'];
+        const typeOptions = ['Mainstream', 'Independent', 'Think Tank', 'Official'];
+        enriched = {
+          description: String(parsed.description || '').trim() || fetchedDesc || 'No description available.',
+          country: String(parsed.country || '').trim() || 'Unknown',
+          bias: biasOptions.includes(parsed.bias) ? parsed.bias : 'Centre',
+          sourceType: typeOptions.includes(parsed.sourceType) ? parsed.sourceType : 'Independent'
+        };
+      }
+    } catch (err) {
+      parseNote = 'LLM enrichment failed: ' + err.message;
+      console.error(parseNote);
+    }
+
+    const derivedName = trimmedName || fetchedTitle || hostname || trimmedUrl;
+    const finalMeta = {
+      name: derivedName.replace(/\s+\|\s+.*$/, '').trim() || derivedName,
+      url: trimmedUrl,
+      description: (enriched && enriched.description) || fetchedDesc || 'Could not fetch details — added with limited info.',
+      country: (enriched && enriched.country) || 'Unknown',
+      bias: (enriched && enriched.bias) || 'Centre',
+      sourceType: (enriched && enriched.sourceType) || 'Independent',
+      custom: true,
+      enrichmentFailed: !enriched,
+      addedAt: Date.now()
+    };
+
+    res.json({ source: finalMeta });
+  } catch (err) {
+    console.error('Enrich source error:', err);
+    res.status(500).json({ error: 'Could not enrich source.' });
+  }
 });
 
 // ── Reddit Sentiment Search ─────────────────────────────────────
