@@ -594,26 +594,23 @@ app.get('/api/news', async (req, res) => {
       });
     }
 
-    // Apply sector filter — article must match at least one active sector's keywords
-    // When every sector is selected we skip the filter (nothing to narrow);
-    // otherwise require at least one sector-keyword match. Total-sector
-    // count is tracked dynamically so adding new sectors doesn't require
-    // touching the server.
-    const totalSectorCount = Object.keys(SECTOR_KEYWORDS || {}).length;
-    if (activeSectors.length > 0 && activeSectors.length < totalSectorCount) {
-      // Build keyword list from only the active sectors. Sectors the
-      // user typed as free-text ("Other" entries) have no pre-defined
-      // keyword list, so we treat the sector label itself as the
-      // match term.
-      const activeSectorKeywords = activeSectors
-        .flatMap(s => {
-          const list = SECTOR_KEYWORDS[s];
-          if (Array.isArray(list) && list.length) return list;
-          return [s]; // custom sector: literal match
-        })
-        .map(k => String(k || '').toLowerCase())
-        .filter(Boolean);
+    // Snapshot the pool BEFORE sector filtering so we can fall back
+    // to broader results if the user's combination turns up too few.
+    const preSectorPool = unique.slice();
 
+    // Apply sector filter — article must match at least one active sector's keywords
+    const totalSectorCount = Object.keys(SECTOR_KEYWORDS || {}).length;
+    const buildSectorKeywords = (sectors) => sectors
+      .flatMap(s => {
+        const list = SECTOR_KEYWORDS[s];
+        if (Array.isArray(list) && list.length) return list;
+        return [s]; // custom sector: literal match
+      })
+      .map(k => String(k || '').toLowerCase())
+      .filter(Boolean);
+
+    if (activeSectors.length > 0 && activeSectors.length < totalSectorCount) {
+      const activeSectorKeywords = buildSectorKeywords(activeSectors);
       if (activeSectorKeywords.length > 0) {
         unique = unique.filter(a => {
           const text = ((a.title || '') + ' ' + (a.description || '')).toLowerCase();
@@ -668,6 +665,111 @@ app.get('/api/news', async (req, res) => {
 
     unique.sort((a, b) => b.score - a.score);
 
+    // ── Broadening fallback ────────────────────────────────────────
+    // If the narrowly-filtered set is thin, progressively relax: first
+    // drop the sector filter for this region, then include articles
+    // across all regions. Also keyword-boost what remains so matches
+    // still rise. The client gets a human-readable broadenedNotice.
+    let broadenedNotice = '';
+    const MIN_RESULTS = 5;
+
+    async function buildFallback(pool, noticeText) {
+      // Re-apply the same location/include/exclude/article-type filters
+      // (sector is deliberately skipped to broaden the feed).
+      let p = pool.slice();
+      if (includeSet && includeSet.size > 0) p = p.filter(a => includeSet.has(a.source));
+      if (excludeSet && excludeSet.size > 0) p = p.filter(a => !excludeSet.has(a.source));
+      if (locationTerms.length > 0) {
+        p = p.filter(a => {
+          const text = ((a.title || '') + ' ' + (a.description || '')).toLowerCase();
+          return locationTerms.some(term => text.includes(term));
+        });
+      }
+      p.forEach(a => {
+        a.score = regionSlugs.reduce((best, slug) => {
+          const s = scoreArticle(a, slug, userProfile, activeSectors);
+          return s > best ? s : best;
+        }, -Infinity);
+        if (!isFinite(a.score)) a.score = scoreArticle(a, regionSlug, userProfile, activeSectors);
+        if (keywordTerms.length > 0) {
+          const titleLower = (a.title || '').toLowerCase();
+          const descLower = (a.description || '').toLowerCase();
+          let kwBoost = 0;
+          for (const term of keywordTerms) {
+            if (titleLower.includes(term)) kwBoost += 20;
+            else if (descLower.includes(term)) kwBoost += 8;
+          }
+          a.score += Math.min(kwBoost, 50);
+        }
+      });
+      p = p.filter(a => a.score >= 0);
+      if (activeArticleTypes.length > 0 && activeArticleTypes.length < 3) {
+        const allowed = new Set(activeArticleTypes);
+        p = p.filter(a => allowed.has(a.articleType));
+      }
+      p.sort((a, b) => b.score - a.score);
+      broadenedNotice = noticeText;
+      return p;
+    }
+
+    // Step 1: relax sector filter in the same region(s)
+    if (unique.length < MIN_RESULTS && activeSectors.length > 0 && activeSectors.length < totalSectorCount) {
+      const labelList = effectiveRegionList.join(', ');
+      unique = await buildFallback(preSectorPool,
+        `Fewer articles available for your exact sector filters — showing broader results for ${labelList}.`);
+    }
+
+    // Step 2: if still thin, broaden region by pulling from every cached feed
+    if (unique.length < MIN_RESULTS && !includesGlobal) {
+      const globalPool = [];
+      Object.values(feedCache).forEach(cached => {
+        if (cached.articles) globalPool.push(...cached.articles);
+      });
+      // Dedup against already-included URLs
+      const existingKeys = new Set(unique.map(a => (a.title || '').toLowerCase().trim()));
+      const extraDeduped = globalPool.filter(a => {
+        const key = (a.title || '').toLowerCase().trim();
+        if (!key || existingKeys.has(key)) return false;
+        existingKeys.add(key);
+        return true;
+      });
+      const expandedPool = [...preSectorPool, ...extraDeduped];
+      unique = await buildFallback(expandedPool,
+        `Fewer local results available — showing broader matches across all regions.`);
+    }
+
+    // Step 3: keyword-only global fallback if the user has keywords set
+    if (unique.length < MIN_RESULTS && keywordTerms.length > 0) {
+      const globalPool = [];
+      Object.values(feedCache).forEach(cached => {
+        if (cached.articles) globalPool.push(...cached.articles);
+      });
+      const matches = globalPool.filter(a => {
+        const text = ((a.title || '') + ' ' + (a.description || '')).toLowerCase();
+        return keywordTerms.some(term => text.includes(term));
+      });
+      const existingKeys = new Set(unique.map(a => (a.title || '').toLowerCase().trim()));
+      const fresh = matches.filter(a => {
+        const key = (a.title || '').toLowerCase().trim();
+        if (!key || existingKeys.has(key)) return false;
+        existingKeys.add(key);
+        return true;
+      });
+      fresh.forEach(a => {
+        a.score = keywordTerms.reduce((acc, term) => {
+          const t = (a.title || '').toLowerCase();
+          return acc + (t.includes(term) ? 20 : 0);
+        }, 10);
+      });
+      unique = [...unique, ...fresh];
+      unique.sort((a, b) => b.score - a.score);
+      if (!broadenedNotice) {
+        broadenedNotice = 'No local results found — showing global results matching your keywords.';
+      } else {
+        broadenedNotice = 'No local results found — showing global results matching your keywords.';
+      }
+    }
+
     // Map to card format. Strip HTML server-side so descriptions arrive
     // as clean text — prevents truncation from cutting mid-entity on
     // the client and keeps the payload lean.
@@ -698,7 +800,7 @@ app.get('/api/news', async (req, res) => {
       };
     });
 
-    res.json({ articles, governmentCaveat: GOVERNMENT_CAVEAT });
+    res.json({ articles, governmentCaveat: GOVERNMENT_CAVEAT, broadenedNotice });
   } catch (err) {
     console.error('News fetch error:', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -1150,43 +1252,85 @@ function buildImpactProfileDesc(profile) {
   ].filter(Boolean).join(' | ');
 }
 
-async function generateImpactWithPerplexity({ title, source, articleContent, profile, expertArticles, url }) {
-  const profileDesc = buildImpactProfileDesc(profile);
+// Renders the full profile + active-filter context the impact prompt
+// needs to check every dimension before deciding on relevance.
+function buildFullContextBlock(profile, activeFilters) {
+  profile = profile || {};
+  const af = activeFilters || {};
+  const lines = [];
+  lines.push('- Role / occupation: ' + (String(profile.role || '').trim() || 'Not specified'));
+  lines.push('- Company or organisation: ' + (String(profile.company || '').trim() || 'Not specified'));
+  lines.push('- Country they are based in: ' + (String(profile.location || '').trim() || 'Not specified'));
+  const regions = Array.isArray(af.regions) && af.regions.length ? af.regions.join(', ') : 'Global / not narrowed';
+  lines.push('- Regions they follow: ' + regions);
+  const profileIndustries = Array.isArray(profile.industries) ? profile.industries : [];
+  const profileCustomSectors = Array.isArray(profile.customSectors) ? profile.customSectors : [];
+  const filterSectors = Array.isArray(af.sectors) ? af.sectors : [];
+  const filterCustomSectors = Array.isArray(af.customSectors) ? af.customSectors : [];
+  const allSectors = Array.from(new Set([
+    ...profileIndustries, ...profileCustomSectors, ...filterSectors, ...filterCustomSectors
+  ])).filter(Boolean);
+  lines.push('- Sectors of interest: ' + (allSectors.length ? allSectors.join(', ') : 'Not specified'));
+  const profileKeywords = Array.isArray(profile.keywords) ? profile.keywords : [];
+  const filterKeywords = Array.isArray(af.keywords) ? af.keywords : [];
+  const allKeywords = Array.from(new Set([...profileKeywords, ...filterKeywords])).filter(Boolean);
+  lines.push('- Keywords they track: ' + (allKeywords.length ? allKeywords.join(', ') : 'None'));
+  const includeSources = Array.isArray(af.includeSources) && af.includeSources.length ? af.includeSources.join(', ') : '(none explicitly whitelisted)';
+  const excludeSources = Array.isArray(af.excludeSources) && af.excludeSources.length ? af.excludeSources.join(', ') : '(none blocked)';
+  lines.push('- Sources they chose to follow (whitelist): ' + includeSources);
+  lines.push('- Sources they chose to exclude (blocklist): ' + excludeSources);
+  const focus = String(profile.focus || '').trim();
+  if (focus) lines.push('- Other focus areas / concerns: ' + focus);
+  return lines.join('\n');
+}
 
-  let expertContext = '';
-  if (expertArticles.length > 0) {
-    expertContext = '\n\nAvailable expert sources you may cite by name:\n';
-    expertArticles.forEach(ea => {
-      expertContext += `- ${ea.source}: "${ea.title}" — ${ea.description}\n`;
-    });
-  }
+async function generateImpactWithPerplexity({ title, source, articleContent, profile, activeFilters, expertArticles, url }) {
+  const fullContext = buildFullContextBlock(profile, activeFilters);
 
-  const systemPrompt = "You are a senior intelligence analyst writing personalised impact briefings for a specific professional. You produce SHORT, BULLETED output — never prose, never essays. Every bullet must contain a concrete mechanism, named actor, number, or date. No filler, no hedges, no generic 'this could affect your industry' language. If the reader's role is unusual, non-standard, or simply says 'Professional', base the analysis on their industry, company, location, and focus areas instead — never refuse to produce an analysis just because the role is unfamiliar. You have access to real-time information; use it to ground claims in specific recent context.";
+  const systemPrompt = "You are a rigorous analyst in the user's position. You only draw connections that genuinely exist. You never force relevance. Your credibility depends on intellectual honesty. You never invent or imply connections to a user's company, employer, university, or other identifying details unless the article genuinely and specifically references or implicates them.";
 
-  const userPrompt = `Assess how this news story specifically impacts the reader below. Be direct and specific to their role, industry, company (if given), and location. When a Company is listed, reason about that specific company's operations, revenue, regulatory exposure, or competitive position — grounded in the article or well-known public information, never fabricated details.
+  const userPrompt = `Here is a news article briefing:
 
-READER PROFILE: ${profileDesc}
+TITLE: ${title}
+SOURCE: ${source}
+BRIEFING CONTENT:
+${articleContent}
 
-ARTICLE: ${title} (${source})
-ARTICLE TEXT: ${articleContent}${expertContext}
+Here is the user's profile and tracked interests:
+${fullContext}
+
+Does this article have a genuine, specific, and direct relevance to this user's work, role, country, regions, sectors, tracked keywords, or followed sources?
+
+Check each dimension in sequence before deciding:
+1. Is the user's role or occupation directly affected by what the article describes?
+2. Is the user's company or organisation specifically named, referenced, or implicated in the article?
+3. Is the user's country of residence directly affected (policy, economy, security, society)?
+4. Does the article concern any of the user's selected regions?
+5. Does the article fall squarely within any of the user's selected sectors of interest?
+6. Does the article directly mention or closely relate to any of the user's tracked keywords?
+7. Is the article from (or directly about) a source the user chose to follow?
+
+If ANY one of these dimensions yields a genuine, specific, non-tangential hit, produce the analysis. Otherwise produce the "no direct impact" response.
 
 Return ONLY this JSON (no prose outside, no markdown fences):
 {
-  "relevance": "HIGH | MEDIUM | LOW — one word only",
+  "relevance": "HIGH | MEDIUM | LOW | NONE",
+  "matched_dimensions": ["List the SPECIFIC dimensions that genuinely matched, e.g. 'Sector: Climate & Environment', 'Region: Southeast Asia', 'Keyword: IRA'. Empty array if relevance = NONE."],
   "impact_summary": [
-    "2-4 short bullets. Each bullet names a specific mechanism by which this story affects this reader's role/industry/company/location. Specific actor, number, or policy lever in each bullet. Max 25 words per bullet."
+    "2-4 short bullets. Each bullet cites a SPECIFIC matched dimension and explains the concrete mechanism by which this story affects the user. Max 25 words per bullet. Only present if relevance != NONE."
   ],
   "what_to_watch": [
-    "2-3 short bullets. Each bullet is a concrete upcoming trigger, date, data release, policy decision, or counterparty move to track. Not abstract — actionable."
-  ]
+    "2-3 short bullets. Concrete upcoming triggers, dates, data releases, or counterparty moves. Only present if relevance != NONE."
+  ],
+  "no_impact_reason": "Required ONLY if relevance = NONE. Use this exact text: 'This story does not appear to have a direct impact on your current focus areas. No forced analysis — check back if the situation develops.'"
 }
 
 HARD RULES:
-- Bullets must be declarative, complete sentences.
-- Max 25 words per bullet. Aim for 12-20.
-- Every bullet must contain at least one concrete noun (named entity, date, number, deadline, figure, sector).
-- No bullet may start with "This", "It", "The situation", or any vague pronoun.
-- If the story genuinely doesn't affect this reader in a specific way, set relevance to LOW and return impact_summary bullets explaining WHY it's low-relevance for them specifically.
+- Do NOT manufacture connections. Do NOT mention the user's company, employer, or any identifying detail unless the article specifically references or implicates it.
+- Tangential associations (e.g. "this could affect the broader industry") are NOT genuine connections. Reject them.
+- Bullets must be declarative, max 25 words, contain at least one concrete noun.
+- No bullet may begin with "This", "It", "The situation", or any vague pronoun.
+- If every dimension comes up tangential or unrelated, set relevance to NONE and return the exact no_impact_reason string verbatim.
 - Output ONLY the JSON object. No preamble, no code fences.`;
 
   const completion = await perplexityChat(
@@ -1194,7 +1338,7 @@ HARD RULES:
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userPrompt }
     ],
-    { temperature: 0.2, max_tokens: 700 }
+    { temperature: 0.15, max_tokens: 800 }
   );
 
   const raw = completion?.choices?.[0]?.message?.content || '';
@@ -1216,12 +1360,31 @@ HARD RULES:
       .filter(Boolean);
   };
 
+  const relevanceRaw = String(parsed.relevance || 'MEDIUM').toUpperCase().trim();
+  const relevance = /^(HIGH|MEDIUM|LOW|NONE)$/.test(relevanceRaw) ? relevanceRaw : 'MEDIUM';
+
+  const citations = Array.isArray(completion.citations)
+    ? completion.citations
+    : (Array.isArray(completion.search_results) ? completion.search_results.map(r => r.url).filter(Boolean) : []);
+  const citationMap = { 'Article': url || '', 'Profile': '' };
+  citations.forEach((u, i) => {
+    if (u && typeof u === 'string') citationMap[String(i + 1)] = u;
+  });
+
+  if (relevance === 'NONE') {
+    const noImpactReason = (parsed.no_impact_reason && String(parsed.no_impact_reason).trim()) ||
+      'This story does not appear to have a direct impact on your current focus areas. No forced analysis — check back if the situation develops.';
+    return {
+      impact: 'RELEVANCE:\nNONE\n\n',
+      relevance,
+      citationMap,
+      noImpactReason
+    };
+  }
+
   const summary = asBullets(parsed.impact_summary);
   const watch = asBullets(parsed.what_to_watch);
   if (!summary.length || !watch.length) throw new Error('Perplexity impact is missing bullets');
-
-  const relevanceRaw = String(parsed.relevance || 'MEDIUM').toUpperCase().trim();
-  const relevance = /^(HIGH|MEDIUM|LOW)$/.test(relevanceRaw) ? relevanceRaw : 'MEDIUM';
 
   const bulletify = (arr) => arr.map(s => '- ' + s).join('\n');
   const impact =
@@ -1229,65 +1392,70 @@ HARD RULES:
     `IMPACT SUMMARY:\n${bulletify(summary)}\n\n` +
     `WHAT TO WATCH:\n${bulletify(watch)}`;
 
-  const citations = Array.isArray(completion.citations)
-    ? completion.citations
-    : (Array.isArray(completion.search_results) ? completion.search_results.map(r => r.url).filter(Boolean) : []);
-
-  const citationMap = { 'Article': url || '', 'Profile': '' };
-  citations.forEach((u, i) => {
-    if (u && typeof u === 'string') citationMap[String(i + 1)] = u;
-  });
-
   return { impact, relevance, citationMap };
 }
 
-async function generateImpactWithGroq({ title, source, articleContent, profile, expertArticles, url }) {
-  const profileDesc = buildImpactProfileDesc(profile);
-
-  let expertContext = '';
-  if (expertArticles.length > 0) {
-    expertContext = '\n\nAVAILABLE EXPERT SOURCES (cite these by name using [SourceName] tags):\n';
-    expertArticles.forEach(ea => {
-      expertContext += `- [${ea.source}]: "${ea.title}" — ${ea.description}\n`;
-    });
-  }
+async function generateImpactWithGroq({ title, source, articleContent, profile, activeFilters, expertArticles, url }) {
+  const fullContext = buildFullContextBlock(profile, activeFilters);
 
   const citationTags = ['[Article]', '[Profile]'];
   expertArticles.forEach(ea => citationTags.push(`[${ea.source}]`));
   const citationList = citationTags.join(', ');
 
-  const prompt = `You are an analyst producing a tight, bulleted impact briefing. Every bullet must contain a concrete mechanism, named actor, number, or date. No filler, no hedges. If the reader's role is unusual or just says "Professional", base the analysis on their industry, company, location, and focus areas — never refuse to produce an analysis just because the role is unfamiliar.
+  const prompt = `You are a rigorous analyst in the user's position. You only draw connections that genuinely exist. You never force relevance. Never manufacture a connection to the user's company, employer, or university unless the article genuinely references or implicates them.
 
-PROFILE: ${profileDesc}
 ARTICLE: ${title} (${source})
-TEXT: ${articleContent}${expertContext}
+ARTICLE TEXT: ${articleContent}
 
-CITATION RULES:
-- Every bullet ends with ONE citation tag in square brackets.
-- Allowed tags: ${citationList}
-- [Article] = fact from the article. [Profile] = reasoning based on reader's profile. Named source = paraphrasing expert.
+USER PROFILE AND INTERESTS:
+${fullContext}
 
-Use EXACTLY this format. Bullets with dashes (-), max 25 words each:
+Check these dimensions in order before deciding:
+1. User's role / occupation
+2. User's company or organisation (only count if specifically referenced or implicated)
+3. User's country of residence
+4. Any of the user's selected regions
+5. Any of the user's selected sectors
+6. Any of the user's tracked keywords
+7. Any followed or excluded sources
+
+If ANY dimension produces a GENUINE, specific hit, produce the analysis. Otherwise output the no-impact response.
+
+Use this EXACT format. Citations in brackets (${citationList}). Bullets max 25 words each.
 
 RELEVANCE:
-[HIGH | MEDIUM | LOW]
+[HIGH | MEDIUM | LOW | NONE]
+
+If RELEVANCE is NONE, write ONLY:
+NO_IMPACT_REASON:
+This story does not appear to have a direct impact on your current focus areas. No forced analysis — check back if the situation develops.
+
+Otherwise (HIGH / MEDIUM / LOW):
+
+MATCHED DIMENSIONS:
+- Specific matched dimensions, e.g. "Sector: Climate & Environment", "Region: Southeast Asia".
 
 IMPACT SUMMARY:
-- Concrete mechanism affecting the reader's role/industry/company/location. [Article or Profile]
-- Second specific mechanism. [Article or Profile]
+- Concrete mechanism tied to a named matched dimension. [Article or Profile]
+- Second mechanism tied to a matched dimension. [Article or Profile]
 - Third, if genuinely distinct. [Article or Profile]
 
 WHAT TO WATCH:
 - Specific trigger, date, or counterparty to track. [Article or Profile]
-- Second actionable item. [Article or Profile]`;
+- Second actionable item. [Article or Profile]
+
+HARD RULES:
+- Do not manufacture connections. Tangential associations are NOT genuine — reject them.
+- Do not name the user's company / university / employer unless the article specifically implicates them.
+- No bullet begins with "This", "It", "The situation", or a vague pronoun.`;
 
   const chatCompletion = await groqChat(
     [{ role: 'user', content: prompt }],
-    { temperature: 0.3, max_tokens: 400 }
+    { temperature: 0.2, max_tokens: 450 }
   );
 
   const impact = chatCompletion.choices[0]?.message?.content || 'Unable to generate impact analysis.';
-  const relevanceMatch = impact.match(/RELEVANCE:\s*(HIGH|MEDIUM|LOW)/i);
+  const relevanceMatch = impact.match(/RELEVANCE:\s*(HIGH|MEDIUM|LOW|NONE)/i);
   const relevance = relevanceMatch ? relevanceMatch[1].toUpperCase() : 'MEDIUM';
 
   const citationMap = { 'Article': url || '', 'Profile': '' };
@@ -1295,20 +1463,23 @@ WHAT TO WATCH:
     if (ea.source && ea.url) citationMap[ea.source] = ea.url;
   });
 
+  if (relevance === 'NONE') {
+    const reasonMatch = impact.match(/NO_IMPACT_REASON:\s*([\s\S]+?)$/i);
+    const noImpactReason = (reasonMatch && reasonMatch[1].trim()) ||
+      'This story does not appear to have a direct impact on your current focus areas. No forced analysis — check back if the situation develops.';
+    return { impact: 'RELEVANCE:\nNONE\n\n', relevance, citationMap, noImpactReason };
+  }
+
   return { impact, relevance, citationMap };
 }
 
 app.post('/api/impact', async (req, res) => {
   try {
-    const { title, source, description, content, profile, url, region } = req.body;
+    const { title, source, description, content, profile, activeFilters, url, region } = req.body;
 
     if (!profile) {
       return res.status(400).json({ error: 'Profile required' });
     }
-    // Role is optional. If the user left role blank or typed something
-    // nonsensical, we still want to produce a useful impact analysis
-    // based on whatever other fields they did fill in. Fall back to a
-    // generic "Professional" label so the prompt always has a subject.
     const hasAnyField = profile.role || profile.industry ||
       profile.company || profile.location || profile.focus ||
       (Array.isArray(profile.industries) && profile.industries.length > 0);
@@ -1319,12 +1490,15 @@ app.post('/api/impact', async (req, res) => {
       profile = { ...profile, role: 'Professional' };
     }
 
+    // Cache key now folds in activeFilters so different filter contexts
+    // produce different impact analyses for the same article.
     const profileHash = hashString(JSON.stringify({
       role: profile.role, industry: profile.industry,
       company: profile.company,
-      location: profile.location, focus: profile.focus
+      location: profile.location, focus: profile.focus,
+      filters: activeFilters || null
     }));
-    const impactCacheKey = IMPACT_CACHE_VERSION + '::' + (url || title) + '::' + profileHash;
+    const impactCacheKey = IMPACT_CACHE_VERSION + '::v3::' + (url || title) + '::' + profileHash;
     const cachedImpact = cacheGet('impact', impactCacheKey);
     if (cachedImpact) return res.json(cachedImpact);
 
@@ -1340,7 +1514,7 @@ app.post('/api/impact', async (req, res) => {
     if (PERPLEXITY_API_KEY) {
       try {
         result = await generateImpactWithPerplexity({
-          title, source, articleContent, profile, expertArticles, url
+          title, source, articleContent, profile, activeFilters, expertArticles, url
         });
         provider = 'perplexity';
       } catch (err) {
@@ -1351,12 +1525,18 @@ app.post('/api/impact', async (req, res) => {
 
     if (!result) {
       result = await generateImpactWithGroq({
-        title, source, articleContent, profile, expertArticles, url
+        title, source, articleContent, profile, activeFilters, expertArticles, url
       });
       provider = 'groq';
     }
 
-    const impactResponse = { ...result, provider };
+    const impactResponse = {
+      impact: result.impact,
+      relevance: result.relevance,
+      citationMap: result.citationMap,
+      noImpactReason: result.noImpactReason || null,
+      provider
+    };
     cacheSet('impact', impactCacheKey, impactResponse);
     res.json(impactResponse);
   } catch (err) {

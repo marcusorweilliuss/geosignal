@@ -1938,6 +1938,14 @@ async function fetchStories() {
 
     updateDispatchHeader(currentArticles);
     renderFeed(currentArticles);
+    // If the server had to broaden the filters to find enough results,
+    // surface a one-line notice above the first card.
+    if (data.broadenedNotice) {
+      const notice = document.createElement('div');
+      notice.className = 'broadened-notice';
+      notice.textContent = data.broadenedNotice;
+      feed.insertBefore(notice, feed.firstChild);
+    }
     generateTldrs(currentArticles);
 
     // Filter state is now "applied" — clear the pending indicator and
@@ -2158,13 +2166,25 @@ async function fetchImpact(article, container) {
     '</div>';
 
   try {
+    // Bundle the user's active filter state so the server can check
+    // ALL dimensions (role, company, country, regions, sectors,
+    // keywords, included/excluded sources) for genuine relevance.
+    const activeFilters = {
+      regions: (typeof getActiveRegions === 'function') ? getActiveRegions() : [],
+      sectors: (typeof getActivePills === 'function' && sectorPills) ? getActivePills(sectorPills) : [],
+      customSectors: Array.isArray(customFilterSectors) ? customFilterSectors.slice() : [],
+      keywords: Array.isArray(filterKeywords) ? filterKeywords.slice() : [],
+      includeSources: (sourceSelection && sourceSelection.include) ? Array.from(sourceSelection.include) : [],
+      excludeSources: (sourceSelection && sourceSelection.exclude) ? Array.from(sourceSelection.exclude) : []
+    };
+
     const res = await fetch('/api/impact', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         title: article.title, source: article.source,
         description: article.description, content: article.content,
-        profile, url: article.url, region: article.region
+        profile, activeFilters, url: article.url, region: article.region
       })
     });
 
@@ -2175,14 +2195,36 @@ async function fetchImpact(article, container) {
       return;
     }
 
-    const relevance = (data.relevance || 'MEDIUM').toLowerCase();
+    const rawRelevance = String(data.relevance || 'MEDIUM').toUpperCase();
+    const relevance = rawRelevance.toLowerCase();
+
+    // NONE = model explicitly said "no genuine connection" — render a
+    // clean "no forced analysis" state rather than fabricated bullets.
+    if (rawRelevance === 'NONE') {
+      container.innerHTML =
+        '<div class="impact-section impact-none">' +
+          '<div class="impact-header">' +
+            '<span class="impact-title">How This Impacts You</span>' +
+            '<span class="impact-badge none">No direct impact</span>' +
+          '</div>' +
+          '<div class="impact-body">' +
+            '<p class="impact-none-body">' +
+              (data.noImpactReason
+                ? escapeHtml(data.noImpactReason)
+                : 'This story does not appear to have a direct impact on your current focus areas. No forced analysis — check back if the situation develops.') +
+            '</p>' +
+          '</div>' +
+        '</div>';
+      return;
+    }
+
     const sections = parseImpact(data.impact);
 
     let html =
       '<div class="impact-section">' +
         '<div class="impact-header">' +
           '<span class="impact-title">How This Impacts You</span>' +
-          '<span class="impact-badge ' + relevance + '">' + data.relevance + ' Relevance</span>' +
+          '<span class="impact-badge ' + relevance + '">' + rawRelevance + ' Relevance</span>' +
         '</div><div class="impact-body">';
 
     sections.forEach(s => {
