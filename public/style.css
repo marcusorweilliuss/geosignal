@@ -3694,6 +3694,52 @@ select:focus {
 
 .profile-panel-inline-success.visible { display: block; }
 
+/* Reading patterns card inside profile panel */
+.reading-patterns-card {
+  margin: 0;
+  border-top: 1px solid var(--border);
+}
+.reading-patterns-toggle {
+  display: block;
+  padding: 14px 28px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+  list-style: none;
+}
+.reading-patterns-toggle::-webkit-details-marker { display: none; }
+.reading-patterns-toggle::before { content: '\25B6 '; font-size: 9px; margin-right: 6px; }
+.reading-patterns-card[open] .reading-patterns-toggle::before { content: '\25BC '; }
+
+.reading-patterns-body {
+  padding: 0 28px 18px;
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+.reading-patterns-hint {
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+.reading-patterns-body ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.reading-patterns-body li {
+  padding: 5px 0;
+  border-bottom: 1px dashed var(--border);
+}
+.reading-patterns-body li:last-child { border-bottom: none; }
+.reading-patterns-label {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-right: 6px;
+}
+
 .profile-panel-footer {
   padding: 16px 28px 18px;
   border-top: 1px solid var(--border);

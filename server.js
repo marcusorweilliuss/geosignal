@@ -553,6 +553,18 @@ app.get('/api/news', async (req, res) => {
       });
     }
 
+    // ── Hard 30-day cap ── never return anything older regardless of
+    // other filter settings. Also accept an optional dateRange param
+    // (in hours) for tighter ranges from the client-side date filter.
+    const dateRangeHours = parseInt(req.query.dateRange, 10);
+    const maxAgeMs = (dateRangeHours > 0 ? Math.min(dateRangeHours, 720) : 720) * 60 * 60 * 1000;
+    const cutoff = Date.now() - maxAgeMs;
+    allArticles = allArticles.filter(a => {
+      if (!a.publishedAt) return true; // keep items with no timestamp — scored lower anyway
+      const ts = new Date(a.publishedAt).getTime();
+      return !isNaN(ts) && ts >= cutoff;
+    });
+
     // Parse user profile for scoring
     let userProfile = null;
     if (profileStr) {

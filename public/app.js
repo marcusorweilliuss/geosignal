@@ -1,3 +1,140 @@
+// ── Behavioural pattern tracker ─────────────────────────────────
+// Silently logs user interaction events to localStorage so patterns
+// can be analysed for feed re-ranking and the "Your reading patterns"
+// summary card. All data stays local until auth is implemented.
+const GS_TRACKER_KEY = 'geosignal-tracker';
+const GS_TRACKER_MAX_EVENTS = 500;
+
+const gsTracker = (() => {
+  function getEvents() {
+    try { return JSON.parse(localStorage.getItem(GS_TRACKER_KEY) || '[]'); }
+    catch { return []; }
+  }
+  function save(events) {
+    // Trim oldest events if the log gets too large
+    const trimmed = events.length > GS_TRACKER_MAX_EVENTS
+      ? events.slice(events.length - GS_TRACKER_MAX_EVENTS)
+      : events;
+    try { localStorage.setItem(GS_TRACKER_KEY, JSON.stringify(trimmed)); } catch {}
+  }
+  function log(type, data) {
+    const events = getEvents();
+    events.push({ type, ts: Date.now(), ...data });
+    save(events);
+  }
+
+  // ── Tracking methods ──
+  function articleOpened(article) {
+    if (!article) return;
+    log('article_opened', {
+      id: article.url || article.title,
+      source: article.source || '',
+      region: article.region || '',
+      articleType: article.articleType || '',
+      country: article.country || ''
+    });
+  }
+  function articleTimeSpent(articleId, seconds) {
+    if (seconds < 2) return;
+    log('article_time_spent', { id: articleId, seconds: Math.round(seconds) });
+  }
+  function articleSaved(article) {
+    if (!article) return;
+    log('article_saved', {
+      id: article.url || article.title,
+      source: article.source || '',
+      region: article.region || ''
+    });
+  }
+  function briefingSectionRead(articleId, section, seconds) {
+    log('briefing_section_read', { id: articleId, section, seconds: Math.round(seconds) });
+  }
+  function conciseVsDetailed(mode) {
+    log('concise_vs_detailed', { mode });
+  }
+  function searchQuery(query) {
+    if (!query) return;
+    log('search_query', { query });
+  }
+  function filtersApplied(snapshot) {
+    log('filters_applied', { filters: snapshot });
+  }
+  function termAnnotated(term, articleId, region) {
+    log('term_annotated', { term, id: articleId || '', region: region || '' });
+  }
+
+  // ── Pattern extraction ──
+  // Returns a summary of the user's behavioural patterns.
+  function getPatternSummary() {
+    const events = getEvents();
+    if (events.length < 10) return null;
+
+    const regionCounts = {};
+    const sectorCounts = {};
+    const sourceCounts = {};
+    const keywordCounts = {};
+    const annotatedTerms = {};
+    let conciseCount = 0;
+    let detailedCount = 0;
+    const hourCounts = new Array(24).fill(0);
+
+    events.forEach(e => {
+      // Time-of-day patterns
+      hourCounts[new Date(e.ts).getHours()]++;
+
+      if (e.type === 'article_opened' || e.type === 'article_saved') {
+        if (e.region) regionCounts[e.region] = (regionCounts[e.region] || 0) + 1;
+        if (e.source) sourceCounts[e.source] = (sourceCounts[e.source] || 0) + 1;
+      }
+      if (e.type === 'search_query' && e.query) {
+        e.query.toLowerCase().split(/\s+/).filter(w => w.length > 2).forEach(w => {
+          keywordCounts[w] = (keywordCounts[w] || 0) + 1;
+        });
+      }
+      if (e.type === 'filters_applied' && e.filters) {
+        // Count which sectors appear in filter snapshots
+        (e.filters.sectors || '').split('|').filter(Boolean).forEach(s => {
+          sectorCounts[s] = (sectorCounts[s] || 0) + 1;
+        });
+      }
+      if (e.type === 'concise_vs_detailed') {
+        if (e.mode === 'concise') conciseCount++;
+        else detailedCount++;
+      }
+      if (e.type === 'term_annotated' && e.term) {
+        annotatedTerms[e.term] = (annotatedTerms[e.term] || 0) + 1;
+      }
+    });
+
+    const top = (obj, n) => Object.entries(obj)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, n)
+      .map(([k]) => k);
+
+    const peakHour = hourCounts.indexOf(Math.max(...hourCounts));
+
+    return {
+      totalInteractions: events.length,
+      topRegions: top(regionCounts, 3),
+      topSectors: top(sectorCounts, 3),
+      topSources: top(sourceCounts, 5),
+      topKeywords: top(keywordCounts, 5),
+      topAnnotatedTerms: top(annotatedTerms, 5),
+      preferredFormat: conciseCount > detailedCount ? 'concise' : 'detailed',
+      peakHour,
+      peakHourLabel: (peakHour < 12 ? peakHour || 12 : peakHour - 12 || 12) +
+        (peakHour < 12 ? 'am' : 'pm')
+    };
+  }
+
+  return {
+    articleOpened, articleTimeSpent, articleSaved,
+    briefingSectionRead, conciseVsDetailed,
+    searchQuery, filtersApplied, termAnnotated,
+    getPatternSummary, getEvents
+  };
+})();
+
 const feed = document.getElementById('feed');
 const regionPills = document.getElementById('region-pills');
 
@@ -16,6 +153,7 @@ const sectorPills = document.getElementById('sector-pills');
 const sourcePills = document.getElementById('source-pills');
 const articleTypePills = document.getElementById('article-type-pills');
 const locationsInput = document.getElementById('locations-input');
+const dateRangePills = document.getElementById('date-range-pills');
 const manageSourcesBtn = document.getElementById('manage-sources-btn');
 const sourceBrowser = document.getElementById('source-browser');
 const sourceBrowserOverlay = document.getElementById('source-browser-overlay');
@@ -113,6 +251,7 @@ function applyBriefLength(mode) {
 function setBriefLength(mode) {
   if (mode !== 'concise' && mode !== 'detailed') return;
   localStorage.setItem(BRIEF_LENGTH_KEY, mode);
+  gsTracker.conciseVsDetailed(mode);
   applyBriefLength(mode);
 }
 
@@ -418,9 +557,33 @@ function hideWelcomeModal() {
 // ── Slide-in profile panel ──
 let panelSaveCallback = null;
 
+function renderReadingPatterns() {
+  const body = document.getElementById('reading-patterns-body');
+  if (!body) return;
+  const summary = gsTracker.getPatternSummary();
+  if (!summary) {
+    body.innerHTML = '<div class="reading-patterns-hint">After 10 interactions we\u2019ll show you what we\u2019ve learned about your interests.</div>';
+    return;
+  }
+  const line = (label, items) => items.length
+    ? '<li><span class="reading-patterns-label">' + escapeHtml(label) + ':</span> ' + items.map(escapeHtml).join(', ') + '</li>'
+    : '';
+  body.innerHTML = '<ul>' +
+    line('You most frequently read about', summary.topSectors) +
+    line('Top regions', summary.topRegions) +
+    line('Recurring keywords', summary.topKeywords) +
+    line('Go-to sources', summary.topSources) +
+    line('You annotate most', summary.topAnnotatedTerms) +
+    '<li><span class="reading-patterns-label">Preferred format:</span> ' + escapeHtml(summary.preferredFormat) + '</li>' +
+    '<li><span class="reading-patterns-label">Peak reading time:</span> around ' + escapeHtml(summary.peakHourLabel) + '</li>' +
+    '<li><span class="reading-patterns-label">Total interactions:</span> ' + summary.totalInteractions + '</li>' +
+  '</ul>';
+}
+
 function openProfilePanel(options = {}) {
   panelSaveCallback = typeof options.onSave === 'function' ? options.onSave : null;
   renderProfileForm(profileFormMount, 'profile');
+  renderReadingPatterns();
   profilePanelSuccess.classList.remove('visible');
   profilePanelSuccess.textContent = '';
   profilePanel.classList.add('visible');
@@ -819,6 +982,7 @@ function saveFilters() {
       sourceTypes: getActivePills(sourcePills),
       articleTypes: articleTypePills ? getActivePills(articleTypePills) : ['News', 'Analysis'],
       locations: locationsInput ? locationsInput.value.trim() : '',
+      dateRange: getActiveDateRange(),
       customSectors: customFilterSectors.slice(),
       keywords: filterKeywords.slice()
     };
@@ -857,6 +1021,11 @@ function restoreFilters() {
     if (state && typeof state.locations === 'string' && locationsInput) {
       locationsInput.value = state.locations;
     }
+    if (state && state.dateRange && dateRangePills) {
+      dateRangePills.querySelectorAll('.pill').forEach(p => {
+        p.classList.toggle('active', p.dataset.value === state.dateRange);
+      });
+    }
     if (state && Array.isArray(state.customSectors)) {
       customFilterSectors = state.customSectors.slice();
     }
@@ -872,6 +1041,24 @@ restoreFilters();
 initPills(sectorPills);
 initPills(sourcePills);
 if (articleTypePills) initPills(articleTypePills);
+
+// Date-range pills are single-select (radio-like) — clicking one
+// deactivates the others.
+if (dateRangePills) {
+  dateRangePills.querySelectorAll('.pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      dateRangePills.querySelectorAll('.pill.active').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      handleFiltersChanged();
+    });
+  });
+}
+
+function getActiveDateRange() {
+  if (!dateRangePills) return '24';
+  const active = dateRangePills.querySelector('.pill.active');
+  return active ? active.dataset.value : '24';
+}
 
 function getActivePills(container) {
   return Array.from(container.querySelectorAll('.pill.active'))
@@ -1289,6 +1476,7 @@ function snapshotFilterState() {
     sourceTypes: getActivePills(sourcePills).slice().sort().join('|'),
     articleTypes: (articleTypePills ? getActivePills(articleTypePills) : []).slice().sort().join('|'),
     locations: (locationsInput ? locationsInput.value.trim() : ''),
+    dateRange: getActiveDateRange(),
     customSectors: customFilterSectors.slice().sort().join('|'),
     keywords: filterKeywords.slice().sort().join('|'),
     includeSources: Array.from(sourceSelection.include).sort().join('|'),
@@ -1373,6 +1561,7 @@ function updatePendingState() {
     applied.sourceTypes !== current.sourceTypes ||
     applied.articleTypes !== current.articleTypes ||
     applied.locations !== current.locations ||
+    applied.dateRange !== current.dateRange ||
     applied.customSectors !== current.customSectors ||
     applied.keywords !== current.keywords ||
     applied.includeSources !== current.includeSources ||
@@ -1473,30 +1662,34 @@ handleFiltersChanged();
 // ── Utilities ───────────────────────────────────────────────────
 
 function timeAgo(dateStr) {
-  if (!dateStr) return '';
+  if (!dateStr) return 'Date unavailable';
   const now = new Date();
   const then = new Date(dateStr);
-  if (isNaN(then.getTime())) return '';
+  if (isNaN(then.getTime())) return 'Date unavailable';
   const diffMs = now - then;
+
+  // Negative diff = future date or bogus timestamp
+  if (diffMs < 0) return 'Date unavailable';
+
   const mins = Math.floor(diffMs / 60000);
-  if (mins < 1) return 'Just now';
-  if (mins < 60) return mins === 1 ? '1 minute ago' : mins + ' minutes ago';
+  // Only show "Just now" if genuinely under 5 minutes
+  if (mins < 5) return 'Just now';
+  if (mins < 60) return mins + ' minutes ago';
   const hours = Math.floor(mins / 60);
   if (hours < 24) return hours === 1 ? '1 hour ago' : hours + ' hours ago';
 
-  // Calendar-based day comparison so "Yesterday" reflects the actual date,
-  // not just a 24-hour window.
   const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
   const dayDiff = Math.round((startOfDay(now) - startOfDay(then)) / (24 * 60 * 60 * 1000));
-
-  if (dayDiff === 1) return 'Yesterday';
-  if (dayDiff < 7) return dayDiff + ' days ago';
-
-  // Older than a week: show the actual date
-  return then.toLocaleDateString('en-US', {
-    month: 'short', day: 'numeric',
+  const actualDate = then.toLocaleDateString('en-GB', {
+    day: 'numeric', month: 'short',
     year: now.getFullYear() === then.getFullYear() ? undefined : 'numeric'
   });
+
+  if (dayDiff === 1) return 'Yesterday — ' + actualDate;
+  if (dayDiff <= 6) return dayDiff + ' days ago — ' + actualDate;
+
+  // Older than 6 days: just the date
+  return actualDate;
 }
 
 function formatTimestamp() {
@@ -1897,6 +2090,7 @@ async function fetchStories() {
     if (keywordsStr) {
       params.set('keywords', keywordsStr);
     }
+    params.set('dateRange', getActiveDateRange());
     if (sourceSelection.include.size > 0) {
       params.set('includeSources', Array.from(sourceSelection.include).join(','));
     }
@@ -1951,6 +2145,7 @@ async function fetchStories() {
     // Filter state is now "applied" — clear the pending indicator and
     // snapshot the state that produced these results.
     markFiltersApplied();
+    gsTracker.filtersApplied(snapshotFilterState());
 
     showRefreshConfirmation();
 
@@ -2469,6 +2664,9 @@ function renderFeed(articles) {
       const toggleExpand = async () => {
         if (expanded) {
           if (briefingEl) { briefingEl.remove(); briefingEl = null; }
+          if (typeof expandedAt === 'number') {
+            gsTracker.articleTimeSpent(articleId, (Date.now() - expandedAt) / 1000);
+          }
           expanded = false;
           return;
         }
@@ -2478,6 +2676,8 @@ function renderFeed(articles) {
         card.classList.add('card-expanded', 'card-read');
         readCards.add(articleId);
         if (wasUnread) recordBriefingOpened();
+        gsTracker.articleOpened(article);
+        const expandedAt = Date.now();
 
         briefingEl = document.createElement('div');
         briefingEl.className = 'briefing';
@@ -2557,6 +2757,7 @@ function renderFeed(articles) {
         if (saveClick) {
           e.stopPropagation();
           const nowSaved = toggleSavedArticle(article);
+          if (nowSaved) gsTracker.articleSaved(article);
           saveClick.classList.toggle('saved', nowSaved);
           saveClick.title = nowSaved ? 'Saved' : 'Save for later';
           saveClick.setAttribute('aria-label', nowSaved ? 'Remove from saved' : 'Save for later');
@@ -2944,6 +3145,7 @@ document.addEventListener('click', (e) => {
   e.stopPropagation();
   markAnnotateUsed();
   const term = keyword.dataset.term || keyword.textContent;
+  gsTracker.termAnnotated(term, '', '');
   const { headline, briefingText } = getBriefingContext(keyword);
   const rect = keyword.getBoundingClientRect();
   explainTerm(term, headline, briefingText, rect.left, rect.bottom + window.scrollY);
@@ -3027,6 +3229,7 @@ let searchDebounce = null;
 searchInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
     e.preventDefault();
+    gsTracker.searchQuery(searchInput.value.trim());
     fetchStories();
   }
 });

@@ -186,6 +186,17 @@
       </div>
 
       <div class="filter-group">
+        <label>Date range</label>
+        <div class="pill-group" id="date-range-pills">
+          <button class="pill active" data-value="24" title="Articles published in the last 24 hours.">Last 24 hours</button>
+          <button class="pill" data-value="72" title="Articles from the last 3 days.">Last 3 days</button>
+          <button class="pill" data-value="168" title="Articles from the last 7 days.">Last 7 days</button>
+          <button class="pill" data-value="336" title="Articles from the last 2 weeks.">Last 2 weeks</button>
+          <button class="pill" data-value="720" title="Articles from the last 30 days — the maximum range.">Last month</button>
+        </div>
+      </div>
+
+      <div class="filter-group">
         <label>Keywords &amp; topics</label>
         <input type="text" id="keywords-input" class="keyword-input"
                placeholder="Type a keyword and press Enter or comma..." autocomplete="off" />
@@ -261,6 +272,13 @@
     <div class="profile-panel-body" id="profile-form-mount"></div>
 
     <div class="profile-panel-inline-success" id="profile-panel-success" aria-live="polite"></div>
+
+    <details class="reading-patterns-card" id="reading-patterns-card">
+      <summary class="reading-patterns-toggle">Your reading patterns</summary>
+      <div class="reading-patterns-body" id="reading-patterns-body">
+        <div class="reading-patterns-hint">After 10 interactions we'll show you what we've learned about your interests.</div>
+      </div>
+    </details>
 
     <div class="profile-panel-footer">
       <div class="profile-panel-footer-row">
