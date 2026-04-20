@@ -1259,7 +1259,8 @@ h1 {
 }
 
 /* Annotate toggle — pill style, tactile */
-.annotate-toggle {
+.annotate-toggle,
+.smart-rank-toggle {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1271,6 +1272,52 @@ h1 {
   cursor: pointer;
   user-select: none;
   transition: all 0.2s ease;
+}
+.annotate-toggle:hover,
+.smart-rank-toggle:hover {
+  background: var(--bg-secondary);
+  border-color: var(--border-hover);
+}
+.annotate-toggle input,
+.smart-rank-toggle input { display: none; }
+
+.smart-rank-slider {
+  position: relative;
+  width: 30px;
+  height: 16px;
+  background: var(--border-strong);
+  border-radius: 999px;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+.smart-rank-slider::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  background: #FFFFFF;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+}
+.smart-rank-toggle input:checked + .smart-rank-slider {
+  background: #E8763A;
+}
+.smart-rank-toggle input:checked + .smart-rank-slider::after {
+  transform: translateX(14px);
+}
+.smart-rank-label {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: 0.2px;
+  transition: color 0.2s;
+}
+.smart-rank-toggle input:checked ~ .smart-rank-label {
+  color: #C4581F;
+  font-weight: 600;
 }
 
 .annotate-toggle:hover {
