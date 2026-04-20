@@ -1,5 +1,17 @@
 const feed = document.getElementById('feed');
-const regionSelect = document.getElementById('region-select');
+const regionPills = document.getElementById('region-pills');
+
+function getActiveRegions() {
+  if (!regionPills) return ['Global'];
+  const selected = Array.from(regionPills.querySelectorAll('.pill.active'))
+    .map(p => p.dataset.value);
+  return selected.length ? selected : ['Global'];
+}
+function getRegionsLabel() {
+  const r = getActiveRegions();
+  if (r.length === 1) return r[0];
+  return r.length + ' regions';
+}
 const sectorPills = document.getElementById('sector-pills');
 const sourcePills = document.getElementById('source-pills');
 const articleTypePills = document.getElementById('article-type-pills');
@@ -610,7 +622,7 @@ function handleProfileSaved(source) {
   if (currentArticles && currentArticles.length > 0) {
     // Reset any previously-loaded impact sections so they re-render with profile next open.
     // Also re-run cross-sector analysis since it depends on profile.
-    const region = regionSelect ? regionSelect.value : 'Global';
+    const region = getRegionsLabel();
     if (currentArticles.length >= 3) {
       fetchCrossSectorInsights(currentArticles, getProfile(), region);
     }
@@ -624,6 +636,21 @@ function handleProfileSaved(source) {
   // Success toast (skip if panel already shows inline success)
   if (source !== 'panel') {
     showToast('Profile saved — your feed will now show what each story means for you', { success: true, duration: 3500 });
+  }
+
+  // First-time only: slide open the filter panel with a muted nudge
+  // so setup flows continuously from profile → filters.
+  const firstTime = localStorage.getItem('geosignal_profile_saved') !== 'true';
+  if (firstTime) {
+    try { localStorage.setItem('geosignal_profile_saved', 'true'); } catch {}
+    const nudge = document.getElementById('filters-nudge');
+    const container = document.getElementById('filters-container');
+    if (container) container.classList.add('expanded');
+    if (nudge) {
+      nudge.classList.add('visible');
+      // Scroll it into view after the panel's expansion paints
+      setTimeout(() => nudge.scrollIntoView({ behavior: 'smooth', block: 'center' }), 220);
+    }
   }
 }
 
@@ -787,7 +814,7 @@ const FILTERS_KEY = 'geosignal-filters';
 function saveFilters() {
   try {
     const state = {
-      region: regionSelect.value,
+      regions: getActiveRegions(),
       sectors: getActivePills(sectorPills),
       sourceTypes: getActivePills(sourcePills),
       articleTypes: articleTypePills ? getActivePills(articleTypePills) : ['News', 'Analysis'],
@@ -811,9 +838,16 @@ function restoreFilters() {
     const raw = localStorage.getItem(FILTERS_KEY);
     if (!raw) return;
     const state = JSON.parse(raw);
-    if (state && typeof state.region === 'string') {
-      const hasOpt = Array.from(regionSelect.options).some(o => o.value === state.region);
-      if (hasOpt) regionSelect.value = state.region;
+    if (state && Array.isArray(state.regions) && regionPills) {
+      const want = new Set(state.regions);
+      regionPills.querySelectorAll('.pill').forEach(p => {
+        p.classList.toggle('active', want.has(p.dataset.value));
+      });
+    } else if (state && typeof state.region === 'string' && regionPills) {
+      // Back-compat: old single-region saved state
+      regionPills.querySelectorAll('.pill').forEach(p => {
+        p.classList.toggle('active', p.dataset.value === state.region);
+      });
     }
     if (state && Array.isArray(state.sectors)) applyPillState(sectorPills, state.sectors);
     if (state && Array.isArray(state.sourceTypes)) applyPillState(sourcePills, state.sourceTypes);
@@ -1250,7 +1284,7 @@ const stickyApplyClear = document.getElementById('sticky-apply-clear');
 
 function snapshotFilterState() {
   return {
-    region: regionSelect.value,
+    regions: getActiveRegions().slice().sort().join('|'),
     sectors: getActivePills(sectorPills).slice().sort().join('|'),
     sourceTypes: getActivePills(sourcePills).slice().sort().join('|'),
     articleTypes: (articleTypePills ? getActivePills(articleTypePills) : []).slice().sort().join('|'),
@@ -1272,7 +1306,8 @@ function countActiveFilters() {
   // - Search: 1 if non-empty
   // We'll report: region (if not Global) + sectors selected + source types selected + search
   let count = 0;
-  if (regionSelect.value && regionSelect.value !== 'Global') count += 1;
+  const activeRegions = getActiveRegions();
+  if (!(activeRegions.length === 1 && activeRegions[0] === 'Global')) count += activeRegions.length;
   count += getActivePills(sectorPills).length;
   count += getActivePills(sourcePills).length;
   if (articleTypePills) count += getActivePills(articleTypePills).length;
@@ -1293,7 +1328,11 @@ function updateClearAllVisibility() {
 
 function clearAllFilters() {
   // Reset region to default
-  if (regionSelect) regionSelect.value = 'Global';
+  if (regionPills) {
+    regionPills.querySelectorAll('.pill').forEach(p => {
+      p.classList.toggle('active', p.dataset.value === 'Global');
+    });
+  }
   // Deselect every pill in every group
   [sectorPills, sourcePills, articleTypePills].forEach(group => {
     if (!group) return;
@@ -1329,7 +1368,7 @@ function updatePendingState() {
   const applied = lastAppliedFilters;
   const current = snapshotFilterState();
   const isDirty = applied !== null && (
-    applied.region !== current.region ||
+    applied.regions !== current.regions ||
     applied.sectors !== current.sectors ||
     applied.sourceTypes !== current.sourceTypes ||
     applied.articleTypes !== current.articleTypes ||
@@ -1366,7 +1405,8 @@ function markFiltersApplied() {
 }
 
 function updateFiltersSummary() {
-  const region = regionSelect.value;
+  const regionsLabel = getRegionsLabel();
+  const activeRegions = getActiveRegions();
   const activeSectors = getActivePills(sectorPills);
   const totalSectors = sectorPills.querySelectorAll('.pill').length;
 
@@ -1374,8 +1414,8 @@ function updateFiltersSummary() {
   // those mean nothing on their own. Anything narrower than "all
   // sectors" gets spelled out as a sector count, and the filters
   // toggle carries a descriptive tooltip.
-  let parts = [region];
-  let tooltip = 'Region: ' + region + '. ';
+  let parts = [regionsLabel];
+  let tooltip = 'Regions: ' + activeRegions.join(', ') + '. ';
 
   if (activeSectors.length === 0) {
     parts.push('no sectors selected');
@@ -1402,7 +1442,10 @@ function handleFiltersChanged() {
 }
 
 // Update summary / clear-all visibility / pending state whenever filters change
-regionSelect.addEventListener('change', handleFiltersChanged);
+if (regionPills) {
+  initPills(regionPills);
+  regionPills.addEventListener('click', (e) => { if (e.target.classList.contains('pill')) setTimeout(handleFiltersChanged, 0); });
+}
 sectorPills.addEventListener('click', (e) => { if (e.target.classList.contains('pill')) setTimeout(handleFiltersChanged, 0); });
 sourcePills.addEventListener('click', (e) => { if (e.target.classList.contains('pill')) setTimeout(handleFiltersChanged, 0); });
 if (articleTypePills) {
@@ -1499,6 +1542,94 @@ function cleanFallback(str) {
 }
 
 // Parse citation tags [Source] in a line and convert to clickable chips
+// Slug helper for bias → CSS class
+function biasToSlug(bias) {
+  return 'bias-' + String(bias || 'unknown').toLowerCase().replace(/[^a-z]+/g, '-').replace(/^-|-$/g, '');
+}
+
+// Returns the HTML for a small info indicator that sits next to a
+// source name. The indicator carries data-source-name so the
+// wireSourceInfoPopovers handler can build a popover on demand.
+function sourceInfoIndicator(sourceName, meta) {
+  const hasMeta = !!(meta && (meta.description || meta.bias || meta.country));
+  return '<button class="source-info-btn" type="button" ' +
+    'data-source-name="' + escapeHtml(sourceName) + '" ' +
+    'aria-label="About ' + escapeHtml(sourceName) + '" ' +
+    'title="' + (hasMeta ? 'About ' + escapeHtml(sourceName) : 'Bias information not available') + '">' +
+    '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<circle cx="6" cy="6" r="5"/>' +
+      '<path d="M6 5.5v3"/>' +
+      '<circle cx="6" cy="3.6" r="0.1" fill="currentColor" stroke="currentColor"/>' +
+    '</svg>' +
+  '</button>';
+}
+
+// Binds click handlers to every .source-info-btn inside the given
+// container. Clicking shows a floating popover with metadata.
+function wireSourceInfoPopovers(container, sourceMeta) {
+  if (!container) return;
+  container.querySelectorAll('.source-info-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const name = btn.dataset.sourceName || '';
+      const meta = (sourceMeta && sourceMeta[name]) || null;
+      showSourceInfoPopover(btn, name, meta);
+    });
+  });
+}
+
+let activeSourcePopover = null;
+function hideSourceInfoPopover() {
+  if (activeSourcePopover) {
+    activeSourcePopover.remove();
+    activeSourcePopover = null;
+  }
+  document.removeEventListener('click', onDocClickForPopover, true);
+}
+function onDocClickForPopover(e) {
+  if (activeSourcePopover && !activeSourcePopover.contains(e.target) &&
+      !e.target.closest('.source-info-btn')) {
+    hideSourceInfoPopover();
+  }
+}
+
+function showSourceInfoPopover(anchorEl, name, meta) {
+  hideSourceInfoPopover();
+  const popover = document.createElement('div');
+  popover.className = 'source-info-popover';
+  if (meta) {
+    const bias = meta.bias || 'Centre';
+    const country = meta.country || 'Unknown';
+    const type = meta.sourceType || meta.type || '';
+    const desc = meta.description || '';
+    popover.innerHTML =
+      '<div class="spi-name">' + escapeHtml(name) + '</div>' +
+      (desc ? '<div class="spi-desc">' + escapeHtml(desc) + '</div>' : '') +
+      '<div class="spi-meta">' +
+        '<span class="source-meta-chip bias-chip ' + biasToSlug(bias) + '">' + escapeHtml(bias) + '</span>' +
+        (country ? '<span class="source-meta-chip meta-country">' + escapeHtml(country) + '</span>' : '') +
+        (type ? '<span class="source-meta-chip meta-tier">' + escapeHtml(type) + '</span>' : '') +
+      '</div>';
+  } else {
+    popover.innerHTML =
+      '<div class="spi-name">' + escapeHtml(name) + '</div>' +
+      '<div class="spi-desc">Bias information not available.</div>';
+  }
+  document.body.appendChild(popover);
+  const rect = anchorEl.getBoundingClientRect();
+  const popRect = popover.getBoundingClientRect();
+  let left = rect.left + window.scrollX - 10;
+  let top = rect.bottom + window.scrollY + 6;
+  if (left + popRect.width > window.innerWidth - 12) {
+    left = Math.max(12, window.innerWidth - popRect.width - 12);
+  }
+  popover.style.left = left + 'px';
+  popover.style.top = top + 'px';
+  activeSourcePopover = popover;
+  setTimeout(() => document.addEventListener('click', onDocClickForPopover, true), 10);
+}
+
 function renderCitations(line, citationMap) {
   line = stripMd(line);
   if (!citationMap) return escapeHtml(line);
@@ -1712,7 +1843,8 @@ async function runWebSearch(query) {
 }
 
 async function fetchStories() {
-  const region = regionSelect.value;
+  const activeRegions = getActiveRegions();
+  const region = getRegionsLabel(); // display label only
   const sectors = getActivePills(sectorPills);
   const sourceTypes = getActivePills(sourcePills);
   const articleTypes = articleTypePills ? getActivePills(articleTypePills) : ['News', 'Analysis'];
@@ -1747,7 +1879,8 @@ async function fetchStories() {
     const profile = getProfile();
     const searchQuery = searchInput.value.trim();
     const params = new URLSearchParams({
-      region,
+      region, // display label kept for legacy log lines
+      regions: activeRegions.join(','),
       sectors: allSectors.join(','),
       sourceTypes: sourceTypes.join(','),
       articleTypes: articleTypes.join(',')
@@ -2092,105 +2225,6 @@ function parseImpact(text) {
 
 // ── Public Discourse (Reddit + Bluesky) ─────────────────────────
 
-async function fetchSentiment(article, container) {
-  container.innerHTML =
-    '<div class="sentiment-section">' +
-      '<div class="sentiment-header">' +
-        '<span class="sentiment-title">Public Discourse</span>' +
-      '</div>' +
-      '<div class="sentiment-loading"><div class="spinner"></div><span>Listening to what people are saying&hellip;</span></div>' +
-    '</div>';
-
-  // Extract key terms from headline for better search
-  const stopWords = ['the','a','an','and','or','but','in','on','at','to','for','of','with','by','from','is','are','was','were','has','have','had','not','as','its','says','said','new','over','after','will','could','may','been','into','about','more','than'];
-  const keywords = article.title.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/)
-    .filter(w => w.length > 2 && !stopWords.includes(w))
-    .slice(0, 4);
-  const topic = keywords.join(' ');
-
-  try {
-    // Fetch Reddit and Bluesky in parallel
-    const [redditRes, blueskyRes] = await Promise.all([
-      fetch('/api/sentiment/reddit?topic=' + encodeURIComponent(topic)).then(r => r.json()).catch(e => { console.log('Reddit failed:', e); return { posts: [], error: true }; }),
-      fetch('/api/sentiment/bluesky?topic=' + encodeURIComponent(topic)).then(r => r.json()).catch(e => { console.log('Bluesky failed:', e); return { posts: [], error: true }; })
-    ]);
-
-    const redditPosts = redditRes.posts || [];
-    const blueskyPosts = blueskyRes.posts || [];
-
-    if (redditPosts.length === 0 && blueskyPosts.length === 0) {
-      const hasError = redditRes.error || blueskyRes.error;
-      container.innerHTML =
-        '<div class="sentiment-section">' +
-          '<div class="sentiment-header"><span class="sentiment-title">Public Discourse</span></div>' +
-          '<div class="sentiment-empty">' +
-            (hasError ? 'Could not reach Reddit/Bluesky. Check your internet connection or try again.' : 'No public discussions found for "' + escapeHtml(topic) + '".') +
-          '</div>' +
-        '</div>';
-      return;
-    }
-
-    let html =
-      '<div class="sentiment-section">' +
-        '<div class="sentiment-header"><span class="sentiment-title">Public Discourse</span></div>';
-
-    // Reddit results
-    if (redditPosts.length > 0) {
-      html += '<div class="sentiment-platform">' +
-        '<div class="sentiment-platform-label">Reddit</div>' +
-        '<div class="sentiment-platform-note">' + escapeHtml(redditRes.note || '') + '</div>';
-
-      redditPosts.forEach(post => {
-        html +=
-          '<a class="sentiment-post" href="' + escapeHtml(post.url) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">' +
-            '<div class="sentiment-post-title">' + escapeHtml(post.title) + '</div>' +
-            '<div class="sentiment-post-meta">' +
-              '<span class="sentiment-subreddit">' + escapeHtml(post.subreddit) + '</span>' +
-              '<span class="sentiment-dot"></span>' +
-              '<span>' + post.score + ' pts</span>' +
-              '<span class="sentiment-dot"></span>' +
-              '<span>' + post.numComments + ' comments</span>' +
-            '</div>' +
-          '</a>';
-      });
-
-      html += '</div>';
-    }
-
-    // Bluesky results
-    if (blueskyPosts.length > 0) {
-      html += '<div class="sentiment-platform">' +
-        '<div class="sentiment-platform-label">Bluesky</div>' +
-        '<div class="sentiment-platform-note">' + escapeHtml(blueskyRes.note || '') + '</div>';
-
-      blueskyPosts.forEach(post => {
-        html +=
-          '<a class="sentiment-post" href="' + escapeHtml(post.url) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">' +
-            '<div class="sentiment-post-text">' + escapeHtml(post.text) + '</div>' +
-            '<div class="sentiment-post-meta">' +
-              '<span class="sentiment-username">@' + escapeHtml(post.username) + '</span>' +
-              '<span class="sentiment-dot"></span>' +
-              '<span>' + post.likes + ' likes</span>' +
-              '<span class="sentiment-dot"></span>' +
-              '<span>' + post.reposts + ' reposts</span>' +
-            '</div>' +
-          '</a>';
-      });
-
-      html += '</div>';
-    }
-
-    html += '</div>';
-    container.innerHTML = html;
-  } catch (err) {
-    console.error('Sentiment fetch error:', err);
-    container.innerHTML =
-      '<div class="sentiment-section">' +
-        '<div class="sentiment-header"><span class="sentiment-title">Public Discourse</span></div>' +
-        '<div class="sentiment-empty">Could not load public discussions.</div>' +
-      '</div>';
-  }
-}
 
 // ── Render Feed ─────────────────────────────────────────────────
 
@@ -2415,7 +2449,7 @@ function renderFeed(articles) {
             '<div class="skeleton-shimmer skeleton-line short"></div>' +
           '</div>';
 
-        // Progressive disclosure: Impact and Discourse are collapsed by default
+        // Progressive disclosure: Impact is collapsed by default
         const moreSections = document.createElement('div');
         moreSections.className = 'more-sections';
         moreSections.innerHTML =
@@ -2424,20 +2458,14 @@ function renderFeed(articles) {
             '<span class="more-section-label">How This Impacts You</span>' +
             '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 5l3 3 3-3"/></svg>' +
           '</button>' +
-          '<div class="more-section-body" data-section-body="impact"></div>' +
-          '<button class="more-section-toggle" data-section="sentiment" type="button">' +
-            '<span class="more-section-icon">&#9671;</span>' +
-            '<span class="more-section-label">Public Discourse</span>' +
-            '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 5l3 3 3-3"/></svg>' +
-          '</button>' +
-          '<div class="more-section-body" data-section-body="sentiment"></div>';
+          '<div class="more-section-body" data-section-body="impact"></div>';
 
         briefingEl.appendChild(briefingContent);
         briefingEl.appendChild(moreSections);
         card.appendChild(briefingEl);
 
         // Track which sections have been loaded so we don't refetch
-        const loaded = { impact: false, sentiment: false };
+        const loaded = { impact: false };
 
         // Wire up the toggles
         moreSections.querySelectorAll('.more-section-toggle').forEach(btn => {
@@ -2461,8 +2489,6 @@ function renderFeed(articles) {
               loaded[section] = true;
               if (section === 'impact') {
                 await fetchImpact(article, bodyEl);
-              } else if (section === 'sentiment') {
-                await fetchSentiment(article, bodyEl);
               }
             }
           });
@@ -2482,7 +2508,7 @@ function renderFeed(articles) {
         if (e.target.closest('.no-profile-hint button')) return;
         if (e.target.closest('.annotate-keyword')) return;
         if (e.target.closest('.more-section-toggle')) return;
-        if (e.target.closest('.briefing') || e.target.closest('.impact-section') || e.target.closest('.sentiment-section')) return;
+        if (e.target.closest('.briefing') || e.target.closest('.impact-section')) return;
 
         // Save button toggles saved state without expanding the card
         const saveClick = e.target.closest('.card-save-btn');
@@ -2542,6 +2568,20 @@ async function fetchBriefing(article, container) {
       html += '<div class="government-caveat">' + escapeHtml(governmentCaveat) + '</div>';
     }
 
+    // Prominent "Read original article on X →" link — first thing the
+    // user sees inside the briefing panel, before any generated content.
+    if (article.url) {
+      const sourceLabel = article.source ? ' on ' + escapeHtml(article.source) : '';
+      html += '<a class="briefing-original-link" href="' + escapeHtml(article.url) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">' +
+        '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+          '<path d="M6 3H3v10h10v-3"/>' +
+          '<path d="M10 2h4v4"/>' +
+          '<path d="M7 9l7-7"/>' +
+        '</svg>' +
+        '<span>Read original article' + sourceLabel + ' &rarr;</span>' +
+      '</a>';
+    }
+
     // Source quality indicator
     const indicators = [];
     if (data.fullTextAvailable) indicators.push('Full article analysed');
@@ -2557,9 +2597,11 @@ async function fetchBriefing(article, container) {
       html += '<div class="briefing-section"><div class="briefing-label">' + escapeHtml(section.label) + '</div><div class="briefing-text">' + formatBullets(section.text, data.citationMap) + '</div></div>';
     });
 
-    // Expert source links from think tank cross-referencing — collapsible
+    // Expert source links (collapsible) — each name carries an info
+    // indicator that opens a bias/country/type popover on hover.
     if (data.expertSources && data.expertSources.length > 0) {
       const count = data.expertSources.length;
+      const sourceMeta = data.sourceMeta || {};
       html += '<details class="expert-sources-details">';
       html += '<summary class="expert-sources-summary">' +
         '<span class="expert-sources-label">Sources Referenced</span>' +
@@ -2568,18 +2610,19 @@ async function fetchBriefing(article, container) {
         '</summary>';
       html += '<div class="expert-sources-list">';
       data.expertSources.forEach(es => {
-        html += '<a class="expert-source-link" href="' + escapeHtml(es.url) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">' +
-          escapeHtml(es.source) + ': ' + escapeHtml(es.title) + ' &rarr;</a>';
+        html += '<div class="expert-source-row">' +
+          '<a class="expert-source-link" href="' + escapeHtml(es.url) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">' +
+            escapeHtml(es.source) + ': ' + escapeHtml(es.title) + ' &rarr;' +
+          '</a>' +
+          sourceInfoIndicator(es.source, sourceMeta[es.source]) +
+        '</div>';
       });
       html += '</div></details>';
     }
 
-    if (article.url) {
-      html += '<a class="card-link" href="' + escapeHtml(article.url) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">Read original source &rarr;</a>';
-    }
-
     html += '</div>';
     container.innerHTML = html;
+    wireSourceInfoPopovers(container, data.sourceMeta || {});
 
     // Show the one-time annotate onboarding hint on the first briefing
     // the user sees (dismissable; never shown again after dismissed).
@@ -2878,7 +2921,7 @@ document.addEventListener('mouseup', (e) => {
   const anchorNode = selection.anchorNode;
   if (!anchorNode) return;
   const parentEl = anchorNode.parentElement || anchorNode;
-  if (!parentEl.closest('.briefing') && !parentEl.closest('.impact-section') && !parentEl.closest('.sentiment-section') && !parentEl.closest('.cross-sector-bubble')) return;
+  if (!parentEl.closest('.briefing') && !parentEl.closest('.impact-section') && !parentEl.closest('.cross-sector-bubble')) return;
 
   markAnnotateUsed();
   const { headline, briefingText } = getBriefingContext(anchorNode);

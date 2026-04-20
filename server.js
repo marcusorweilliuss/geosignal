@@ -4,7 +4,7 @@ const fetch = require('node-fetch');
 const Groq = require('groq-sdk');
 const Parser = require('rss-parser');
 
-const { SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT, classifyArticleType, extractPrimaryCountry, getSourceDescription, SECTOR_KEYWORDS, getAllSourcesForBrowser } = require('./sources');
+const { SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT, classifyArticleType, extractPrimaryCountry, getSourceDescription, SECTOR_KEYWORDS, getAllSourcesForBrowser, getSourceBias, getTierCategory } = require('./sources');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -472,8 +472,18 @@ const regionSlugMap = {
 
 app.get('/api/news', async (req, res) => {
   try {
-    const { region, sectors, sourceTypes, profile: profileStr, search, articleTypes, locations, keywords, includeSources, excludeSources } = req.query;
-    const regionSlug = regionSlugMap[region] || 'global';
+    const { region, regions, sectors, sourceTypes, profile: profileStr, search, articleTypes, locations, keywords, includeSources, excludeSources } = req.query;
+
+    // Multi-region support. Accepts ?regions=A,B,C (preferred) or
+    // ?region=A (single, back-compat). If Global is among the choices,
+    // behaves the same as Global-only.
+    const regionList = regions
+      ? regions.split(',').map(s => s.trim()).filter(Boolean)
+      : (region ? [region] : ['Global']);
+    const includesGlobal = regionList.some(r => (r || '').toLowerCase() === 'global');
+    const effectiveRegionList = includesGlobal ? ['Global'] : regionList;
+    const regionSlug = regionSlugMap[effectiveRegionList[0]] || 'global';
+    const regionSlugs = effectiveRegionList.map(r => regionSlugMap[r] || 'global');
     const typeList = sourceTypes ? sourceTypes.split(',') : ['Mainstream news', 'Independent journalism', 'Think tanks & academic'];
     const activeSectors = sectors ? sectors.split(',') : [];
     const searchTerms = search ? search.toLowerCase().trim().split(/\s+/).filter(w => w.length > 1) : [];
@@ -501,7 +511,16 @@ app.get('/api/news', async (req, res) => {
       : null;
 
     // Get filtered sources from registry
-    const sources = getSourcesForRegion(regionSlug, typeList);
+    // Union of sources across every selected region, deduped by RSS URL
+    const seenRss = new Set();
+    const sources = regionSlugs
+      .flatMap(slug => getSourcesForRegion(slug, typeList))
+      .filter(s => {
+        if (!s || !s.rssUrl) return true;
+        if (seenRss.has(s.rssUrl)) return false;
+        seenRss.add(s.rssUrl);
+        return true;
+      });
 
     // Serve from cache first — only fetch uncached feeds
     const cachedArticles = [];
@@ -605,7 +624,12 @@ app.get('/api/news', async (req, res) => {
 
     // Score, filter junk, and sort
     unique.forEach(a => {
-      a.score = scoreArticle(a, regionSlug, userProfile, activeSectors);
+      // For multi-region, score against every selected region and keep the best.
+      a.score = regionSlugs.reduce((best, slug) => {
+        const s = scoreArticle(a, slug, userProfile, activeSectors);
+        return s > best ? s : best;
+      }, -Infinity);
+      if (!isFinite(a.score)) a.score = scoreArticle(a, regionSlug, userProfile, activeSectors);
       if (searchTerms.length > 0) {
         const titleLower = (a.title || '').toLowerCase();
         const titleMatches = searchTerms.filter(t => titleLower.includes(t)).length;
@@ -1065,11 +1089,40 @@ app.post('/api/briefing', async (req, res) => {
       source_provider = 'groq';
     }
 
+    // Build a metadata map for every source appearing in the response
+    // (expertSources + citationMap numeric keys). The client uses this
+    // to render the info popover next to each source name.
+    const sourceMeta = {};
+    const attachMeta = (name, url) => {
+      if (!name || sourceMeta[name]) return;
+      const desc = getSourceDescription(name);
+      let country = '';
+      let tier = '';
+      // Scan SOURCES for a matching entry to pull country + tier
+      for (const region of Object.keys(SOURCES)) {
+        const hit = (SOURCES[region] || []).find(s => s.name === name);
+        if (hit) {
+          if (Array.isArray(hit.country) && hit.country.length) country = hit.country.join(', ');
+          tier = hit.tier || '';
+          break;
+        }
+      }
+      sourceMeta[name] = {
+        description: desc || '',
+        country,
+        bias: getSourceBias(name, tier),
+        sourceType: getTierCategory(tier),
+        url: url || ''
+      };
+    };
+    (expertSourcesForResponse || []).forEach(es => attachMeta(es.source, es.url));
+
     const responsePayload = {
       briefing,
       isOfficial: !!isOfficial,
       expertSources: expertSourcesForResponse,
       citationMap,
+      sourceMeta,
       fullTextAvailable: !!fullText,
       provider: source_provider
     };
@@ -1439,196 +1492,6 @@ If you genuinely don't know the outlet, return a best-effort description with bi
   }
 });
 
-// ── Reddit Sentiment Search ─────────────────────────────────────
-// Searches Reddit for recent discussions related to a topic
-
-const redditCache = {};
-const REDDIT_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
-
-app.get('/api/sentiment/reddit', async (req, res) => {
-  try {
-    const { topic } = req.query;
-    if (!topic) return res.status(400).json({ error: 'topic parameter required' });
-
-    // Check cache
-    const cacheKey = topic.toLowerCase().trim();
-    const cached = redditCache[cacheKey];
-    if (cached && (Date.now() - cached.fetchedAt) < REDDIT_CACHE_TTL) {
-      return res.json(cached.data);
-    }
-
-    // Extract 3-5 key terms from the headline for better Reddit search
-    const stopWords = new Set(['the','a','an','and','or','but','in','on','at','to','for','of','with','by','from','is','are','was','were','has','have','had','not','as','its','says','said','new','over','after','will','could','may','been','into','about','more','than']);
-    const keywords = topic.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/)
-      .filter(w => w.length > 2 && !stopWords.has(w))
-      .slice(0, 5);
-    const query = encodeURIComponent(keywords.join(' '));
-
-    // Search across geopolitics-relevant subreddits
-    const subreddits = [
-      'worldnews', 'geopolitics', 'internationalpolitics',
-      'economics', 'energy', 'technology', 'news'
-    ];
-
-    const allPosts = [];
-
-    // Search Reddit using old.reddit.com (more reliable for JSON API)
-    for (const sub of subreddits) {
-      try {
-        const url = `https://old.reddit.com/r/${sub}/search.json?q=${query}&sort=relevance&t=month&limit=5&restrict_sr=on`;
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
-        const response = await fetch(url, {
-          signal: controller.signal,
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html, application/json'
-          }
-        });
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-          console.log(`Reddit r/${sub}: HTTP ${response.status}`);
-          continue;
-        }
-
-        const data = await response.json();
-        const posts = (data?.data?.children || []).map(child => {
-          const post = child.data;
-          return {
-            title: post.title || '',
-            subreddit: post.subreddit_name_prefixed || `r/${sub}`,
-            score: post.score || 0,
-            numComments: post.num_comments || 0,
-            url: `https://reddit.com${post.permalink}`,
-            created: post.created_utc ? new Date(post.created_utc * 1000).toISOString() : '',
-            selftext: (post.selftext || '').substring(0, 200)
-          };
-        });
-
-        allPosts.push(...posts);
-      } catch {
-        // Skip failed subreddit, continue with others
-        continue;
-      }
-
-      // Brief pause to avoid rate limiting
-      await new Promise(r => setTimeout(r, 200));
-    }
-
-    // Deduplicate by title
-    const seen = new Set();
-    const unique = allPosts.filter(p => {
-      const key = p.title.toLowerCase().trim();
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-
-    // Sort by engagement (score + comments) and take top 5
-    unique.sort((a, b) => (b.score + b.numComments * 2) - (a.score + a.numComments * 2));
-    const topPosts = unique.slice(0, 5);
-
-    const result = {
-      platform: 'reddit',
-      query: topic,
-      posts: topPosts,
-      note: 'Reddit skews younger, male, and left-of-centre in English-speaking subreddits. Weigh accordingly.'
-    };
-
-    // Cache the result
-    redditCache[cacheKey] = { data: result, fetchedAt: Date.now() };
-
-    res.json(result);
-  } catch (err) {
-    console.error('Reddit sentiment error:', err.message);
-    res.status(500).json({ error: 'Failed to fetch Reddit discussions', posts: [] });
-  }
-});
-
-// ── Bluesky Sentiment Search ────────────────────────────────────
-// Searches Bluesky's public API for posts related to a topic
-
-const blueskyCache = {};
-const BLUESKY_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
-
-app.get('/api/sentiment/bluesky', async (req, res) => {
-  try {
-    const { topic } = req.query;
-    if (!topic) return res.status(400).json({ error: 'topic parameter required' });
-
-    // Check cache
-    const cacheKey = topic.toLowerCase().trim();
-    const cached = blueskyCache[cacheKey];
-    if (cached && (Date.now() - cached.fetchedAt) < BLUESKY_CACHE_TTL) {
-      return res.json(cached.data);
-    }
-
-    // Extract key terms for better search results
-    const stopWords = new Set(['the','a','an','and','or','but','in','on','at','to','for','of','with','by','from','is','are','was','were','has','have','had','not','as','its','says','said','new','over','after','will','could','may','been','into','about','more','than']);
-    const keywords = topic.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/)
-      .filter(w => w.length > 2 && !stopWords.has(w))
-      .slice(0, 5);
-    const query = encodeURIComponent(keywords.join(' '));
-
-    // Bluesky public search API — no auth needed
-    const url = `https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts?q=${query}&sort=top&limit=25`;
-
-    const bskyController = new AbortController();
-    const bskyTimeout = setTimeout(() => bskyController.abort(), 10000);
-    const response = await fetch(url, {
-      signal: bskyController.signal,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; GeoSignal/1.0)',
-        'Accept': 'application/json'
-      }
-    });
-
-    clearTimeout(bskyTimeout);
-    if (!response.ok) {
-      console.error('Bluesky API error:', response.status);
-      return res.json({ platform: 'bluesky', query: topic, posts: [], note: 'Bluesky API unavailable.' });
-    }
-
-    const data = await response.json();
-    const posts = (data.posts || []).map(post => {
-      const record = post.record || {};
-      const author = post.author || {};
-      return {
-        text: (record.text || '').substring(0, 300),
-        username: author.handle || 'unknown',
-        displayName: author.displayName || author.handle || 'Unknown',
-        likes: post.likeCount || 0,
-        reposts: post.repostCount || 0,
-        replies: post.replyCount || 0,
-        url: author.handle && post.uri
-          ? `https://bsky.app/profile/${author.handle}/post/${post.uri.split('/').pop()}`
-          : '',
-        created: record.createdAt || ''
-      };
-    });
-
-    // Filter out very short posts and sort by engagement
-    const meaningful = posts.filter(p => p.text.length > 30);
-    meaningful.sort((a, b) => (b.likes + b.reposts * 2 + b.replies) - (a.likes + a.reposts * 2 + a.replies));
-    const topPosts = meaningful.slice(0, 5);
-
-    const result = {
-      platform: 'bluesky',
-      query: topic,
-      posts: topPosts,
-      note: 'Bluesky skews toward journalists, academics, and tech-adjacent users. Growing but not yet representative of general public opinion.'
-    };
-
-    // Cache the result
-    blueskyCache[cacheKey] = { data: result, fetchedAt: Date.now() };
-
-    res.json(result);
-  } catch (err) {
-    console.error('Bluesky sentiment error:', err.message);
-    res.status(500).json({ error: 'Failed to fetch Bluesky posts', posts: [] });
-  }
-});
 
 // ── Annotate Mode — Term Explainer ──────────────────────────────
 

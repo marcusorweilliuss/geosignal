@@ -102,33 +102,29 @@
         <span id="filters-summary">Global</span>
       </button>
 
-      <button id="refresh-btn" class="refresh-btn" type="button" title="Click to load articles based on your current filter selections. Do not use your browser's refresh button — that will reset your filters.">
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M2 8.5a6 6 0 1 1 1.3 3.8"/>
-          <path d="M1.5 4v3.5H5"/>
-        </svg>
-        <span class="refresh-btn-label" id="refresh-btn-label">Refresh results</span>
-      </button>
       <span class="refresh-confirmation" id="refresh-confirmation" aria-live="polite">Results updated</span>
     </div>
 
     <div class="filters" id="filters-container">
       <div class="filters-body" id="filters-body">
+      <div class="filters-nudge" id="filters-nudge" aria-hidden="true">
+        <span>One more step &mdash; choose your regions, sources and keywords to refine your feed.</span>
+      </div>
       <div class="filter-group">
-        <label for="region-select">Region</label>
-        <select id="region-select">
-          <option value="Global">Global</option>
-          <option value="Middle East">Middle East</option>
-          <option value="South Asia">South Asia</option>
-          <option value="Southeast Asia">Southeast Asia</option>
-          <option value="Europe">Europe</option>
-          <option value="Africa">Africa</option>
-          <option value="Latin America">Latin America</option>
-          <option value="East Asia">East Asia</option>
-          <option value="North America">North America</option>
-          <option value="Central Asia & Caucasus">Central Asia & Caucasus</option>
-          <option value="Oceania">Oceania</option>
-        </select>
+        <label>Regions <span class="filter-hint">(pick one or more)</span></label>
+        <div class="pill-group" id="region-pills">
+          <button class="pill active" data-value="Global">Global</button>
+          <button class="pill" data-value="North America">North America</button>
+          <button class="pill" data-value="Latin America">Latin America</button>
+          <button class="pill" data-value="Europe">Europe</button>
+          <button class="pill" data-value="Middle East">Middle East</button>
+          <button class="pill" data-value="Africa">Africa</button>
+          <button class="pill" data-value="South Asia">South Asia</button>
+          <button class="pill" data-value="East Asia">East Asia</button>
+          <button class="pill" data-value="Southeast Asia">Southeast Asia</button>
+          <button class="pill" data-value="Central Asia & Caucasus">Central Asia &amp; Caucasus</button>
+          <button class="pill" data-value="Oceania">Oceania</button>
+        </div>
       </div>
 
       <div class="filter-group">
@@ -200,6 +196,13 @@
       <div class="filter-footer">
         <button class="clear-all-filters" id="clear-all-filters" type="button" title="Reset every filter to an empty state. You'll still need to press Apply to fetch.">
           Clear all
+        </button>
+        <button id="refresh-btn" class="refresh-btn" type="button" title="Click to load articles based on your current filter selections. Do not use your browser's refresh button — that will reset your filters.">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2 8.5a6 6 0 1 1 1.3 3.8"/>
+            <path d="M1.5 4v3.5H5"/>
+          </svg>
+          <span class="refresh-btn-label" id="refresh-btn-label">Apply filters</span>
         </button>
       </div>
       </div>
