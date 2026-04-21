@@ -614,7 +614,11 @@ app.get('/api/news', async (req, res) => {
       });
     }
 
-    // Apply sector filter — article must match at least one active sector's keywords
+    // Apply sector filter — article must match at least one active sector's keywords.
+    // Custom sectors (typed by the user in the "Other" input) have no pre-defined
+    // keyword list, so they fall back to literal match. If the hard filter drops
+    // to zero results, skip it and use the terms as a BOOST instead — this
+    // prevents the empty-feed scenario for niche interests like "Animals".
     const totalSectorCount = Object.keys(SECTOR_KEYWORDS || {}).length;
     const buildSectorKeywords = (sectors) => sectors
       .flatMap(s => {
@@ -625,13 +629,22 @@ app.get('/api/news', async (req, res) => {
       .map(k => String(k || '').toLowerCase())
       .filter(Boolean);
 
+    let sectorKeywordsForBoost = [];
     if (activeSectors.length > 0 && activeSectors.length < totalSectorCount) {
       const activeSectorKeywords = buildSectorKeywords(activeSectors);
       if (activeSectorKeywords.length > 0) {
-        unique = unique.filter(a => {
+        const filtered = unique.filter(a => {
           const text = ((a.title || '') + ' ' + (a.description || '')).toLowerCase();
           return activeSectorKeywords.some(kw => text.includes(kw));
         });
+        if (filtered.length > 0) {
+          unique = filtered;
+        } else {
+          // Hard filter produced 0 results — fall back to boosting instead.
+          // All articles stay in the pool; matching ones get scored higher.
+          sectorKeywordsForBoost = activeSectorKeywords;
+          console.log('Sector hard-filter produced 0 results — switching to boost mode for:', activeSectors.join(', '));
+        }
       }
     }
 
@@ -643,6 +656,19 @@ app.get('/api/news', async (req, res) => {
         return s > best ? s : best;
       }, -Infinity);
       if (!isFinite(a.score)) a.score = scoreArticle(a, regionSlug, userProfile, activeSectors);
+
+      // Sector boost (only active when the hard filter fell through to 0)
+      if (sectorKeywordsForBoost.length > 0) {
+        const titleLower = (a.title || '').toLowerCase();
+        const descLower = (a.description || '').toLowerCase();
+        let secBoost = 0;
+        for (const kw of sectorKeywordsForBoost) {
+          if (titleLower.includes(kw)) secBoost += 25;
+          else if (descLower.includes(kw)) secBoost += 10;
+        }
+        a.score += Math.min(secBoost, 50);
+      }
+
       if (searchTerms.length > 0) {
         const titleLower = (a.title || '').toLowerCase();
         const titleMatches = searchTerms.filter(t => titleLower.includes(t)).length;
@@ -715,6 +741,53 @@ app.get('/api/news', async (req, res) => {
   } catch (err) {
     console.error('News fetch error:', err);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ── Expand custom sector term into related keywords ─────────────
+// Called client-side when the user types a custom sector like
+// "Animals". Returns 10-15 related terms the sector filter can
+// match against, so the user doesn't have to guess exact words.
+app.post('/api/expand-sector', async (req, res) => {
+  try {
+    const { term } = req.body || {};
+    if (!term || !String(term).trim()) {
+      return res.status(400).json({ error: 'Missing term' });
+    }
+    const cleaned = String(term).trim();
+
+    const prompt = `Given the topic or interest "${cleaned}", return a JSON array of 12-15 single keywords or short 2-word phrases that a news article about this topic would likely contain in its headline or description. Include the original term. Only lowercase. No prose — ONLY the JSON array.
+
+Example: "Animals" → ["animals", "wildlife", "conservation", "endangered", "species", "zoo", "marine", "coral", "poaching", "habitat", "veterinary", "biodiversity", "fauna", "pet"]
+
+Now do "${cleaned}":`;
+
+    const chatCompletion = await groqChat(
+      [{ role: 'user', content: prompt }],
+      { temperature: 0.1, max_tokens: 200 }
+    );
+
+    const raw = chatCompletion?.choices?.[0]?.message?.content || '';
+    const match = raw.match(/\[[\s\S]*\]/);
+    let keywords = [];
+    if (match) {
+      try {
+        keywords = JSON.parse(match[0]);
+        if (!Array.isArray(keywords)) keywords = [];
+        keywords = keywords.map(k => String(k).toLowerCase().trim()).filter(Boolean).slice(0, 15);
+      } catch {}
+    }
+
+    // Always include the original term
+    if (!keywords.includes(cleaned.toLowerCase())) {
+      keywords.unshift(cleaned.toLowerCase());
+    }
+
+    res.json({ term: cleaned, keywords });
+  } catch (err) {
+    console.error('Expand sector error:', err.message);
+    // Fallback: just use the original term
+    res.json({ term: req.body?.term || '', keywords: [String(req.body?.term || '').toLowerCase().trim()] });
   }
 });
 

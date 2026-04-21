@@ -1111,17 +1111,52 @@ function commitChipInput(inputEl, arr, renderFn) {
   handleFiltersChanged();
 }
 
+// Expanded keywords cache — maps custom sector terms to their
+// LLM-expanded keyword lists so the server can match more broadly.
+const expandedSectorKeywords = {};
+
+async function expandAndCommitSector(inputEl, arr, renderFn) {
+  if (!inputEl) return;
+  const raw = inputEl.value.trim().replace(/,+$/, '').trim();
+  if (!raw) return;
+  const terms = raw.split(',').map(s => s.trim()).filter(Boolean);
+  inputEl.value = '';
+
+  for (const term of terms) {
+    if (arr.includes(term)) continue;
+    arr.push(term);
+    renderFn();
+    // Ask the server to expand the term into related keywords
+    try {
+      const res = await fetch('/api/expand-sector', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ term })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.keywords) && data.keywords.length > 0) {
+          expandedSectorKeywords[term] = data.keywords;
+        }
+      }
+    } catch (err) {
+      console.log('Sector expansion failed for', term, err.message);
+    }
+  }
+  handleFiltersChanged();
+}
+
 if (sectorOtherInput && sectorOtherChips) {
   renderSectorOtherChips();
   sectorOtherInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
-      commitChipInput(sectorOtherInput, customFilterSectors, renderSectorOtherChips);
+      expandAndCommitSector(sectorOtherInput, customFilterSectors, renderSectorOtherChips);
     }
   });
   sectorOtherInput.addEventListener('blur', () => {
     if (sectorOtherInput.value.trim()) {
-      commitChipInput(sectorOtherInput, customFilterSectors, renderSectorOtherChips);
+      expandAndCommitSector(sectorOtherInput, customFilterSectors, renderSectorOtherChips);
     }
   });
   sectorOtherChips.addEventListener('click', (e) => {
@@ -2055,7 +2090,14 @@ async function fetchStories() {
   const articleTypes = articleTypePills ? getActivePills(articleTypePills) : ['News', 'Analysis'];
   const locations = locationsInput ? locationsInput.value.trim() : '';
   // Custom sectors typed in the "Other" input add to the sector list
-  const allSectors = [...sectors, ...customFilterSectors];
+  // Build sector list. For custom sectors that have been expanded by the
+  // LLM into keyword lists, include those expanded keywords in the query
+  // so the server can match more broadly than just the literal term.
+  const expandedTerms = customFilterSectors.flatMap(term => {
+    const expanded = expandedSectorKeywords[term];
+    return Array.isArray(expanded) ? expanded : [term];
+  });
+  const allSectors = [...sectors, ...expandedTerms];
   const keywordsStr = filterKeywords.join(',');
 
   if (allSectors.length === 0 || sourceTypes.length === 0) {
