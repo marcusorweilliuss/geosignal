@@ -1645,17 +1645,21 @@ function updateFiltersSummary() {
   const activeRegions = getActiveRegions();
   const activeSectors = getActivePills(sectorPills);
   const totalSectors = sectorPills.querySelectorAll('.pill').length;
+  const customCount = Array.isArray(customFilterSectors) ? customFilterSectors.length : 0;
+  const keywordCount = Array.isArray(filterKeywords) ? filterKeywords.length : 0;
 
-  // Build a compact, plain-English summary. No raw ratios like "2/8" —
-  // those mean nothing on their own. Anything narrower than "all
-  // sectors" gets spelled out as a sector count, and the filters
-  // toggle carries a descriptive tooltip.
   let parts = [regionsLabel];
   let tooltip = 'Regions: ' + activeRegions.join(', ') + '. ';
 
-  if (activeSectors.length === 0) {
-    parts.push('no sectors selected');
-    tooltip += 'No sectors selected — the feed is empty until you pick one.';
+  if (activeSectors.length === 0 && customCount === 0 && keywordCount === 0) {
+    parts.push('no sectors or keywords');
+    tooltip += 'No sectors, custom topics, or keywords selected. The feed will use all 15 sectors by default.';
+  } else if (activeSectors.length === 0 && (customCount > 0 || keywordCount > 0)) {
+    const bits = [];
+    if (customCount) bits.push(customCount + ' custom ' + (customCount === 1 ? 'topic' : 'topics'));
+    if (keywordCount) bits.push(keywordCount + ' ' + (keywordCount === 1 ? 'keyword' : 'keywords'));
+    parts.push(bits.join(' + '));
+    tooltip += 'Using ' + bits.join(' and ') + ' only.';
   } else if (activeSectors.length === totalSectors) {
     tooltip += 'All ' + totalSectors + ' sectors included.';
   } else {
@@ -2097,13 +2101,27 @@ async function fetchStories() {
     const expanded = expandedSectorKeywords[term];
     return Array.isArray(expanded) ? expanded : [term];
   });
-  const allSectors = [...sectors, ...expandedTerms];
+  let allSectors = [...sectors, ...expandedTerms];
   const keywordsStr = filterKeywords.join(',');
 
-  if (allSectors.length === 0 || sourceTypes.length === 0) {
-    feed.innerHTML = '<div class="empty-feed">You haven\u2019t selected anything to read. Pick a sector or a source type to get started.</div>';
-    feedCount.textContent = '';
-    return;
+  // Fail-open: if the user has zero source types selected, auto-activate
+  // the three non-Official defaults instead of showing an empty feed.
+  let effectiveSourceTypes = sourceTypes;
+  if (effectiveSourceTypes.length === 0 && sourcePills) {
+    const defaults = ['Mainstream news', 'Think tanks & academic', 'Independent journalism'];
+    sourcePills.querySelectorAll('.pill').forEach(p => {
+      if (defaults.includes(p.dataset.value)) p.classList.add('active');
+    });
+    effectiveSourceTypes = defaults;
+    saveFilters();
+  }
+
+  // Same fail-open for sectors: if ALL sector knobs are empty (no standard
+  // pills, no custom sectors, no keywords), default to all 15 sectors.
+  if (allSectors.length === 0 && filterKeywords.length === 0 && sectorPills) {
+    sectorPills.querySelectorAll('.pill').forEach(p => p.classList.add('active'));
+    allSectors = Array.from(sectorPills.querySelectorAll('.pill.active')).map(p => p.dataset.value);
+    saveFilters();
   }
 
   const searchVal = searchInput.value.trim();
@@ -2129,7 +2147,7 @@ async function fetchStories() {
       region, // display label kept for legacy log lines
       regions: activeRegions.join(','),
       sectors: allSectors.join(','),
-      sourceTypes: sourceTypes.join(','),
+      sourceTypes: effectiveSourceTypes.join(','),
       articleTypes: articleTypes.join(',')
     });
     if (profile) {
