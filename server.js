@@ -480,10 +480,11 @@ app.get('/api/news', async (req, res) => {
     const regionList = regions
       ? regions.split(',').map(s => s.trim()).filter(Boolean)
       : (region ? [region] : ['Global']);
-    const includesGlobal = regionList.some(r => (r || '').toLowerCase() === 'global');
-    const effectiveRegionList = includesGlobal ? ['Global'] : regionList;
-    const regionSlug = regionSlugMap[effectiveRegionList[0]] || 'global';
-    const regionSlugs = effectiveRegionList.map(r => regionSlugMap[r] || 'global');
+    // Multi-region: keep ALL selected regions. If Global is among them,
+    // it adds global sources to the union — but other specific regions
+    // keep their country-match scoring bonus intact. No collapsing.
+    const regionSlug = regionSlugMap[regionList[0]] || 'global';
+    const regionSlugs = regionList.map(r => regionSlugMap[r] || 'global');
     const typeList = sourceTypes ? sourceTypes.split(',') : ['Mainstream news', 'Independent journalism', 'Think tanks & academic'];
     const activeSectors = sectors ? sectors.split(',') : [];
     const searchTerms = search ? search.toLowerCase().trim().split(/\s+/).filter(w => w.length > 1) : [];
@@ -606,10 +607,6 @@ app.get('/api/news', async (req, res) => {
       });
     }
 
-    // Snapshot the pool BEFORE sector filtering so we can fall back
-    // to broader results if the user's combination turns up too few.
-    const preSectorPool = unique.slice();
-
     // Apply sector filter — article must match at least one active sector's keywords
     const totalSectorCount = Object.keys(SECTOR_KEYWORDS || {}).length;
     const buildSectorKeywords = (sectors) => sectors
@@ -677,111 +674,6 @@ app.get('/api/news', async (req, res) => {
 
     unique.sort((a, b) => b.score - a.score);
 
-    // ── Broadening fallback ────────────────────────────────────────
-    // If the narrowly-filtered set is thin, progressively relax: first
-    // drop the sector filter for this region, then include articles
-    // across all regions. Also keyword-boost what remains so matches
-    // still rise. The client gets a human-readable broadenedNotice.
-    let broadenedNotice = '';
-    const MIN_RESULTS = 5;
-
-    async function buildFallback(pool, noticeText) {
-      // Re-apply the same location/include/exclude/article-type filters
-      // (sector is deliberately skipped to broaden the feed).
-      let p = pool.slice();
-      if (includeSet && includeSet.size > 0) p = p.filter(a => includeSet.has(a.source));
-      if (excludeSet && excludeSet.size > 0) p = p.filter(a => !excludeSet.has(a.source));
-      if (locationTerms.length > 0) {
-        p = p.filter(a => {
-          const text = ((a.title || '') + ' ' + (a.description || '')).toLowerCase();
-          return locationTerms.some(term => text.includes(term));
-        });
-      }
-      p.forEach(a => {
-        a.score = regionSlugs.reduce((best, slug) => {
-          const s = scoreArticle(a, slug, userProfile, activeSectors);
-          return s > best ? s : best;
-        }, -Infinity);
-        if (!isFinite(a.score)) a.score = scoreArticle(a, regionSlug, userProfile, activeSectors);
-        if (keywordTerms.length > 0) {
-          const titleLower = (a.title || '').toLowerCase();
-          const descLower = (a.description || '').toLowerCase();
-          let kwBoost = 0;
-          for (const term of keywordTerms) {
-            if (titleLower.includes(term)) kwBoost += 20;
-            else if (descLower.includes(term)) kwBoost += 8;
-          }
-          a.score += Math.min(kwBoost, 50);
-        }
-      });
-      p = p.filter(a => a.score >= 0);
-      if (activeArticleTypes.length > 0 && activeArticleTypes.length < 3) {
-        const allowed = new Set(activeArticleTypes);
-        p = p.filter(a => allowed.has(a.articleType));
-      }
-      p.sort((a, b) => b.score - a.score);
-      broadenedNotice = noticeText;
-      return p;
-    }
-
-    // Step 1: relax sector filter in the same region(s)
-    if (unique.length < MIN_RESULTS && activeSectors.length > 0 && activeSectors.length < totalSectorCount) {
-      const labelList = effectiveRegionList.join(', ');
-      unique = await buildFallback(preSectorPool,
-        `Fewer articles available for your exact sector filters — showing broader results for ${labelList}.`);
-    }
-
-    // Step 2: if still thin, broaden region by pulling from every cached feed
-    if (unique.length < MIN_RESULTS && !includesGlobal) {
-      const globalPool = [];
-      Object.values(feedCache).forEach(cached => {
-        if (cached.articles) globalPool.push(...cached.articles);
-      });
-      // Dedup against already-included URLs
-      const existingKeys = new Set(unique.map(a => (a.title || '').toLowerCase().trim()));
-      const extraDeduped = globalPool.filter(a => {
-        const key = (a.title || '').toLowerCase().trim();
-        if (!key || existingKeys.has(key)) return false;
-        existingKeys.add(key);
-        return true;
-      });
-      const expandedPool = [...preSectorPool, ...extraDeduped];
-      unique = await buildFallback(expandedPool,
-        `Fewer local results available — showing broader matches across all regions.`);
-    }
-
-    // Step 3: keyword-only global fallback if the user has keywords set
-    if (unique.length < MIN_RESULTS && keywordTerms.length > 0) {
-      const globalPool = [];
-      Object.values(feedCache).forEach(cached => {
-        if (cached.articles) globalPool.push(...cached.articles);
-      });
-      const matches = globalPool.filter(a => {
-        const text = ((a.title || '') + ' ' + (a.description || '')).toLowerCase();
-        return keywordTerms.some(term => text.includes(term));
-      });
-      const existingKeys = new Set(unique.map(a => (a.title || '').toLowerCase().trim()));
-      const fresh = matches.filter(a => {
-        const key = (a.title || '').toLowerCase().trim();
-        if (!key || existingKeys.has(key)) return false;
-        existingKeys.add(key);
-        return true;
-      });
-      fresh.forEach(a => {
-        a.score = keywordTerms.reduce((acc, term) => {
-          const t = (a.title || '').toLowerCase();
-          return acc + (t.includes(term) ? 20 : 0);
-        }, 10);
-      });
-      unique = [...unique, ...fresh];
-      unique.sort((a, b) => b.score - a.score);
-      if (!broadenedNotice) {
-        broadenedNotice = 'No local results found — showing global results matching your keywords.';
-      } else {
-        broadenedNotice = 'No local results found — showing global results matching your keywords.';
-      }
-    }
-
     // Map to card format. Strip HTML server-side so descriptions arrive
     // as clean text — prevents truncation from cutting mid-entity on
     // the client and keeps the payload lean.
@@ -812,7 +704,7 @@ app.get('/api/news', async (req, res) => {
       };
     });
 
-    res.json({ articles, governmentCaveat: GOVERNMENT_CAVEAT, broadenedNotice });
+    res.json({ articles, governmentCaveat: GOVERNMENT_CAVEAT });
   } catch (err) {
     console.error('News fetch error:', err);
     res.status(500).json({ error: 'Internal server error' });
