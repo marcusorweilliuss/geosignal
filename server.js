@@ -485,6 +485,13 @@ app.get('/api/news', async (req, res) => {
     // keep their country-match scoring bonus intact. No collapsing.
     const regionSlug = regionSlugMap[regionList[0]] || 'global';
     const regionSlugs = regionList.map(r => regionSlugMap[r] || 'global');
+    // For SCORING, prefer specific regions so their country-match
+    // bonuses fire. Global's role is just to expand the source pool.
+    // Only fall back to 'global' for scoring if it's the only region
+    // the user picked.
+    const scoringSlugs = regionSlugs.filter(s => s !== 'global').length > 0
+      ? regionSlugs.filter(s => s !== 'global')
+      : ['global'];
     const typeList = sourceTypes ? sourceTypes.split(',') : ['Mainstream news', 'Independent journalism', 'Think tanks & academic'];
     const activeSectors = sectors ? sectors.split(',') : [];
     const searchTerms = search ? search.toLowerCase().trim().split(/\s+/).filter(w => w.length > 1) : [];
@@ -631,7 +638,7 @@ app.get('/api/news', async (req, res) => {
     // Score, filter junk, and sort
     unique.forEach(a => {
       // For multi-region, score against every selected region and keep the best.
-      a.score = regionSlugs.reduce((best, slug) => {
+      a.score = scoringSlugs.reduce((best, slug) => {
         const s = scoreArticle(a, slug, userProfile, activeSectors);
         return s > best ? s : best;
       }, -Infinity);
