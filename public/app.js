@@ -262,32 +262,8 @@ document.querySelectorAll('.brief-len-btn').forEach(btn => {
   btn.addEventListener('click', () => setBriefLength(btn.dataset.len));
 });
 
-// ── Smart rank toggle (LLM-based feed re-ranking) ───────────────
-const SMART_RANK_KEY = 'geosignal_smart_rank';
-function isSmartRankOn() { return localStorage.getItem(SMART_RANK_KEY) === 'true'; }
-(function initSmartRankToggle() {
-  const el = document.getElementById('smart-rank-toggle');
-  if (!el) return;
-  el.checked = isSmartRankOn();
-  el.addEventListener('change', () => {
-    localStorage.setItem(SMART_RANK_KEY, el.checked ? 'true' : 'false');
-  });
-})();
+// LLM-first ranking is always active — testMode=1 sent on every request.
 
-// ── Test mode toggle (LLM-first article selection) ──────────────
-// When ON: the whole deterministic scoring path is skipped. The
-// server sends the full candidate pool to Groq which picks + ranks
-// the top 30 by genuine relevance.
-const TEST_MODE_KEY = 'geosignal_test_mode';
-function isTestModeOn() { return localStorage.getItem(TEST_MODE_KEY) === 'true'; }
-(function initTestModeToggle() {
-  const el = document.getElementById('test-mode-toggle');
-  if (!el) return;
-  el.checked = isTestModeOn();
-  el.addEventListener('change', () => {
-    localStorage.setItem(TEST_MODE_KEY, el.checked ? 'true' : 'false');
-  });
-})();
 
 // Profile UI elements (welcome modal, slide-in panel, banner, toast)
 const welcomeOverlay = document.getElementById('welcome-overlay');
@@ -2353,9 +2329,7 @@ async function fetchStories() {
   const searchVal = searchInput.value.trim();
   const loadingMsg = searchVal
     ? 'Searching for &ldquo;' + escapeHtml(searchVal) + '&rdquo;'
-    : (isTestModeOn()
-        ? 'Test mode: ranking articles with LLM (this takes a few seconds)'
-        : 'Gathering today\u2019s stories');
+    : 'Curating your feed\u2026';
   feed.innerHTML =
     '<div class="loading-feed">' +
       '<div class="loading-pulse"></div>' +
@@ -2396,9 +2370,7 @@ async function fetchStories() {
     if (readCards && readCards.size > 0) {
       params.set('readArticles', Array.from(readCards).slice(0, 50).join(','));
     }
-    if (isTestModeOn()) {
-      params.set('testMode', '1');
-    }
+    params.set('testMode', '1'); // LLM-first ranking always active
     if (sourceSelection.include.size > 0) {
       params.set('includeSources', Array.from(sourceSelection.include).join(','));
     }
@@ -2434,55 +2406,10 @@ async function fetchStories() {
     currentArticles = data.articles;
     governmentCaveat = data.governmentCaveat || '';
 
-    // Smart rank: pipe the deterministic top-60 through the LLM
-    // reranker before rendering. If the call fails or times out, we
-    // keep the original order silently.
-    let smartRankApplied = false;
-    if (isSmartRankOn() && currentArticles.length > 1) {
-      // Show a subtle hint in the feed count area so the extra latency
-      // isn't a mystery to the user.
-      feedCount.textContent = 'Smart-ranking\u2026';
-      try {
-        const rankController = new AbortController();
-        const rankTimer = setTimeout(() => rankController.abort(), 14000);
-        const rankRes = await fetch('/api/rank', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            articles: currentArticles.slice(0, 60),
-            profile: getProfile(),
-            activeFilters: {
-              regions: getActiveRegions(),
-              sectors: getActivePills(sectorPills),
-              customSectors: customFilterSectors.slice(),
-              keywords: filterKeywords.slice(),
-              includeSources: (sourceSelection && sourceSelection.include) ? Array.from(sourceSelection.include) : [],
-              excludeSources: (sourceSelection && sourceSelection.exclude) ? Array.from(sourceSelection.exclude) : []
-            }
-          }),
-          signal: rankController.signal
-        });
-        clearTimeout(rankTimer);
-        if (rankRes.ok) {
-          const rankData = await rankRes.json();
-          if (Array.isArray(rankData.ranked) && rankData.ranked.length > 0 && !rankData.fallback) {
-            // Merge the reranked prefix with the untouched tail (articles
-            // beyond the 60 we sent).
-            const tail = currentArticles.slice(60);
-            currentArticles = rankData.ranked.concat(tail);
-            smartRankApplied = true;
-          }
-        }
-      } catch (err) {
-        console.log('Smart-rank failed, keeping deterministic order:', err.message);
-      }
-    }
 
-    const countPrefix = currentArticles.length === 1 ? '1 article' : currentArticles.length + ' articles';
-    let suffix = '';
-    if (isTestModeOn()) suffix = ' \u00b7 test-ranked (LLM)';
-    else if (smartRankApplied) suffix = ' \u00b7 smart-ranked';
-    feedCount.textContent = countPrefix + suffix;
+    feedCount.textContent = currentArticles.length === 1
+      ? '1 article'
+      : currentArticles.length + ' articles';
     feedTimestamp.textContent = formatTimestamp();
 
     updateDispatchHeader(currentArticles);
