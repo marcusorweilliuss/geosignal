@@ -473,7 +473,7 @@ const regionSlugMap = {
 // and rank the top N by genuine relevance. Returns a subset of the
 // original articles in LLM-ranked order, or null on any failure so
 // the caller can fall back to deterministic scoring silently.
-async function llmSelectAndRank({ articles, profile, activeFilters, topN = 30 }) {
+async function llmSelectAndRank({ articles, profile, activeFilters, searchQuery, topN = 30 }) {
   if (!Array.isArray(articles) || articles.length === 0) return null;
 
   // Cap the pool size we send to the LLM. Each article line costs
@@ -504,7 +504,7 @@ async function llmSelectAndRank({ articles, profile, activeFilters, topN = 30 })
 
 READER PROFILE + ACTIVE FILTERS:
 ${contextBlock}
-
+${searchQuery ? '\nSEARCH QUERY: "' + searchQuery + '"\nThe user is specifically searching for this topic. Prioritise articles that are SEMANTICALLY related to this query — not just literal keyword matches. For example, a search for "Palestine" should also match articles about Gaza, Hamas, Israel-Palestine conflict, ceasefire talks, West Bank, etc.\n' : ''}
 RANKING RULES:
 - Prioritise GENUINE relevance over recency. A week-old article that directly matters to the reader beats a brand-new one that doesn't.
 - A specific, named hit on the reader's country, region, sector, company, or tracked keywords beats a tangential association.
@@ -673,8 +673,12 @@ app.get('/api/news', async (req, res) => {
       return true;
     });
 
-    // Apply search filter if present
-    if (searchTerms.length > 0) {
+    // Apply search filter if present. In Test mode (LLM-first) we skip
+    // the hard text-match and instead pass the search query to the LLM
+    // as context so it can find semantically-related articles (e.g.
+    // "Palestine" also matches Gaza, Hamas, ceasefire, etc.).
+    const testMode = req.query.testMode === '1' || req.query.testMode === 'true';
+    if (searchTerms.length > 0 && !testMode) {
       unique = unique.filter(a => {
         const text = ((a.title || '') + ' ' + (a.description || '') + ' ' + (a.source || '')).toLowerCase();
         return searchTerms.every(term => text.includes(term));
@@ -794,11 +798,11 @@ app.get('/api/news', async (req, res) => {
     // When the client sends testMode=1, skip the deterministic sort
     // entirely and let Groq pick + rank the top 30 from the full pool.
     // Falls back silently to deterministic scoring on any failure.
-    const testMode = req.query.testMode === '1' || req.query.testMode === 'true';
     let llmRankedUsed = false;
     if (testMode) {
       const llmRanked = await llmSelectAndRank({
         articles: unique,
+        searchQuery: searchTerms.length > 0 ? req.query.search : null,
         profile: userProfile,
         activeFilters: {
           regions: regionList,
