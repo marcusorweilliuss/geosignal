@@ -524,6 +524,95 @@ Now do "${query}":`;
   return literalTerms;
 }
 
+// ── Generic single-field semantic expansion ─────────────────────
+// Same pattern as expandSearchTerms but pluggable: caller passes a
+// hint about what the field is so the prompt is tuned. Cached for
+// 24 hours per (kind, value) pair.
+const fieldExpansionCache = {};
+const FIELD_EXP_TTL_MS = 24 * 60 * 60 * 1000;
+
+async function expandFieldTerms(kind, rawValue) {
+  const value = String(rawValue || '').trim();
+  if (!value || value.length < 2) return [];
+  const cacheKey = kind + '::' + value.toLowerCase();
+  const cached = fieldExpansionCache[cacheKey];
+  if (cached && (Date.now() - cached.ts) < FIELD_EXP_TTL_MS) return cached.terms;
+
+  const literalTerms = value.toLowerCase().split(/[\s,&\/]+/).filter(w => w.length > 2);
+
+  // Tune the prompt to the kind of field
+  const hints = {
+    role: `the user's professional role`,
+    company: `a specific company or organisation the user works for`,
+    industry: `industries or sectors the user follows`,
+    focus: `topics, themes, or concerns the user tracks`,
+    sector: `a news sector or topic the user is interested in`,
+    location: `a city or country the user is based in`
+  };
+  const hint = hints[kind] || `a topic the user cares about`;
+
+  try {
+    const prompt = `Given that "${value}" describes ${hint}, return a JSON array of 8-12 lowercase keywords or short phrases that a news article about something relevant to this would likely contain in its headline or description. Include the original words. No prose — ONLY the JSON array.
+
+Example for company "Morgan Stanley": ["morgan stanley", "wall street", "investment bank", "wealth management", "ms", "james gorman", "ted pick", "equities", "ipo"]
+Example for role "Founder, Investor": ["founder", "investor", "vc", "venture capital", "startup", "seed round", "series a", "fund", "private equity", "ipo", "entrepreneur"]
+
+Now do "${value}":`;
+
+    const completion = await groqChat(
+      [{ role: 'user', content: prompt }],
+      { temperature: 0.1, max_tokens: 200 }
+    );
+    const raw = completion?.choices?.[0]?.message?.content || '';
+    const m = raw.match(/\[[\s\S]*\]/);
+    if (m) {
+      const parsed = JSON.parse(m[0]);
+      if (Array.isArray(parsed)) {
+        const terms = parsed.map(t => String(t).toLowerCase().trim()).filter(Boolean).slice(0, 12);
+        literalTerms.forEach(lt => { if (!terms.includes(lt)) terms.unshift(lt); });
+        fieldExpansionCache[cacheKey] = { terms, ts: Date.now() };
+        return terms;
+      }
+    }
+  } catch (err) {
+    console.log('Field expansion failed for', kind, '"' + value + '":', err.message);
+  }
+  fieldExpansionCache[cacheKey] = { terms: literalTerms, ts: Date.now() };
+  return literalTerms;
+}
+
+// Expands every field on a user profile in parallel. Returns a map
+// the scorer can use as additional match terms per field.
+async function expandProfileTerms(profile) {
+  if (!profile) return {};
+  const tasks = [];
+  const fields = ['role', 'company', 'industry', 'focus', 'location'];
+  fields.forEach(f => {
+    const v = profile[f];
+    if (v && String(v).trim()) {
+      tasks.push(expandFieldTerms(f, v).then(terms => [f, terms]));
+    }
+  });
+  const results = await Promise.all(tasks);
+  const out = {};
+  results.forEach(([f, terms]) => { if (terms && terms.length) out[f] = terms; });
+  return out;
+}
+
+// Expands an array of sector labels. Returns a flattened, deduped
+// array of related terms across all of them.
+async function expandSectorList(sectors) {
+  if (!Array.isArray(sectors) || sectors.length === 0) return [];
+  const tasks = sectors.map(s => expandFieldTerms('sector', s));
+  const lists = await Promise.all(tasks);
+  const seen = new Set();
+  const out = [];
+  lists.forEach(list => list.forEach(t => {
+    if (!seen.has(t)) { seen.add(t); out.push(t); }
+  }));
+  return out;
+}
+
 async function llmSelectAndRank({ articles, profile, activeFilters, searchQuery, expandedSearchTerms, topN = 30 }) {
   if (!Array.isArray(articles) || articles.length === 0) return null;
 
@@ -725,6 +814,24 @@ app.get('/api/news', async (req, res) => {
       try { userProfile = JSON.parse(profileStr); } catch {}
     }
 
+    // Semantically expand every profile field once per request. The
+    // helper caches by (kind,value) for 24h so repeated requests for
+    // the same profile are free. Attach the expanded terms to the
+    // userProfile so scoreArticle can use them as match boosts.
+    if (userProfile) {
+      try {
+        userProfile._expandedTerms = await expandProfileTerms(userProfile);
+      } catch {}
+    }
+    // Also expand active sector labels (standard + custom) into related
+    // terms once per request. Custom sectors already get expanded
+    // client-side and arrive in `sectors`; this layer adds semantic
+    // expansion to the standard sector labels too.
+    let expandedSectorTerms = [];
+    if (activeSectors && activeSectors.length > 0 && activeSectors.length < 15) {
+      try { expandedSectorTerms = await expandSectorList(activeSectors); } catch {}
+    }
+
     // Deduplicate by title
     const seen = new Set();
     let unique = allArticles.filter(a => {
@@ -817,6 +924,35 @@ app.get('/api/news', async (req, res) => {
           else if (descLower.includes(kw)) secBoost += 10;
         }
         a.score += Math.min(secBoost, 50);
+      }
+
+      // Semantic-expanded sector boost (active whenever standard sectors
+      // were expanded). Lower weight than the hardcoded keyword boost
+      // because expanded terms are softer matches.
+      if (expandedSectorTerms.length > 0) {
+        const titleLower = (a.title || '').toLowerCase();
+        const descLower = (a.description || '').toLowerCase();
+        let expBoost = 0;
+        for (const t of expandedSectorTerms) {
+          if (titleLower.includes(t)) expBoost += 8;
+          else if (descLower.includes(t)) expBoost += 3;
+        }
+        a.score += Math.min(expBoost, 30);
+      }
+
+      // Semantic-expanded profile boost (role, company, industry, focus)
+      if (userProfile && userProfile._expandedTerms) {
+        const titleLower = (a.title || '').toLowerCase();
+        const descLower = (a.description || '').toLowerCase();
+        let pBoost = 0;
+        Object.values(userProfile._expandedTerms).forEach(termList => {
+          if (!Array.isArray(termList)) return;
+          for (const t of termList) {
+            if (titleLower.includes(t)) pBoost += 10;
+            else if (descLower.includes(t)) pBoost += 4;
+          }
+        });
+        a.score += Math.min(pBoost, 40);
       }
 
       if (expandedSearchTerms.length > 0) {
