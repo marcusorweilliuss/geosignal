@@ -473,7 +473,58 @@ const regionSlugMap = {
 // and rank the top N by genuine relevance. Returns a subset of the
 // original articles in LLM-ranked order, or null on any failure so
 // the caller can fall back to deterministic scoring silently.
-async function llmSelectAndRank({ articles, profile, activeFilters, searchQuery, topN = 30 }) {
+// ── Semantic search-term expansion ──────────────────────────────
+// Expands a user search query like "Palestine" into related terms
+// (gaza, hamas, israel, ceasefire, etc.) so articles using any of
+// those terms match. Cached in-memory for 1 hour per query.
+const searchExpansionCache = {};
+const SEARCH_EXP_TTL_MS = 60 * 60 * 1000;
+
+async function expandSearchTerms(rawQuery) {
+  const query = String(rawQuery || '').trim();
+  if (!query || query.length < 2) return [];
+
+  const cached = searchExpansionCache[query.toLowerCase()];
+  if (cached && (Date.now() - cached.ts) < SEARCH_EXP_TTL_MS) {
+    return cached.terms;
+  }
+
+  // Fast fallback: split the query into word-boundary terms
+  const literalTerms = query.toLowerCase().split(/\s+/).filter(w => w.length > 1);
+
+  try {
+    const prompt = `Given the news search query "${query}", return a JSON array of 8-12 lowercase keywords or short phrases that a news article about this topic would likely contain in its headline or description. Include the original words. No prose — ONLY the JSON array.
+
+Example: "Palestine" → ["palestine", "gaza", "hamas", "israel", "idf", "west bank", "ceasefire", "rafah", "netanyahu", "hostages", "palestinian authority"]
+
+Now do "${query}":`;
+
+    const completion = await groqChat(
+      [{ role: 'user', content: prompt }],
+      { temperature: 0.1, max_tokens: 180 }
+    );
+    const raw = completion?.choices?.[0]?.message?.content || '';
+    const m = raw.match(/\[[\s\S]*\]/);
+    if (m) {
+      const parsed = JSON.parse(m[0]);
+      if (Array.isArray(parsed)) {
+        const terms = parsed
+          .map(t => String(t).toLowerCase().trim())
+          .filter(Boolean)
+          .slice(0, 12);
+        literalTerms.forEach(lt => { if (!terms.includes(lt)) terms.unshift(lt); });
+        searchExpansionCache[query.toLowerCase()] = { terms, ts: Date.now() };
+        return terms;
+      }
+    }
+  } catch (err) {
+    console.log('Search expansion failed for "' + query + '":', err.message);
+  }
+  searchExpansionCache[query.toLowerCase()] = { terms: literalTerms, ts: Date.now() };
+  return literalTerms;
+}
+
+async function llmSelectAndRank({ articles, profile, activeFilters, searchQuery, expandedSearchTerms, topN = 30 }) {
   if (!Array.isArray(articles) || articles.length === 0) return null;
 
   // Cap the pool size we send to the LLM. Each article line costs
@@ -504,7 +555,9 @@ async function llmSelectAndRank({ articles, profile, activeFilters, searchQuery,
 
 READER PROFILE + ACTIVE FILTERS:
 ${contextBlock}
-${searchQuery ? '\nSEARCH QUERY: "' + searchQuery + '"\nThe user is specifically searching for this topic. Prioritise articles that are SEMANTICALLY related to this query — not just literal keyword matches. For example, a search for "Palestine" should also match articles about Gaza, Hamas, Israel-Palestine conflict, ceasefire talks, West Bank, etc.\n' : ''}
+${searchQuery ? '\nSEARCH QUERY: "' + searchQuery + '"' +
+  (Array.isArray(expandedSearchTerms) && expandedSearchTerms.length ? '\nRelated terms (any of these counts as a hit on the search topic): ' + expandedSearchTerms.join(', ') : '') +
+  '\nThe user is searching for this topic. Articles directly about it should rank highest. Articles tangentially related can fill out the lower ranks.\n' : ''}
 RANKING RULES:
 - Prioritise GENUINE relevance over recency. A week-old article that directly matters to the reader beats a brand-new one that doesn't.
 - A specific, named hit on the reader's country, region, sector, company, or tracked keywords beats a tangential association.
@@ -519,7 +572,12 @@ ${lines}
 Return ONLY this JSON (no prose, no code fences):
 {"top": [id, id, id, ...]}
 
-Exactly ${topN} IDs. Each ID is a number between 0 and ${pool.length - 1}. Each ID appears once. The first ID is MOST relevant; the last is least (but still genuinely relevant — excluded articles should not appear).`;
+CRITICAL OUTPUT REQUIREMENTS:
+- Return EXACTLY ${Math.min(topN, pool.length)} IDs. Not fewer. If you think only a handful are highly relevant, fill the remainder with the next-most-relevant articles ranked from best to worst. The user wants a full feed, not a curated handful.
+- Each ID must be a number between 0 and ${pool.length - 1}.
+- Each ID appears at most once.
+- First ID is most relevant; last is least relevant (but still in the list).
+- Do not return prose, explanations, or code fences — ONLY the JSON object.`;
 
   let rankedIds = null;
   try {
@@ -580,6 +638,9 @@ app.get('/api/news', async (req, res) => {
     const typeList = sourceTypes ? sourceTypes.split(',') : ['Mainstream news', 'Independent journalism', 'Think tanks & academic'];
     const activeSectors = sectors ? sectors.split(',') : [];
     const searchTerms = search ? search.toLowerCase().trim().split(/\s+/).filter(w => w.length > 1) : [];
+    // Semantic expansion of the search query — cached, async. Used for
+    // scoring boost (both modes) and matching in test-mode pool selection.
+    const expandedSearchTerms = search ? await expandSearchTerms(search) : [];
     const activeArticleTypes = articleTypes
       ? articleTypes.split(',').map(t => t.trim()).filter(Boolean)
       : ['News', 'Analysis']; // default: News + Analysis, Opinion off
@@ -758,10 +819,15 @@ app.get('/api/news', async (req, res) => {
         a.score += Math.min(secBoost, 50);
       }
 
-      if (searchTerms.length > 0) {
+      if (expandedSearchTerms.length > 0) {
         const titleLower = (a.title || '').toLowerCase();
-        const titleMatches = searchTerms.filter(t => titleLower.includes(t)).length;
-        a.score += titleMatches * 10;
+        const descLower = (a.description || '').toLowerCase();
+        let searchBoost = 0;
+        for (const term of expandedSearchTerms) {
+          if (titleLower.includes(term)) searchBoost += 18;
+          else if (descLower.includes(term)) searchBoost += 6;
+        }
+        a.score += Math.min(searchBoost, 60);
       }
       if (locationTerms.length > 0) {
         const titleLower = (a.title || '').toLowerCase();
@@ -800,9 +866,16 @@ app.get('/api/news', async (req, res) => {
     // Falls back silently to deterministic scoring on any failure.
     let llmRankedUsed = false;
     if (testMode) {
+      // Retrieve-then-rerank: first sort by deterministic score, then
+      // send the top 300 candidates to the LLM for semantic reranking.
+      // Smaller prompt (~15K tokens), faster (~3s), and the pool is
+      // already relevance-ordered so the LLM has strong candidates.
+      const candidatePool = unique.slice().sort((a, b) => b.score - a.score).slice(0, 300);
+      console.log('Test mode: reranking top ' + candidatePool.length + ' of ' + unique.length + ' articles with LLM');
       const llmRanked = await llmSelectAndRank({
-        articles: unique,
+        articles: candidatePool,
         searchQuery: searchTerms.length > 0 ? req.query.search : null,
+        expandedSearchTerms,
         profile: userProfile,
         activeFilters: {
           regions: regionList,
@@ -812,7 +885,7 @@ app.get('/api/news', async (req, res) => {
           includeSources: includeSources ? includeSources.split(',') : [],
           excludeSources: excludeSources ? excludeSources.split(',') : []
         },
-        topN: 30
+        topN: 40
       });
       if (Array.isArray(llmRanked) && llmRanked.length > 0) {
         unique = llmRanked;
