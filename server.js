@@ -703,6 +703,75 @@ CRITICAL OUTPUT REQUIREMENTS:
   return rankedIds.map(i => pool[i]);
 }
 
+// Build a concise, human-readable reason why this article matched.
+// Surfaced as "Why this is here" under each card for trust.
+function buildMatchReason(article, profile, expandedSearch, expandedProfileKw, sectors, regions) {
+  const reasons = [];
+  const titleLower = ((article.title || '') + ' ' + (article.description || '')).toLowerCase();
+
+  // Region match
+  if (regions && regions.length > 0 && article.country) {
+    for (const r of regions) {
+      const slug = regionSlugMap[r];
+      if (slug && REGION_COUNTRIES[slug]) {
+        for (const c of REGION_COUNTRIES[slug]) {
+          if (titleLower.includes(c.toLowerCase())) {
+            reasons.push(article.country);
+            break;
+          }
+        }
+        if (reasons.length) break;
+      }
+    }
+  }
+
+  // Sector match
+  if (sectors && sectors.length > 0) {
+    for (const s of sectors) {
+      const kws = SECTOR_KEYWORDS[s];
+      if (Array.isArray(kws) && kws.some(k => titleLower.includes(k.toLowerCase()))) {
+        reasons.push(s.replace(/ & .*/, '')); // shortened label
+        break;
+      }
+    }
+  }
+
+  // Search match
+  if (Array.isArray(expandedSearch) && expandedSearch.length > 0) {
+    for (const t of expandedSearch.slice(0, 5)) {
+      if (titleLower.includes(t)) {
+        reasons.push('search: ' + t);
+        break;
+      }
+    }
+  }
+
+  // Profile keyword match
+  if (Array.isArray(expandedProfileKw) && expandedProfileKw.length > 0) {
+    for (const t of expandedProfileKw.slice(0, 8)) {
+      if (titleLower.includes(t)) {
+        reasons.push('keyword: ' + t);
+        break;
+      }
+    }
+  }
+
+  // Profile location match
+  if (profile && profile.location) {
+    const loc = String(profile.location).toLowerCase();
+    if (loc && titleLower.includes(loc)) reasons.push(profile.location);
+  }
+
+  // Profile company match
+  if (profile && profile.company) {
+    const comp = String(profile.company).toLowerCase();
+    if (comp && titleLower.includes(comp)) reasons.push(profile.company);
+  }
+
+  if (reasons.length === 0) return '';
+  return 'Matched: ' + reasons.slice(0, 3).join(' · ');
+}
+
 // ── Main News Endpoint (RSS-powered) ────────────────────────────
 
 app.get('/api/news', async (req, res) => {
@@ -1171,7 +1240,8 @@ app.get('/api/news', async (req, res) => {
         thumbnail: article.thumbnail || '',
         articleType: article.articleType || 'News',
         country: article.country || '',
-        sourceDescription: getSourceDescription(article.source)
+        sourceDescription: getSourceDescription(article.source),
+        matchReason: buildMatchReason(article, userProfile, expandedSearchTerms, expandedProfileKeywords, activeSectors, regionList)
       };
     });
 

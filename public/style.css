@@ -2877,6 +2877,18 @@ select:focus {
   opacity: 0.7;
 }
 
+/* "Why this is here" match-reason line under the meta */
+.card-match-reason {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--accent);
+  letter-spacing: 0.3px;
+  padding: 4px 0 2px;
+  opacity: 0.85;
+}
+.card-match-reason:empty { display: none; }
+
 /* Featured / Lead Story card — bigger headline and eyebrow */
 .card.card-featured {
   padding: 34px 32px 30px;

@@ -2971,6 +2971,11 @@ function renderFeed(articles) {
 
       if (article.thumbnail) card.classList.add('has-thumb');
 
+
+      const matchReasonHtml = article.matchReason
+        ? '<div class="card-match-reason">' + escapeHtml(article.matchReason) + '</div>'
+        : '';
+
       if (isFeatured) {
         // Featured: thumbnail on top, full width
         card.innerHTML =
@@ -2987,6 +2992,7 @@ function renderFeed(articles) {
             '<span class="card-time">' + escapeHtml(timeAgo(article.publishedAt)) + '</span>' +
             (tierLabel ? '<span class="card-dot card-tier-meta"></span><span class="card-tier-meta"' + sourceAttr + '>' + escapeHtml(tierLabel) + '</span>' : '') +
           '</div>' +
+          matchReasonHtml +
           '<div class="card-tldr loading" data-index="' + index + '">' + tldrFallback + '</div>';
       } else {
         // Regular: thumbnail on the right as a square, body on the left
