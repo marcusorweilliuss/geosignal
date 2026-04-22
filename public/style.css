@@ -3775,108 +3775,312 @@ select:focus {
 .profile-banner-dismiss:hover { color: var(--text-primary); background: rgba(0,0,0,0.04); }
 
 /* ── Welcome onboarding modal ── */
-.welcome-overlay {
+/* ── Onboarding Wizard (Apple-clean multi-step) ── */
+.wizard-overlay {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(28, 25, 23, 0.55);
-  backdrop-filter: blur(8px);
+  background: rgba(28, 25, 23, 0.6);
+  backdrop-filter: blur(12px);
   z-index: 1100;
   justify-content: center;
   align-items: center;
   padding: 24px;
-  animation: overlay-fade 0.3s ease;
+  animation: overlay-fade 0.35s ease;
 }
+.wizard-overlay.visible { display: flex; }
 
-.welcome-overlay.visible { display: flex; }
-
-.welcome-modal {
+.wizard {
   background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  max-width: 560px;
+  border-radius: 24px;
+  max-width: 520px;
   width: 100%;
   max-height: calc(100vh - 48px);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  box-shadow: var(--shadow-lg);
-  animation: modal-in 0.35s cubic-bezier(0.2, 0, 0, 1);
-}
-
-.welcome-header {
-  padding: 36px 36px 22px;
-  border-bottom: 1px solid var(--border);
-  text-align: left;
-}
-
-.welcome-eyebrow {
-  font-family: var(--sans);
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--accent);
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
-  margin-bottom: 10px;
-}
-
-.welcome-header h2 {
-  font-family: var(--serif);
-  font-size: 30px;
-  font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: -0.4px;
-  line-height: 1.15;
-  margin-bottom: 12px;
-}
-
-.welcome-subtitle {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 15.5px;
-  color: var(--text-secondary);
-  line-height: 1.55;
-}
-
-.welcome-body {
-  padding: 24px 36px 8px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  box-shadow: 0 24px 64px rgba(28, 25, 23, 0.2);
+  animation: modal-in 0.4s cubic-bezier(0.2, 0, 0, 1);
+  padding: 40px 44px 28px;
+  position: relative;
 }
 
-.welcome-footer {
-  padding: 20px 36px 28px;
+.wizard-progress {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 36px;
+}
+.wizard-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border-strong);
+  transition: all 0.3s ease;
+}
+.wizard-dot.active {
+  background: var(--accent);
+  width: 24px;
+  border-radius: 999px;
+}
+.wizard-dot.done { background: var(--accent); }
+
+.wizard-step {
+  display: none;
+  flex-direction: column;
+  gap: 0;
+  animation: wizard-step-in 0.35s ease;
+}
+.wizard-step.active { display: flex; }
+
+@keyframes wizard-step-in {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.wizard-step h2 {
+  font-family: var(--serif);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+  line-height: 1.15;
+  margin: 0 0 8px;
+}
+
+.wizard-subtitle {
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0 0 28px;
+}
+
+.wizard-fields {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  align-items: stretch;
-  border-top: 1px solid var(--border);
-  background: var(--bg-primary);
+  gap: 24px;
 }
 
-.welcome-primary {
+.wizard-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wizard-field label {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.2px;
+}
+
+.wizard-optional {
+  font-weight: 400;
+  color: var(--text-tertiary);
+  margin-left: 6px;
+  font-size: 12px;
+}
+
+.wizard-field input {
   width: 100%;
-  padding: 14px 24px;
-  font-size: 14px;
+  padding: 14px 16px;
+  font-family: var(--sans);
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  border: 1.5px solid var(--border-strong);
+  border-radius: 12px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+.wizard-field input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-dim);
+}
+.wizard-field input::placeholder {
+  color: var(--text-tertiary);
+  font-weight: 400;
 }
 
-.welcome-skip {
+.wizard-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.wizard-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 16px;
+  background: var(--bg-primary);
+  border: 1.5px solid var(--border-strong);
+  border-radius: 999px;
+  font-family: var(--sans);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease;
+}
+.wizard-card:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+  background: var(--accent-dim);
+}
+.wizard-card.selected {
+  background: var(--accent);
+  color: #FFFFFF;
+  border-color: var(--accent);
+  font-weight: 600;
+}
+.wizard-card .wizard-card-check {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
+  background: #FFFFFF;
+  transition: all 0.15s;
+  position: relative;
+  flex-shrink: 0;
+}
+.wizard-card.selected .wizard-card-check {
+  background: #FFFFFF;
+  border-color: #FFFFFF;
+}
+.wizard-card.selected .wizard-card-check::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 5px;
+  width: 4px;
+  height: 8px;
+  border: solid var(--accent);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.wizard-regions { margin-top: 18px; }
+
+.wizard-source-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.wizard-source-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--bg-primary);
+  border: 1.5px solid var(--border-strong);
+  border-radius: 999px;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.wizard-source-pill:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+.wizard-source-pill.active {
+  background: var(--accent);
+  color: #FFFFFF;
+  border-color: var(--accent);
+  font-weight: 600;
+}
+.wizard-check {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
+  background: #FFF;
+}
+.wizard-source-pill.active .wizard-check {
+  background: #FFF;
+  border-color: #FFF;
+}
+
+.wizard-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.wizard-changeable {
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-top: 18px;
+  text-align: center;
+  font-style: italic;
+}
+
+.wizard-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 36px;
+  gap: 12px;
+}
+
+.wizard-back {
+  background: transparent;
+  border: none;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 10px 16px;
+  border-radius: 10px;
+  transition: all 0.15s;
+}
+.wizard-back:hover { color: var(--text-primary); background: var(--bg-secondary); }
+.wizard-back[disabled] { opacity: 0; pointer-events: none; }
+
+.wizard-next,
+.wizard-finish {
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 12px;
+  letter-spacing: 0.1px;
+}
+
+.wizard-skip {
+  display: block;
   background: transparent;
   border: none;
   color: var(--text-tertiary);
   font-family: var(--sans);
   font-size: 12.5px;
   text-decoration: underline;
+  text-decoration-style: dotted;
   text-underline-offset: 3px;
   cursor: pointer;
-  padding: 4px;
-  align-self: center;
+  padding: 10px 4px 4px;
+  margin: 0 auto;
   transition: color 0.2s;
 }
+.wizard-skip:hover { color: var(--text-secondary); }
 
-.welcome-skip:hover { color: var(--text-secondary); }
+@media (max-width: 540px) {
+  .wizard { padding: 28px 24px 20px; border-radius: 18px; }
+  .wizard-step h2 { font-size: 22px; }
+  .wizard-field input { font-size: 15px; padding: 12px 14px; }
+}
 
 /* ── Slide-in profile panel ── */
 .profile-panel-overlay {

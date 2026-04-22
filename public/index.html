@@ -296,21 +296,78 @@
     </footer>
   </div>
 
-  <!-- Welcome Modal — first-use onboarding -->
-  <div class="welcome-overlay" id="welcome-overlay" role="dialog" aria-modal="true" aria-labelledby="welcome-heading">
-    <div class="welcome-modal">
-      <div class="welcome-header">
-        <div class="welcome-eyebrow">Welcome to GeoSignal</div>
-        <h2 id="welcome-heading">Make GeoSignal yours</h2>
-        <p class="welcome-subtitle">Tell us about your role so we can show you what each story means for you specifically. This takes 30 seconds.</p>
+  <!-- Welcome Wizard — 4-step Apple-clean onboarding -->
+  <div class="wizard-overlay" id="welcome-overlay" role="dialog" aria-modal="true" aria-labelledby="wizard-heading">
+    <div class="wizard">
+      <div class="wizard-progress" id="wizard-progress">
+        <div class="wizard-dot active"></div>
+        <div class="wizard-dot"></div>
+        <div class="wizard-dot"></div>
+        <div class="wizard-dot"></div>
       </div>
 
-      <div class="welcome-body" id="welcome-form-mount"></div>
-
-      <div class="welcome-footer">
-        <button class="btn-primary welcome-primary" id="welcome-save" type="button">Set up my profile</button>
-        <button class="welcome-skip" id="welcome-skip" type="button">Skip for now</button>
+      <!-- Step 1: About you -->
+      <div class="wizard-step active" data-step="1">
+        <h2 id="wizard-heading">Tell us about yourself</h2>
+        <p class="wizard-subtitle">So we can show you news that actually matters to you.</p>
+        <div class="wizard-fields">
+          <div class="wizard-field">
+            <label for="wiz-role">What do you do?</label>
+            <input type="text" id="wiz-role" placeholder="e.g. Founder, Analyst, Journalist, Student..." autocomplete="off" />
+          </div>
+          <div class="wizard-field">
+            <label for="wiz-company">Company or organisation <span class="wizard-optional">optional</span></label>
+            <input type="text" id="wiz-company" placeholder="e.g. Morgan Stanley, University of Singapore..." autocomplete="organization" />
+          </div>
+        </div>
       </div>
+
+      <!-- Step 2: Interests -->
+      <div class="wizard-step" data-step="2">
+        <h2>What interests you?</h2>
+        <p class="wizard-subtitle">Tap as many as you like. Work and personal — we'll cover both.</p>
+        <div class="wizard-cards" id="wiz-sectors"></div>
+      </div>
+
+      <!-- Step 3: Geography -->
+      <div class="wizard-step" data-step="3">
+        <h2>Where in the world?</h2>
+        <p class="wizard-subtitle">Pick regions you follow, or leave it on Global for everything.</p>
+        <div class="wizard-field">
+          <label for="wiz-location">Where are you based?</label>
+          <input type="text" id="wiz-location" placeholder="e.g. Singapore, London, New York..." autocomplete="off" />
+        </div>
+        <div class="wizard-cards wizard-regions" id="wiz-regions"></div>
+      </div>
+
+      <!-- Step 4: Fine-tune -->
+      <div class="wizard-step" data-step="4">
+        <h2>Track specific topics</h2>
+        <p class="wizard-subtitle">Add keywords that matter to you. These help us find exactly the right stories.</p>
+        <div class="wizard-field">
+          <label for="wiz-keywords">Keywords &amp; topics</label>
+          <input type="text" id="wiz-keywords" placeholder="Type a keyword and press Enter..." autocomplete="off" />
+          <div class="wizard-chips" id="wiz-keyword-chips"></div>
+        </div>
+        <div class="wizard-field">
+          <label>Source preferences</label>
+          <div class="wizard-source-toggles">
+            <label class="wizard-source-pill active" data-value="Mainstream news"><span class="wizard-check"></span>Mainstream</label>
+            <label class="wizard-source-pill active" data-value="Think tanks & academic"><span class="wizard-check"></span>Think Tanks</label>
+            <label class="wizard-source-pill active" data-value="Independent journalism"><span class="wizard-check"></span>Independent</label>
+            <label class="wizard-source-pill" data-value="Official statements"><span class="wizard-check"></span>Official</label>
+          </div>
+        </div>
+        <p class="wizard-changeable">You can change all of this anytime from your profile &rarr;</p>
+      </div>
+
+      <!-- Footer (shared) -->
+      <div class="wizard-footer">
+        <button class="wizard-back" id="wizard-back" type="button">&larr; Back</button>
+        <button class="wizard-next btn-primary" id="wizard-next" type="button">Next</button>
+        <button class="wizard-finish btn-primary" id="wizard-finish" type="button" style="display:none">Start reading &rarr;</button>
+      </div>
+      <button class="wizard-skip" id="welcome-skip" type="button">Skip for now</button>
     </div>
   </div>
 

@@ -567,14 +567,173 @@ function readProfileFromForm(mountEl, idPrefix) {
   return { role, industries, company, location, focus, customSectors, keywords };
 }
 
-// ── Welcome onboarding modal ──
+// ── Welcome wizard (multi-step onboarding) ──
+const WIZARD_REGIONS = ['Global','North America','Latin America','Europe',
+  'Middle East','Africa','South Asia','East Asia','Southeast Asia',
+  'Central Asia & Caucasus','Oceania'];
+
+function initWizard() {
+  // Populate sector cards
+  const sectorsEl = document.getElementById('wiz-sectors');
+  if (sectorsEl) {
+    sectorsEl.innerHTML = SECTOR_OPTIONS.map(s =>
+      '<div class="wizard-card" data-value="' + escapeHtml(s) + '">' +
+        '<span class="wizard-card-check"></span>' +
+        '<span>' + escapeHtml(s) + '</span>' +
+      '</div>'
+    ).join('');
+    sectorsEl.addEventListener('click', (e) => {
+      const card = e.target.closest('.wizard-card');
+      if (card) card.classList.toggle('selected');
+    });
+  }
+
+  // Populate region cards
+  const regionsEl = document.getElementById('wiz-regions');
+  if (regionsEl) {
+    regionsEl.innerHTML = WIZARD_REGIONS.map(r =>
+      '<div class="wizard-card' + (r === 'Global' ? ' selected' : '') + '" data-value="' + escapeHtml(r) + '">' +
+        '<span class="wizard-card-check"></span>' +
+        '<span>' + escapeHtml(r) + '</span>' +
+      '</div>'
+    ).join('');
+    regionsEl.addEventListener('click', (e) => {
+      const card = e.target.closest('.wizard-card');
+      if (card) card.classList.toggle('selected');
+    });
+  }
+
+  // Keywords chip input
+  const kwInput = document.getElementById('wiz-keywords');
+  const kwChips = document.getElementById('wiz-keyword-chips');
+  const wizKeywords = [];
+  if (kwInput && kwChips) {
+    kwInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        const raw = kwInput.value.trim().replace(/,+$/, '').trim();
+        if (!raw) return;
+        raw.split(',').map(s => s.trim()).filter(Boolean).forEach(term => {
+          if (!wizKeywords.includes(term)) wizKeywords.push(term);
+        });
+        kwInput.value = '';
+        kwChips.innerHTML = wizKeywords.map((k, i) =>
+          '<span class="keyword-chip" data-idx="' + i + '">' + escapeHtml(k) +
+          '<button type="button">&times;</button></span>'
+        ).join('');
+      }
+    });
+    kwChips.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      const chip = btn.closest('.keyword-chip');
+      if (!chip) return;
+      const idx = parseInt(chip.dataset.idx, 10);
+      if (!isNaN(idx)) { wizKeywords.splice(idx, 1); kwInput.dispatchEvent(new KeyboardEvent('keydown', {key: ','})); }
+    });
+  }
+
+  // Source pill toggles
+  document.querySelectorAll('.wizard-source-pill').forEach(pill => {
+    pill.addEventListener('click', () => pill.classList.toggle('active'));
+  });
+
+  // Step management
+  let currentStep = 1;
+  const totalSteps = 4;
+  const steps = document.querySelectorAll('.wizard-step');
+  const dots = document.querySelectorAll('.wizard-dot');
+  const backBtn = document.getElementById('wizard-back');
+  const nextBtn = document.getElementById('wizard-next');
+  const finishBtn = document.getElementById('wizard-finish');
+
+  function goToStep(n) {
+    currentStep = n;
+    steps.forEach(s => s.classList.toggle('active', parseInt(s.dataset.step) === n));
+    dots.forEach((d, i) => {
+      d.classList.toggle('active', i === n - 1);
+      d.classList.toggle('done', i < n - 1);
+    });
+    backBtn.disabled = n === 1;
+    if (n === totalSteps) {
+      nextBtn.style.display = 'none';
+      finishBtn.style.display = '';
+    } else {
+      nextBtn.style.display = '';
+      finishBtn.style.display = 'none';
+    }
+  }
+
+  if (backBtn) backBtn.addEventListener('click', () => { if (currentStep > 1) goToStep(currentStep - 1); });
+  if (nextBtn) nextBtn.addEventListener('click', () => { if (currentStep < totalSteps) goToStep(currentStep + 1); });
+
+  // Finish: collect all data, save profile, pre-fill filters
+  if (finishBtn) {
+    finishBtn.addEventListener('click', () => {
+      const role = (document.getElementById('wiz-role') || {}).value || '';
+      const company = (document.getElementById('wiz-company') || {}).value || '';
+      const location = (document.getElementById('wiz-location') || {}).value || '';
+
+      const selectedSectors = Array.from(document.querySelectorAll('#wiz-sectors .wizard-card.selected'))
+        .map(c => c.dataset.value);
+      const selectedRegions = Array.from(document.querySelectorAll('#wiz-regions .wizard-card.selected'))
+        .map(c => c.dataset.value);
+      const selectedSources = Array.from(document.querySelectorAll('.wizard-source-pill.active'))
+        .map(p => p.dataset.value);
+
+      // Save profile
+      saveProfile({
+        role, company, location,
+        industries: selectedSectors,
+        keywords: wizKeywords.slice(),
+        focus: '',
+        customSectors: []
+      });
+
+      // Pre-fill filter panel from wizard selections
+      if (regionPills) {
+        regionPills.querySelectorAll('.pill').forEach(p => {
+          if (selectedRegions.length === 0 || selectedRegions.includes('Global')) {
+            p.classList.toggle('active', p.dataset.value === 'Global');
+          } else {
+            p.classList.toggle('active', selectedRegions.includes(p.dataset.value));
+          }
+        });
+      }
+      if (sectorPills) {
+        sectorPills.querySelectorAll('.pill').forEach(p => {
+          if (selectedSectors.length === 0) {
+            p.classList.add('active'); // default: all sectors
+          } else {
+            p.classList.toggle('active', selectedSectors.includes(p.dataset.value));
+          }
+        });
+      }
+      if (sourcePills) {
+        sourcePills.querySelectorAll('.pill').forEach(p => {
+          p.classList.toggle('active', selectedSources.includes(p.dataset.value));
+        });
+      }
+
+      // Set filter keywords from wizard
+      filterKeywords = wizKeywords.slice();
+      renderKeywordChips();
+
+      saveFilters();
+      hideWelcomeModal();
+      handleProfileSaved('welcome');
+      fetchStories();
+    });
+  }
+}
+
 function showWelcomeModal() {
-  renderProfileForm(welcomeFormMount, 'welcome');
+  initWizard();
   welcomeOverlay.classList.add('visible');
   setTimeout(() => {
-    const first = welcomeFormMount.querySelector('#welcome-role');
+    const first = document.getElementById('wiz-role');
     if (first) first.focus();
-  }, 100);
+  }, 200);
 }
 
 function hideWelcomeModal() {
