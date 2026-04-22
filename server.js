@@ -653,7 +653,10 @@ RANKING RULES:
 - Do NOT manufacture connections. If an article has no clear link to the reader's interests, rank it lower — don't invent a reason to include it.
 - Do NOT invent or imply ties to the reader's employer / university unless the article specifically references them.
 - Break ties with recency: newer article wins.
-- Avoid duplicates on the same story from different outlets — pick the strongest single version.
+- Avoid duplicates on the same story from different outlets — pick the strongest single version and skip the rest.
+- SOURCE DIVERSITY: Do not let any single outlet (e.g. Reuters, Straits Times, Bloomberg) contribute more than 3 articles in the top 30. Spread across sources to give the reader a variety of perspectives.
+- TOPIC DIVERSITY: Avoid listing 5 articles about the same topic back-to-back. Interleave different subjects for a more scannable, interesting feed.
+- RECENCY AS TIEBREAKER: When two articles have similar relevance, rank the newer one higher. But never place a fresh-but-irrelevant article above an older-but-directly-relevant one.
 
 CANDIDATE ARTICLES (each line starts with [id]):
 ${lines}
@@ -832,6 +835,23 @@ app.get('/api/news', async (req, res) => {
       try { expandedSectorTerms = await expandSectorList(activeSectors); } catch {}
     }
 
+    // Expand profile-level keywords (the user's durable interests set in
+    // their profile form, e.g. "Donald Trump", "Singapore Local News").
+    // Each keyword gets semantically expanded so phrase-style interests
+    // that don't literally appear in headlines still produce matches.
+    let expandedProfileKeywords = [];
+    if (userProfile && Array.isArray(userProfile.keywords) && userProfile.keywords.length > 0) {
+      try {
+        const kws = userProfile.keywords.filter(Boolean).slice(0, 10);
+        const tasks = kws.map(kw => expandFieldTerms('focus', kw));
+        const results = await Promise.all(tasks);
+        const seen = new Set();
+        results.forEach(list => list.forEach(t => {
+          if (!seen.has(t)) { seen.add(t); expandedProfileKeywords.push(t); }
+        }));
+      } catch {}
+    }
+
     // Deduplicate by title
     const seen = new Set();
     let unique = allArticles.filter(a => {
@@ -940,7 +960,7 @@ app.get('/api/news', async (req, res) => {
         a.score += Math.min(expBoost, 30);
       }
 
-      // Semantic-expanded profile boost (role, company, industry, focus)
+      // Semantic-expanded profile boost (role, company, industry, focus, location)
       if (userProfile && userProfile._expandedTerms) {
         const titleLower = (a.title || '').toLowerCase();
         const descLower = (a.description || '').toLowerCase();
@@ -953,6 +973,19 @@ app.get('/api/news', async (req, res) => {
           }
         });
         a.score += Math.min(pBoost, 40);
+      }
+
+      // Profile-level keywords (expanded) — strongest profile signal
+      // because these are durable interests the user explicitly listed.
+      if (expandedProfileKeywords.length > 0) {
+        const titleLower = (a.title || '').toLowerCase();
+        const descLower = (a.description || '').toLowerCase();
+        let kwBoost = 0;
+        for (const t of expandedProfileKeywords) {
+          if (titleLower.includes(t)) kwBoost += 15;
+          else if (descLower.includes(t)) kwBoost += 5;
+        }
+        a.score += Math.min(kwBoost, 50);
       }
 
       if (expandedSearchTerms.length > 0) {
@@ -1031,6 +1064,51 @@ app.get('/api/news', async (req, res) => {
 
     if (!llmRankedUsed) {
       unique.sort((a, b) => b.score - a.score);
+    }
+
+    // ── Source diversity ── Cap any single outlet at 3 articles in the
+    // top 40 so the feed doesn't feel like a single-source RSS reader.
+    // Extras get pushed to the tail (still available if the user scrolls).
+    {
+      const sourceCounts = {};
+      const top = [];
+      const overflow = [];
+      for (const a of unique) {
+        const s = a.source || '';
+        sourceCounts[s] = (sourceCounts[s] || 0) + 1;
+        if (sourceCounts[s] <= 3) top.push(a);
+        else overflow.push(a);
+      }
+      unique = [...top, ...overflow];
+    }
+
+    // ── Headline dedup across outlets ── If multiple outlets cover the
+    // same story with near-identical headlines, keep the highest-scored
+    // version and drop the rest. Two headlines are "same story" if they
+    // share >60% of their significant words (length >= 4).
+    {
+      const significantWords = (title) => {
+        const stop = new Set(['that','this','with','from','have','will','been','they','their','after','about','more','than','also','into','over','when','what','some','could']);
+        return (title || '').toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/)
+          .filter(w => w.length >= 4 && !stop.has(w));
+      };
+      const overlap = (a, b) => {
+        if (a.length === 0 || b.length === 0) return 0;
+        const setB = new Set(b);
+        const shared = a.filter(w => setB.has(w)).length;
+        return shared / Math.min(a.length, b.length);
+      };
+      const deduped = [];
+      const usedWords = [];
+      for (const a of unique) {
+        const words = significantWords(a.title);
+        const isDupe = usedWords.some(uw => overlap(words, uw) > 0.6);
+        if (!isDupe) {
+          deduped.push(a);
+          usedWords.push(words);
+        }
+      }
+      unique = deduped;
     }
 
     // Map to card format. Strip HTML server-side so descriptions arrive
