@@ -59,6 +59,12 @@
           <span class="smart-rank-label">Smart rank</span>
         </label>
 
+        <label class="smart-rank-toggle test-mode-toggle" title="Test mode — skips deterministic scoring entirely. Sends the full article pool to Groq which picks and ranks the top 30 by genuine relevance. Adds ~6-8s per Apply.">
+          <input type="checkbox" id="test-mode-toggle" />
+          <span class="smart-rank-slider"></span>
+          <span class="smart-rank-label">Test</span>
+        </label>
+
         <label class="annotate-toggle" title="Annotate mode — click highlighted terms for explanations">
           <input type="checkbox" id="annotate-toggle" checked>
           <span class="annotate-slider"></span>

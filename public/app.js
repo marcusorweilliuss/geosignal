@@ -274,6 +274,21 @@ function isSmartRankOn() { return localStorage.getItem(SMART_RANK_KEY) === 'true
   });
 })();
 
+// ── Test mode toggle (LLM-first article selection) ──────────────
+// When ON: the whole deterministic scoring path is skipped. The
+// server sends the full candidate pool to Groq which picks + ranks
+// the top 30 by genuine relevance.
+const TEST_MODE_KEY = 'geosignal_test_mode';
+function isTestModeOn() { return localStorage.getItem(TEST_MODE_KEY) === 'true'; }
+(function initTestModeToggle() {
+  const el = document.getElementById('test-mode-toggle');
+  if (!el) return;
+  el.checked = isTestModeOn();
+  el.addEventListener('change', () => {
+    localStorage.setItem(TEST_MODE_KEY, el.checked ? 'true' : 'false');
+  });
+})();
+
 // Profile UI elements (welcome modal, slide-in panel, banner, toast)
 const welcomeOverlay = document.getElementById('welcome-overlay');
 const welcomeFormMount = document.getElementById('welcome-form-mount');
@@ -2127,7 +2142,9 @@ async function fetchStories() {
   const searchVal = searchInput.value.trim();
   const loadingMsg = searchVal
     ? 'Searching for &ldquo;' + escapeHtml(searchVal) + '&rdquo;'
-    : 'Gathering today\u2019s stories';
+    : (isTestModeOn()
+        ? 'Test mode: ranking articles with LLM (this takes a few seconds)'
+        : 'Gathering today\u2019s stories');
   feed.innerHTML =
     '<div class="loading-feed">' +
       '<div class="loading-pulse"></div>' +
@@ -2163,6 +2180,9 @@ async function fetchStories() {
       params.set('keywords', keywordsStr);
     }
     params.set('dateRange', getActiveDateRange());
+    if (isTestModeOn()) {
+      params.set('testMode', '1');
+    }
     if (sourceSelection.include.size > 0) {
       params.set('includeSources', Array.from(sourceSelection.include).join(','));
     }
@@ -2242,10 +2262,11 @@ async function fetchStories() {
       }
     }
 
-    feedCount.textContent = (currentArticles.length === 1
-      ? '1 article'
-      : currentArticles.length + ' articles') +
-      (smartRankApplied ? ' \u00b7 smart-ranked' : '');
+    const countPrefix = currentArticles.length === 1 ? '1 article' : currentArticles.length + ' articles';
+    let suffix = '';
+    if (isTestModeOn()) suffix = ' \u00b7 test-ranked (LLM)';
+    else if (smartRankApplied) suffix = ' \u00b7 smart-ranked';
+    feedCount.textContent = countPrefix + suffix;
     feedTimestamp.textContent = formatTimestamp();
 
     updateDispatchHeader(currentArticles);

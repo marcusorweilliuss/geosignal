@@ -468,6 +468,91 @@ const regionSlugMap = {
   'Oceania': 'oceania'
 };
 
+// ── LLM-first article selection + ranking (Test mode) ──────────
+// Takes a full candidate pool plus user context, asks Groq to pick
+// and rank the top N by genuine relevance. Returns a subset of the
+// original articles in LLM-ranked order, or null on any failure so
+// the caller can fall back to deterministic scoring silently.
+async function llmSelectAndRank({ articles, profile, activeFilters, topN = 30 }) {
+  if (!Array.isArray(articles) || articles.length === 0) return null;
+
+  // Cap the pool size we send to the LLM. Each article line costs
+  // ~45-55 tokens; 800 keeps the prompt well under Groq's context window.
+  const pool = articles.slice(0, 800);
+
+  const contextBlock = (profile || activeFilters)
+    ? buildFullContextBlock(profile || {}, activeFilters || {})
+    : '- No profile set; rank by broad editorial relevance (recency, specificity, named actors).';
+
+  // Compact per-article line: id + title + minimal metadata. Titles
+  // capped at 180 chars so one bad outlier doesn't blow the budget.
+  const lines = pool.map((a, i) => {
+    const parts = ['[' + i + ']', (a.title || '').slice(0, 180)];
+    const meta = [];
+    if (a.source) meta.push(a.source);
+    if (a.country) meta.push(a.country);
+    else if (a.region) meta.push(a.region);
+    if (a.publishedAt) {
+      const hoursAgo = Math.round((Date.now() - new Date(a.publishedAt).getTime()) / (1000 * 60 * 60));
+      if (!isNaN(hoursAgo) && hoursAgo >= 0) meta.push(hoursAgo + 'h ago');
+    }
+    if (meta.length) parts.push('(' + meta.join(' | ') + ')');
+    return parts.join(' ');
+  }).join('\n');
+
+  const prompt = `You are a senior news editor curating a personalised briefing. Below is a pool of ${pool.length} recent news articles and a profile of the reader. Pick the top ${topN} articles that are MOST GENUINELY RELEVANT to this specific reader — not just popular, not just recent.
+
+READER PROFILE + ACTIVE FILTERS:
+${contextBlock}
+
+RANKING RULES:
+- Prioritise GENUINE relevance over recency. A week-old article that directly matters to the reader beats a brand-new one that doesn't.
+- A specific, named hit on the reader's country, region, sector, company, or tracked keywords beats a tangential association.
+- Do NOT manufacture connections. If an article has no clear link to the reader's interests, rank it lower — don't invent a reason to include it.
+- Do NOT invent or imply ties to the reader's employer / university unless the article specifically references them.
+- Break ties with recency: newer article wins.
+- Avoid duplicates on the same story from different outlets — pick the strongest single version.
+
+CANDIDATE ARTICLES (each line starts with [id]):
+${lines}
+
+Return ONLY this JSON (no prose, no code fences):
+{"top": [id, id, id, ...]}
+
+Exactly ${topN} IDs. Each ID is a number between 0 and ${pool.length - 1}. Each ID appears once. The first ID is MOST relevant; the last is least (but still genuinely relevant — excluded articles should not appear).`;
+
+  let rankedIds = null;
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 18000);
+    const completion = await groqChat(
+      [{ role: 'user', content: prompt }],
+      { temperature: 0.1, max_tokens: 900 }
+    );
+    clearTimeout(timer);
+    const raw = completion?.choices?.[0]?.message?.content || '';
+    const cleaned = stripCodeFences(raw);
+    let parsed;
+    try { parsed = JSON.parse(cleaned); }
+    catch {
+      const m = cleaned.match(/\{[\s\S]*\}/);
+      if (m) parsed = JSON.parse(m[0]);
+    }
+    if (parsed && Array.isArray(parsed.top)) {
+      const seen = new Set();
+      rankedIds = parsed.top
+        .map(n => parseInt(n, 10))
+        .filter(n => !isNaN(n) && n >= 0 && n < pool.length && !seen.has(n) && seen.add(n));
+    }
+  } catch (err) {
+    console.error('llmSelectAndRank failed:', err.message);
+    return null;
+  }
+
+  if (!rankedIds || rankedIds.length === 0) return null;
+  return rankedIds.map(i => pool[i]);
+}
+
 // ── Main News Endpoint (RSS-powered) ────────────────────────────
 
 app.get('/api/news', async (req, res) => {
@@ -705,7 +790,35 @@ app.get('/api/news', async (req, res) => {
       unique = unique.filter(a => allowed.has(a.articleType));
     }
 
-    unique.sort((a, b) => b.score - a.score);
+    // ── Test mode: LLM-first selection + ranking ──
+    // When the client sends testMode=1, skip the deterministic sort
+    // entirely and let Groq pick + rank the top 30 from the full pool.
+    // Falls back silently to deterministic scoring on any failure.
+    const testMode = req.query.testMode === '1' || req.query.testMode === 'true';
+    let llmRankedUsed = false;
+    if (testMode) {
+      const llmRanked = await llmSelectAndRank({
+        articles: unique,
+        profile: userProfile,
+        activeFilters: {
+          regions: regionList,
+          sectors: activeSectors,
+          keywords: keywordTerms,
+          locations: locationTerms,
+          includeSources: includeSources ? includeSources.split(',') : [],
+          excludeSources: excludeSources ? excludeSources.split(',') : []
+        },
+        topN: 30
+      });
+      if (Array.isArray(llmRanked) && llmRanked.length > 0) {
+        unique = llmRanked;
+        llmRankedUsed = true;
+      }
+    }
+
+    if (!llmRankedUsed) {
+      unique.sort((a, b) => b.score - a.score);
+    }
 
     // Map to card format. Strip HTML server-side so descriptions arrive
     // as clean text — prevents truncation from cutting mid-entity on
