@@ -1725,6 +1725,58 @@ if (stickyApplyClear) {
 }
 handleFiltersChanged();
 
+// ── Sidebar navigation ──────────────────────────────────────────
+// Clicking a sector in the left sidebar single-selects it (quick
+// drill-down). Clicking "Popular" restores all sectors.
+(function wireSidebar() {
+  const sidebar = document.getElementById('app-sidebar');
+  const toggle = document.getElementById('sidebar-toggle');
+  const overlay = document.getElementById('sidebar-overlay');
+  const navItems = document.querySelectorAll('.sidebar-nav-item');
+
+  const closeSidebar = () => {
+    if (sidebar) sidebar.classList.remove('open');
+    if (overlay) overlay.classList.remove('visible');
+  };
+  if (toggle) {
+    toggle.addEventListener('click', () => {
+      sidebar.classList.add('open');
+      overlay.classList.add('visible');
+    });
+  }
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+
+  navItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = item.dataset.sector;
+      // Mark this sidebar item active, deactivate others
+      navItems.forEach(n => n.classList.remove('active'));
+      item.classList.add('active');
+      // Apply the sector selection to the pill group
+      if (sectorPills) {
+        const pills = sectorPills.querySelectorAll('.pill');
+        if (target === 'all') {
+          pills.forEach(p => p.classList.add('active'));
+        } else {
+          pills.forEach(p => {
+            p.classList.toggle('active', p.dataset.value === target);
+          });
+        }
+      }
+      // Clear any previously-typed "Other" sectors so the sidebar
+      // choice is a clean single-sector view.
+      if (target !== 'all') {
+        customFilterSectors = [];
+        renderSectorOtherChips();
+      }
+      handleFiltersChanged();
+      fetchStories();
+      closeSidebar();
+    });
+  });
+})();
+
 // ── Utilities ───────────────────────────────────────────────────
 
 function timeAgo(dateStr) {
@@ -2675,8 +2727,10 @@ function renderFeed(articles) {
         '<span class="feed-section-label">' + label + '</span>' +
         '<span class="feed-section-count">' + groupArticles.length + '</span>' +
         '<span class="section-rule"></span>' +
-      '</div>';
+      '</div>' +
+      '<div class="feed-section-cards"></div>';
     feed.appendChild(section);
+    const cardsGrid = section.querySelector('.feed-section-cards');
 
     groupArticles.forEach(article => {
       const index = globalIndex++;
@@ -2921,7 +2975,7 @@ function renderFeed(articles) {
         }
       });
 
-      feed.appendChild(card);
+      cardsGrid.appendChild(card);
     });
   });
 }

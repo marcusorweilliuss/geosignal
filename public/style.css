@@ -157,9 +157,139 @@ html {
 }
 
 .app-shell {
-  max-width: 780px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 40px 28px 80px;
+  padding: 32px 40px 80px;
+  padding-left: 260px; /* room for the fixed left sidebar on desktop */
+}
+
+/* ── Left sidebar (primary sector navigation) ────────────────── */
+.app-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 220px;
+  padding: 24px 18px 20px;
+  background: var(--bg-card);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  z-index: 40;
+  overflow-y: auto;
+}
+
+.app-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 6px 20px;
+  color: var(--accent);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 14px;
+}
+
+.app-sidebar-brand-text {
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--text-primary);
+}
+
+.app-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-height: 0;
+}
+
+.sidebar-nav-item {
+  font-family: var(--sans);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+  letter-spacing: 0.1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-nav-item:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.sidebar-nav-item.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.app-sidebar-footer {
+  padding: 14px 12px 4px;
+  border-top: 1px solid var(--border);
+  margin-top: 14px;
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.app-sidebar-link {
+  color: inherit;
+  text-decoration: none;
+}
+.app-sidebar-link:hover { color: var(--accent); }
+
+/* Sidebar mobile controls */
+.sidebar-toggle {
+  display: none;
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 60;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  color: var(--text-primary);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+}
+.sidebar-toggle:hover { background: var(--bg-secondary); }
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 25, 23, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 35;
+}
+
+@media (max-width: 960px) {
+  .sidebar-toggle { display: inline-flex; }
+  .app-shell { padding-left: 40px; }
+  .app-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.2, 0, 0, 1);
+    box-shadow: 12px 0 32px rgba(28, 25, 23, 0.12);
+  }
+  .app-sidebar.open { transform: translateX(0); }
+  .sidebar-overlay.visible { display: block; }
+}
+
+@media (max-width: 640px) {
+  .app-shell { padding: 70px 16px 60px; }
 }
 
 /* Header — editorial masthead with centered title + utility bar */
@@ -2485,12 +2615,112 @@ select:focus {
 
 /* Feed sections — editorial dividers with diamond ornament */
 .feed-section {
-  margin-top: 48px;
+  margin-top: 44px;
   margin-bottom: 8px;
 }
 
 .feed-section:first-child {
-  margin-top: 16px;
+  margin-top: 10px;
+}
+
+/* 3-column responsive grid of cards within a section */
+.feed-section-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
+  margin-top: 18px;
+}
+
+/* Within a grid, each card is a vertical tile */
+.feed-section-cards .card {
+  padding: 0;
+  margin-bottom: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Neutralise horizontal "has-thumb" layout inside the grid */
+.feed-section-cards .card.has-thumb:not(.card-featured) {
+  display: flex;
+  flex-direction: column;
+  grid-template-columns: none;
+  gap: 0;
+}
+
+.feed-section-cards .card .card-thumb {
+  order: -1;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 0;
+  box-shadow: none;
+  border-bottom: 1px solid var(--border);
+  margin: 0;
+}
+
+.feed-section-cards .card .card-body {
+  padding: 18px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.feed-section-cards .card:not(.has-thumb) .card-body {
+  padding: 22px 20px 18px;
+}
+
+.feed-section-cards .card .card-header {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.feed-section-cards .card .card-title {
+  font-size: 16.5px;
+  line-height: 1.32;
+}
+
+.feed-section-cards .card .card-meta {
+  padding: 0;
+  font-size: 11px;
+}
+
+.feed-section-cards .card .card-tldr {
+  font-size: 14px;
+  line-height: 1.5;
+  margin-top: 6px;
+}
+
+.feed-section-cards .card .card-badges {
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* Featured card spans full grid width */
+.feed-section-cards .card.card-featured {
+  grid-column: 1 / -1;
+}
+
+.feed-section-cards .card.card-featured .card-thumb {
+  aspect-ratio: 21 / 9;
+}
+
+.feed-section-cards .card.card-featured .card-title {
+  font-size: 22px;
+}
+
+/* When expanded (briefing open), the card becomes full-width again */
+.feed-section-cards .card.card-expanded {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 540px) {
+  .feed-section-cards {
+    grid-template-columns: 1fr;
+  }
+  .feed-section-cards .card .card-title {
+    font-size: 17px;
+  }
 }
 
 .feed-section-header {

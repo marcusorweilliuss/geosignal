@@ -10,6 +10,50 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <button class="sidebar-toggle" id="sidebar-toggle" type="button" aria-label="Open navigation">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round">
+      <path d="M3 5h14M3 10h14M3 15h14"/>
+    </svg>
+  </button>
+
+  <aside class="app-sidebar" id="app-sidebar" aria-label="Primary navigation">
+    <div class="app-sidebar-brand">
+      <svg width="28" height="28" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="22" cy="22" r="18"/>
+        <ellipse cx="22" cy="22" rx="18" ry="7.5"/>
+        <path d="M22 4c5 5 5 31 0 36"/>
+        <path d="M22 4c-5 5-5 31 0 36"/>
+        <line x1="4" y1="22" x2="40" y2="22"/>
+      </svg>
+      <span class="app-sidebar-brand-text">GeoSignal</span>
+    </div>
+
+    <nav class="app-sidebar-nav" id="app-sidebar-nav">
+      <a href="#" class="sidebar-nav-item active" data-sector="all">Popular</a>
+      <a href="#" class="sidebar-nav-item" data-sector="Geopolitics &amp; International Relations">Geopolitics</a>
+      <a href="#" class="sidebar-nav-item" data-sector="Economics &amp; Trade">Economics &amp; Trade</a>
+      <a href="#" class="sidebar-nav-item" data-sector="Technology &amp; AI">Technology &amp; AI</a>
+      <a href="#" class="sidebar-nav-item" data-sector="Climate &amp; Environment">Climate &amp; Environment</a>
+      <a href="#" class="sidebar-nav-item" data-sector="Energy &amp; Resources">Energy &amp; Resources</a>
+      <a href="#" class="sidebar-nav-item" data-sector="Defence &amp; Security">Defence &amp; Security</a>
+      <a href="#" class="sidebar-nav-item" data-sector="Finance &amp; Markets">Finance &amp; Markets</a>
+      <a href="#" class="sidebar-nav-item" data-sector="Public Policy &amp; Governance">Public Policy</a>
+      <a href="#" class="sidebar-nav-item" data-sector="Society &amp; Culture">Society &amp; Culture</a>
+      <a href="#" class="sidebar-nav-item" data-sector="Health &amp; Pandemic">Health &amp; Pandemic</a>
+      <a href="#" class="sidebar-nav-item" data-sector="Space &amp; Frontier Tech">Space &amp; Frontier</a>
+      <a href="#" class="sidebar-nav-item" data-sector="Media &amp; Disinformation">Media</a>
+      <a href="#" class="sidebar-nav-item" data-sector="Human Rights &amp; Migration">Human Rights</a>
+      <a href="#" class="sidebar-nav-item" data-sector="Legal &amp; Regulatory">Legal &amp; Regulatory</a>
+      <a href="#" class="sidebar-nav-item" data-sector="Food &amp; Agriculture">Food &amp; Agriculture</a>
+    </nav>
+
+    <div class="app-sidebar-footer">
+      <a href="https://github.com/marcusorweilliuss/geosignal" target="_blank" rel="noopener" class="app-sidebar-link">About</a>
+    </div>
+  </aside>
+
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
   <div class="app-shell">
     <div class="profile-banner" id="profile-banner" role="status" aria-live="polite">
       <span class="profile-banner-text">Your feed isn&rsquo;t personalised yet.</span>
