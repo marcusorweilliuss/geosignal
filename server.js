@@ -707,7 +707,7 @@ CRITICAL OUTPUT REQUIREMENTS:
 
 app.get('/api/news', async (req, res) => {
   try {
-    const { region, regions, sectors, sourceTypes, profile: profileStr, search, articleTypes, locations, keywords, includeSources, excludeSources } = req.query;
+    const { region, regions, sectors, sourceTypes, profile: profileStr, search, articleTypes, locations, keywords, includeSources, excludeSources, readArticles } = req.query;
 
     // Multi-region support. Accepts ?regions=A,B,C (preferred) or
     // ?region=A (single, back-compat). If Global is among the choices,
@@ -1034,36 +1034,70 @@ app.get('/api/news', async (req, res) => {
     // entirely and let Groq pick + rank the top 30 from the full pool.
     // Falls back silently to deterministic scoring on any failure.
     let llmRankedUsed = false;
+    let llmRankedAt = 0;
     if (testMode) {
-      // Retrieve-then-rerank: first sort by deterministic score, then
-      // send the top 300 candidates to the LLM for semantic reranking.
-      // Smaller prompt (~15K tokens), faster (~3s), and the pool is
-      // already relevance-ordered so the LLM has strong candidates.
-      const candidatePool = unique.slice().sort((a, b) => b.score - a.score).slice(0, 300);
-      console.log('Test mode: reranking top ' + candidatePool.length + ' of ' + unique.length + ' articles with LLM');
-      const llmRanked = await llmSelectAndRank({
-        articles: candidatePool,
-        searchQuery: searchTerms.length > 0 ? req.query.search : null,
-        expandedSearchTerms,
-        profile: userProfile,
-        activeFilters: {
-          regions: regionList,
-          sectors: activeSectors,
-          keywords: keywordTerms,
-          locations: locationTerms,
-          includeSources: includeSources ? includeSources.split(',') : [],
-          excludeSources: excludeSources ? excludeSources.split(',') : []
-        },
-        topN: 40
-      });
-      if (Array.isArray(llmRanked) && llmRanked.length > 0) {
-        unique = llmRanked;
+      // Check for a cached LLM ranking that's still fresh (10 min TTL).
+      // Key: hash of user filters + profile + search query. Means
+      // repeated Apply/Refresh within 10 min is instant.
+      const llmCacheKey = 'llmrank::' + hashString(JSON.stringify({
+        regions: regionList, sectors: activeSectors,
+        keywords: keywordTerms, locations: locationTerms,
+        search: req.query.search || '', profile: userProfile || {}
+      }));
+      const llmCached = cacheGet('crossSector', llmCacheKey);
+      if (llmCached && llmCached.rankedAt && (Date.now() - llmCached.rankedAt) < 10 * 60 * 1000) {
+        unique = llmCached.articles;
         llmRankedUsed = true;
-      }
+        llmRankedAt = llmCached.rankedAt;
+        console.log('Test mode: serving cached LLM ranking (' + Math.round((Date.now() - llmCached.rankedAt) / 60000) + 'min old)');
+      } else {
+        // Retrieve-then-rerank: first sort by deterministic score, then
+        // send the top 300 candidates to the LLM for semantic reranking.
+        const candidatePool = unique.slice().sort((a, b) => b.score - a.score).slice(0, 300);
+        console.log('Test mode: reranking top ' + candidatePool.length + ' of ' + unique.length + ' articles with LLM');
+        const llmRanked = await llmSelectAndRank({
+          articles: candidatePool,
+          searchQuery: searchTerms.length > 0 ? req.query.search : null,
+          expandedSearchTerms,
+          profile: userProfile,
+          activeFilters: {
+            regions: regionList,
+            sectors: activeSectors,
+            keywords: keywordTerms,
+            locations: locationTerms,
+            includeSources: includeSources ? includeSources.split(',') : [],
+            excludeSources: excludeSources ? excludeSources.split(',') : []
+          },
+          topN: 40
+        });
+        if (Array.isArray(llmRanked) && llmRanked.length > 0) {
+          unique = llmRanked;
+          llmRankedUsed = true;
+          llmRankedAt = Date.now();
+          // Cache this ranking for 10 minutes
+          cacheSet('crossSector', llmCacheKey, { articles: llmRanked, rankedAt: llmRankedAt });
+        }
+      } // end else (not cached)
     }
 
     if (!llmRankedUsed) {
       unique.sort((a, b) => b.score - a.score);
+    }
+
+    // ── Already-read demotion ── If the client passes a comma-separated
+    // list of article IDs (URLs) the user already opened in this session,
+    // push them to the bottom so fresh content surfaces on refresh.
+    if (readArticles) {
+      const readSet = new Set(readArticles.split(',').map(s => s.trim()).filter(Boolean));
+      if (readSet.size > 0) {
+        const unread = [];
+        const read = [];
+        for (const a of unique) {
+          if (readSet.has(a.url || a.title)) read.push(a);
+          else unread.push(a);
+        }
+        unique = [...unread, ...read];
+      }
     }
 
     // ── Source diversity ── Cap any single outlet at 3 articles in the

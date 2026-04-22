@@ -2180,6 +2180,11 @@ async function fetchStories() {
       params.set('keywords', keywordsStr);
     }
     params.set('dateRange', getActiveDateRange());
+    // Tell the server which articles the user already opened so they
+    // get pushed to the bottom on refresh, surfacing fresh content.
+    if (readCards && readCards.size > 0) {
+      params.set('readArticles', Array.from(readCards).slice(0, 50).join(','));
+    }
     if (isTestModeOn()) {
       params.set('testMode', '1');
     }
