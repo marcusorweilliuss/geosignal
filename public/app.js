@@ -1963,6 +1963,8 @@ handleFiltersChanged();
   const sidebar = document.getElementById('app-sidebar');
   const toggle = document.getElementById('sidebar-toggle');
   const overlay = document.getElementById('sidebar-overlay');
+  const collapseBtn = document.getElementById('sidebar-collapse-btn');
+  const expandBtn = document.getElementById('sidebar-expand-btn');
   const sidebarRegionPills = document.getElementById('sidebar-region-pills');
   const sidebarSectorPills = document.getElementById('sidebar-sector-pills');
   const sidebarSearchInput = document.getElementById('sidebar-search-input');
@@ -1970,6 +1972,29 @@ handleFiltersChanged();
   const sidebarKeywordChips = document.getElementById('sidebar-keyword-chips');
   const sidebarApplyBtn = document.getElementById('sidebar-apply-btn');
   const sidebarClearBtn = document.getElementById('sidebar-clear-btn');
+
+  // Restore collapsed state from localStorage
+  const SIDEBAR_COLLAPSED_KEY = 'geosignal_sidebar_collapsed';
+  if (localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true' && sidebar) {
+    sidebar.classList.add('collapsed');
+    if (expandBtn) expandBtn.classList.add('visible');
+  }
+
+  // Collapse / expand handlers
+  if (collapseBtn && sidebar) {
+    collapseBtn.addEventListener('click', () => {
+      sidebar.classList.add('collapsed');
+      if (expandBtn) expandBtn.classList.add('visible');
+      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, 'true');
+    });
+  }
+  if (expandBtn && sidebar) {
+    expandBtn.addEventListener('click', () => {
+      sidebar.classList.remove('collapsed');
+      expandBtn.classList.remove('visible');
+      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, 'false');
+    });
+  }
 
   const closeSidebar = () => {
     if (sidebar) sidebar.classList.remove('open');

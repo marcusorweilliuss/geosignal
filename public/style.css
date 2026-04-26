@@ -179,6 +179,68 @@ html {
   overflow-y: auto;
 }
 
+/* Sidebar collapse toggle — sits at the top-right of the sidebar */
+.sidebar-collapse-btn {
+  position: absolute;
+  top: 12px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all 0.15s;
+  z-index: 5;
+  padding: 0;
+}
+.sidebar-collapse-btn:hover {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+/* Collapsed sidebar — shrinks to 0, main content fills the space */
+.app-sidebar.collapsed {
+  width: 0;
+  padding: 0;
+  overflow: hidden;
+  border-right: none;
+}
+.app-sidebar.collapsed .sidebar-collapse-btn {
+  display: none;
+}
+.app-sidebar.collapsed ~ .app-shell {
+  padding-left: 40px;
+}
+
+/* "Open sidebar" button — visible only when sidebar is collapsed */
+.sidebar-expand-btn {
+  display: none;
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 45;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  color: var(--text-primary);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  padding: 0;
+  transition: all 0.15s;
+}
+.sidebar-expand-btn:hover { background: var(--bg-secondary); }
+.sidebar-expand-btn.visible { display: inline-flex; }
+
 .app-sidebar-brand {
   display: flex;
   align-items: center;
@@ -3985,7 +4047,7 @@ select:focus {
 /* ── Welcome onboarding modal ── */
 /* ── Onboarding Wizard (Apple-clean multi-step) ── */
 .wizard-overlay {
-  display: none;
+  display: none !important;
   position: fixed;
   inset: 0;
   background: rgba(28, 25, 23, 0.6);
@@ -3996,7 +4058,7 @@ select:focus {
   padding: 24px;
   animation: overlay-fade 0.35s ease;
 }
-.wizard-overlay.visible { display: flex; }
+.wizard-overlay.visible { display: flex !important; }
 
 .wizard {
   background: var(--bg-card);
