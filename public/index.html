@@ -187,11 +187,8 @@
           <button class="brief-len-btn" data-len="detailed" type="button" title="Show every section in full, with all sentences and bullets.">Detailed</button>
         </div>
 
-        <label class="annotate-toggle" title="Annotate mode — click highlighted terms for explanations">
-          <input type="checkbox" id="annotate-toggle" checked>
-          <span class="annotate-slider"></span>
-          <span class="annotate-label">Annotate</span>
-        </label>
+        <!-- Annotate is always on — no toggle needed -->
+        <input type="checkbox" id="annotate-toggle" checked style="display:none">
       </div>
 
       <div class="masthead">
