@@ -16,7 +16,7 @@
     </svg>
   </button>
 
-  <aside class="app-sidebar" id="app-sidebar" aria-label="Primary navigation">
+  <aside class="app-sidebar" id="app-sidebar" aria-label="Filters and navigation">
     <div class="app-sidebar-brand">
       <svg width="28" height="28" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <circle cx="22" cy="22" r="18"/>
@@ -28,27 +28,74 @@
       <span class="app-sidebar-brand-text">GeoSignal</span>
     </div>
 
-    <nav class="app-sidebar-nav" id="app-sidebar-nav">
-      <a href="#" class="sidebar-nav-item active" data-sector="all">Popular</a>
-      <a href="#" class="sidebar-nav-item" data-sector="Geopolitics &amp; International Relations">Geopolitics</a>
-      <a href="#" class="sidebar-nav-item" data-sector="Economics &amp; Trade">Economics &amp; Trade</a>
-      <a href="#" class="sidebar-nav-item" data-sector="Technology &amp; AI">Technology &amp; AI</a>
-      <a href="#" class="sidebar-nav-item" data-sector="Climate &amp; Environment">Climate &amp; Environment</a>
-      <a href="#" class="sidebar-nav-item" data-sector="Energy &amp; Resources">Energy &amp; Resources</a>
-      <a href="#" class="sidebar-nav-item" data-sector="Defence &amp; Security">Defence &amp; Security</a>
-      <a href="#" class="sidebar-nav-item" data-sector="Finance &amp; Markets">Finance &amp; Markets</a>
-      <a href="#" class="sidebar-nav-item" data-sector="Public Policy &amp; Governance">Public Policy</a>
-      <a href="#" class="sidebar-nav-item" data-sector="Society &amp; Culture">Society &amp; Culture</a>
-      <a href="#" class="sidebar-nav-item" data-sector="Health &amp; Pandemic">Health &amp; Pandemic</a>
-      <a href="#" class="sidebar-nav-item" data-sector="Space &amp; Frontier Tech">Space &amp; Frontier</a>
-      <a href="#" class="sidebar-nav-item" data-sector="Media &amp; Disinformation">Media</a>
-      <a href="#" class="sidebar-nav-item" data-sector="Human Rights &amp; Migration">Human Rights</a>
-      <a href="#" class="sidebar-nav-item" data-sector="Legal &amp; Regulatory">Legal &amp; Regulatory</a>
-      <a href="#" class="sidebar-nav-item" data-sector="Food &amp; Agriculture">Food &amp; Agriculture</a>
-    </nav>
+    <!-- Search right in the sidebar so it's always accessible -->
+    <div class="sidebar-search">
+      <svg class="sidebar-search-icon" width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="6" cy="6" r="4.5"/>
+        <path d="M9.5 9.5L13 13"/>
+      </svg>
+      <input type="text" id="sidebar-search-input" class="sidebar-search-input"
+             placeholder="Search..." autocomplete="off" />
+    </div>
 
-    <div class="app-sidebar-footer">
-      <a href="https://github.com/marcusorweilliuss/geosignal" target="_blank" rel="noopener" class="app-sidebar-link">About</a>
+    <!-- Regions — compact multi-select pills -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Regions</div>
+      <div class="sidebar-pills" id="sidebar-region-pills">
+        <button class="sidebar-pill active" data-value="Global">Global</button>
+        <button class="sidebar-pill" data-value="North America">N. America</button>
+        <button class="sidebar-pill" data-value="Latin America">LatAm</button>
+        <button class="sidebar-pill" data-value="Europe">Europe</button>
+        <button class="sidebar-pill" data-value="Middle East">Middle East</button>
+        <button class="sidebar-pill" data-value="Africa">Africa</button>
+        <button class="sidebar-pill" data-value="South Asia">S. Asia</button>
+        <button class="sidebar-pill" data-value="East Asia">E. Asia</button>
+        <button class="sidebar-pill" data-value="Southeast Asia">SE Asia</button>
+        <button class="sidebar-pill" data-value="Central Asia &amp; Caucasus">C. Asia</button>
+        <button class="sidebar-pill" data-value="Oceania">Oceania</button>
+      </div>
+    </div>
+
+    <!-- Sectors — compact multi-select -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Sectors</div>
+      <div class="sidebar-pills sidebar-sector-pills" id="sidebar-sector-pills">
+        <button class="sidebar-pill active" data-value="Geopolitics &amp; International Relations">Geopolitics</button>
+        <button class="sidebar-pill active" data-value="Economics &amp; Trade">Economics</button>
+        <button class="sidebar-pill active" data-value="Technology &amp; AI">Tech &amp; AI</button>
+        <button class="sidebar-pill active" data-value="Climate &amp; Environment">Climate</button>
+        <button class="sidebar-pill active" data-value="Energy &amp; Resources">Energy</button>
+        <button class="sidebar-pill active" data-value="Defence &amp; Security">Defence</button>
+        <button class="sidebar-pill active" data-value="Finance &amp; Markets">Finance</button>
+        <button class="sidebar-pill active" data-value="Public Policy &amp; Governance">Policy</button>
+        <button class="sidebar-pill" data-value="Society &amp; Culture">Society</button>
+        <button class="sidebar-pill" data-value="Health &amp; Pandemic">Health</button>
+        <button class="sidebar-pill" data-value="Space &amp; Frontier Tech">Space</button>
+        <button class="sidebar-pill" data-value="Media &amp; Disinformation">Media</button>
+        <button class="sidebar-pill" data-value="Human Rights &amp; Migration">Rights</button>
+        <button class="sidebar-pill" data-value="Legal &amp; Regulatory">Legal</button>
+        <button class="sidebar-pill" data-value="Food &amp; Agriculture">Food</button>
+      </div>
+    </div>
+
+    <!-- Keywords — compact chip input -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Keywords</div>
+      <input type="text" id="sidebar-keywords-input" class="sidebar-search-input"
+             placeholder="Add keyword..." autocomplete="off" />
+      <div class="sidebar-keyword-chips" id="sidebar-keyword-chips"></div>
+    </div>
+
+    <!-- Apply + Clear -->
+    <div class="sidebar-actions">
+      <button class="sidebar-apply-btn" id="sidebar-apply-btn" type="button">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M2 8.5a6 6 0 1 1 1.3 3.8"/>
+          <path d="M1.5 4v3.5H5"/>
+        </svg>
+        Apply filters
+      </button>
+      <button class="sidebar-clear-btn" id="sidebar-clear-btn" type="button">Clear all</button>
     </div>
   </aside>
 

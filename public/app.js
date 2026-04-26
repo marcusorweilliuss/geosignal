@@ -943,6 +943,63 @@ function handleProfileSaved(source) {
   updateProfileButton();
   hideBanner();
 
+  // ── Profile → filter sync ──
+  // When the user saves their profile, automatically update the
+  // filter controls to reflect their profile choices so there's no
+  // gap between "what I told GeoSignal about myself" and "what the
+  // feed is actually filtering on".
+  const p = getProfile();
+  if (p) {
+    // Sync sectors: activate pills that match profile.industries
+    if (sectorPills && Array.isArray(p.industries) && p.industries.length > 0) {
+      sectorPills.querySelectorAll('.pill').forEach(pill => {
+        pill.classList.toggle('active', p.industries.includes(pill.dataset.value));
+      });
+    }
+
+    // Sync regions: if profile.location matches a known region name,
+    // activate that region pill. Common mappings:
+    if (regionPills && p.location) {
+      const loc = String(p.location).trim().toLowerCase();
+      const regionMap = {
+        'singapore': 'Southeast Asia', 'malaysia': 'Southeast Asia',
+        'indonesia': 'Southeast Asia', 'thailand': 'Southeast Asia',
+        'vietnam': 'Southeast Asia', 'philippines': 'Southeast Asia',
+        'india': 'South Asia', 'pakistan': 'South Asia',
+        'bangladesh': 'South Asia', 'sri lanka': 'South Asia',
+        'china': 'East Asia', 'japan': 'East Asia',
+        'south korea': 'East Asia', 'taiwan': 'East Asia',
+        'united states': 'North America', 'usa': 'North America',
+        'canada': 'North America', 'mexico': 'North America',
+        'united kingdom': 'Europe', 'uk': 'Europe',
+        'germany': 'Europe', 'france': 'Europe',
+        'australia': 'Oceania', 'new zealand': 'Oceania',
+        'brazil': 'Latin America', 'argentina': 'Latin America',
+        'nigeria': 'Africa', 'kenya': 'Africa',
+        'south africa': 'Africa', 'egypt': 'Middle East',
+        'saudi arabia': 'Middle East', 'uae': 'Middle East',
+        'israel': 'Middle East', 'turkey': 'Middle East'
+      };
+      const matchedRegion = regionMap[loc];
+      if (matchedRegion) {
+        regionPills.querySelectorAll('.pill').forEach(pill => {
+          if (pill.dataset.value === matchedRegion) pill.classList.add('active');
+        });
+      }
+    }
+
+    // Sync keywords: merge profile keywords into filter keywords
+    if (Array.isArray(p.keywords) && p.keywords.length > 0) {
+      p.keywords.forEach(kw => {
+        if (kw && !filterKeywords.includes(kw)) filterKeywords.push(kw);
+      });
+      renderKeywordChips();
+    }
+
+    saveFilters();
+    handleFiltersChanged();
+  }
+
   // Auto-apply to current view without a manual refresh
   if (currentArticles && currentArticles.length > 0) {
     // Reset any previously-loaded impact sections so they re-render with profile next open.
@@ -1867,7 +1924,13 @@ handleFiltersChanged();
   const sidebar = document.getElementById('app-sidebar');
   const toggle = document.getElementById('sidebar-toggle');
   const overlay = document.getElementById('sidebar-overlay');
-  const navItems = document.querySelectorAll('.sidebar-nav-item');
+  const sidebarRegionPills = document.getElementById('sidebar-region-pills');
+  const sidebarSectorPills = document.getElementById('sidebar-sector-pills');
+  const sidebarSearchInput = document.getElementById('sidebar-search-input');
+  const sidebarKeywordsInput = document.getElementById('sidebar-keywords-input');
+  const sidebarKeywordChips = document.getElementById('sidebar-keyword-chips');
+  const sidebarApplyBtn = document.getElementById('sidebar-apply-btn');
+  const sidebarClearBtn = document.getElementById('sidebar-clear-btn');
 
   const closeSidebar = () => {
     if (sidebar) sidebar.classList.remove('open');
@@ -1881,35 +1944,143 @@ handleFiltersChanged();
   }
   if (overlay) overlay.addEventListener('click', closeSidebar);
 
-  navItems.forEach(item => {
-    item.addEventListener('click', (e) => {
-      e.preventDefault();
-      const target = item.dataset.sector;
-      // Mark this sidebar item active, deactivate others
-      navItems.forEach(n => n.classList.remove('active'));
-      item.classList.add('active');
-      // Apply the sector selection to the pill group
-      if (sectorPills) {
-        const pills = sectorPills.querySelectorAll('.pill');
-        if (target === 'all') {
-          pills.forEach(p => p.classList.add('active'));
-        } else {
-          pills.forEach(p => {
-            p.classList.toggle('active', p.dataset.value === target);
+  // ── Sidebar pills → sync with main filter pills ──
+  // Clicking a sidebar pill toggles its active state AND mirrors
+  // the change to the main filter pills (so the server gets the
+  // right state). Two-way sync: sidebar ↔ main filter panel.
+  function syncSidebarToMain() {
+    // Sync sidebar region pills → main region pills
+    if (sidebarRegionPills && regionPills) {
+      const sidebarActive = new Set(
+        Array.from(sidebarRegionPills.querySelectorAll('.sidebar-pill.active'))
+          .map(p => p.dataset.value)
+      );
+      regionPills.querySelectorAll('.pill').forEach(p => {
+        p.classList.toggle('active', sidebarActive.has(p.dataset.value));
+      });
+    }
+    // Sync sidebar sector pills → main sector pills
+    if (sidebarSectorPills && sectorPills) {
+      const sidebarActive = new Set(
+        Array.from(sidebarSectorPills.querySelectorAll('.sidebar-pill.active'))
+          .map(p => p.dataset.value)
+      );
+      sectorPills.querySelectorAll('.pill').forEach(p => {
+        p.classList.toggle('active', sidebarActive.has(p.dataset.value));
+      });
+    }
+    handleFiltersChanged();
+  }
+
+  function syncMainToSidebar() {
+    // Sync main region pills → sidebar
+    if (sidebarRegionPills && regionPills) {
+      const mainActive = new Set(getActiveRegions());
+      sidebarRegionPills.querySelectorAll('.sidebar-pill').forEach(p => {
+        p.classList.toggle('active', mainActive.has(p.dataset.value));
+      });
+    }
+    // Sync main sector pills → sidebar
+    if (sidebarSectorPills && sectorPills) {
+      const mainActive = new Set(getActivePills(sectorPills));
+      sidebarSectorPills.querySelectorAll('.sidebar-pill').forEach(p => {
+        p.classList.toggle('active', mainActive.has(p.dataset.value));
+      });
+    }
+    // Sync keywords
+    if (sidebarKeywordChips) {
+      sidebarKeywordChips.innerHTML = filterKeywords.map((k, i) =>
+        '<span class="keyword-chip" data-idx="' + i + '">' + escapeHtml(k) +
+        '<button type="button">&times;</button></span>'
+      ).join('');
+    }
+  }
+
+  // Initial sync from main → sidebar
+  syncMainToSidebar();
+
+  // Wire sidebar pill toggles
+  [sidebarRegionPills, sidebarSectorPills].forEach(container => {
+    if (!container) return;
+    container.addEventListener('click', (e) => {
+      const pill = e.target.closest('.sidebar-pill');
+      if (pill) {
+        pill.classList.toggle('active');
+        syncSidebarToMain();
+      }
+    });
+  });
+
+  // Wire sidebar search → main search
+  if (sidebarSearchInput) {
+    sidebarSearchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (searchInput) searchInput.value = sidebarSearchInput.value;
+        fetchStories();
+        closeSidebar();
+      }
+    });
+  }
+
+  // Wire sidebar keywords
+  if (sidebarKeywordsInput) {
+    sidebarKeywordsInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        const raw = sidebarKeywordsInput.value.trim().replace(/,+$/, '');
+        if (raw) {
+          raw.split(',').map(s => s.trim()).filter(Boolean).forEach(term => {
+            if (!filterKeywords.includes(term)) filterKeywords.push(term);
           });
+          sidebarKeywordsInput.value = '';
+          renderKeywordChips();
+          syncMainToSidebar();
+          handleFiltersChanged();
         }
       }
-      // Clear any previously-typed "Other" sectors so the sidebar
-      // choice is a clean single-sector view.
-      if (target !== 'all') {
-        customFilterSectors = [];
-        renderSectorOtherChips();
+    });
+  }
+  if (sidebarKeywordChips) {
+    sidebarKeywordChips.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      const chip = btn.closest('.keyword-chip');
+      if (!chip) return;
+      const idx = parseInt(chip.dataset.idx, 10);
+      if (!isNaN(idx)) {
+        filterKeywords.splice(idx, 1);
+        renderKeywordChips();
+        syncMainToSidebar();
+        handleFiltersChanged();
       }
-      handleFiltersChanged();
+    });
+  }
+
+  // Wire Apply and Clear
+  if (sidebarApplyBtn) {
+    sidebarApplyBtn.addEventListener('click', () => {
+      syncSidebarToMain();
       fetchStories();
       closeSidebar();
     });
-  });
+  }
+  if (sidebarClearBtn) {
+    sidebarClearBtn.addEventListener('click', () => {
+      if (sidebarRegionPills) {
+        sidebarRegionPills.querySelectorAll('.sidebar-pill').forEach(p => {
+          p.classList.toggle('active', p.dataset.value === 'Global');
+        });
+      }
+      if (sidebarSectorPills) {
+        sidebarSectorPills.querySelectorAll('.sidebar-pill.active').forEach(p => p.classList.remove('active'));
+      }
+      filterKeywords = [];
+      if (sidebarKeywordsInput) sidebarKeywordsInput.value = '';
+      syncSidebarToMain();
+      syncMainToSidebar();
+    });
+  }
 })();
 
 // ── Utilities ───────────────────────────────────────────────────
