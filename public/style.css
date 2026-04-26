@@ -321,6 +321,44 @@ html {
 }
 .sidebar-clear-btn:hover { color: var(--red, #B54534); }
 
+/* Manage Sources CTA — big and obvious */
+.sidebar-manage-sources-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--accent-dim);
+  border: 1.5px solid var(--accent-soft);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+}
+.sidebar-manage-sources-btn:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.sidebar-manage-sources-btn svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.sidebar-manage-sources-btn strong {
+  display: block;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.sidebar-manage-sources-btn small {
+  display: block;
+  font-family: var(--sans);
+  font-size: 10.5px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  margin-top: 1px;
+}
+
 /* Sidebar mobile controls */
 .sidebar-toggle {
   display: none;
@@ -1251,11 +1289,11 @@ h1 {
 .icon-btn {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 9px;
   width: auto;
-  min-width: 38px;
-  height: 38px;
-  padding: 0 12px;
+  min-width: 48px;
+  height: 48px;
+  padding: 0 16px;
   background: transparent;
   color: var(--text-secondary);
   border: 1px solid transparent;
@@ -1275,6 +1313,8 @@ h1 {
 
 .icon-btn svg {
   stroke: currentColor;
+  width: 20px;
+  height: 20px;
 }
 
 .icon-btn-label {
@@ -1576,10 +1616,11 @@ h1 {
    briefing section to the first sentence or first bullet only. The
    full content stays in the DOM so switching back to Detailed shows
    everything without a refetch. */
-body.briefing-concise .briefing-content .briefing-sentence:not(:first-of-type) {
+/* Concise = first 2 sentences / first 2 bullets visible per section */
+body.briefing-concise .briefing-content .briefing-sentence:nth-of-type(n+3) {
   display: none;
 }
-body.briefing-concise .briefing-content .briefing-bullets li:not(:first-child) {
+body.briefing-concise .briefing-content .briefing-bullets li:nth-child(n+3) {
   display: none;
 }
 
@@ -1781,11 +1822,10 @@ body.briefing-concise .briefing-content .briefing-bullets li:not(:first-child) {
 }
 
 /* Control bar — search + filter button side by side */
-.control-bar {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 14px;
-}
+/* Control bar + expandable filter panel hidden — sidebar has all controls */
+.control-bar { display: none !important; }
+.filters { display: none !important; }
+._control-bar-old {
 
 /* Search bar — warm editorial input */
 .search-bar {

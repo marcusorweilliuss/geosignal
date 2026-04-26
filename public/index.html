@@ -76,12 +76,55 @@
         <button class="sidebar-pill" data-value="Legal &amp; Regulatory">Legal</button>
         <button class="sidebar-pill" data-value="Food &amp; Agriculture">Food</button>
       </div>
+      <input type="text" id="sidebar-sector-other" class="sidebar-search-input" style="margin-top:6px;padding-left:12px;"
+             placeholder="Other (type + Enter)..." autocomplete="off" />
+      <div class="sidebar-keyword-chips" id="sidebar-sector-other-chips"></div>
+    </div>
+
+    <!-- City / country -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">City / country</div>
+      <input type="text" id="sidebar-locations-input" class="sidebar-search-input" style="padding-left:12px;"
+             placeholder="e.g. Singapore, Lagos..." autocomplete="off" />
+    </div>
+
+    <!-- Sources — prominent card-style CTA -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Sources</div>
+      <div class="sidebar-pills" style="margin-bottom:8px;">
+        <button class="sidebar-pill active" data-source-type="Mainstream news">Mainstream</button>
+        <button class="sidebar-pill active" data-source-type="Think tanks &amp; academic">Think Tanks</button>
+        <button class="sidebar-pill active" data-source-type="Independent journalism">Independent</button>
+        <button class="sidebar-pill" data-source-type="Official statements">Official</button>
+      </div>
+      <button type="button" class="sidebar-manage-sources-btn" id="sidebar-manage-sources-btn">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="8" cy="8" r="6.5"/>
+          <path d="M8 5v6M5 8h6"/>
+        </svg>
+        <div>
+          <strong>Manage Sources</strong>
+          <small>Pick outlets to include or exclude</small>
+        </div>
+      </button>
+    </div>
+
+    <!-- Date range -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Date range</div>
+      <div class="sidebar-pills" id="sidebar-date-range">
+        <button class="sidebar-pill active" data-value="24">24h</button>
+        <button class="sidebar-pill" data-value="72">3 days</button>
+        <button class="sidebar-pill" data-value="168">7 days</button>
+        <button class="sidebar-pill" data-value="336">2 weeks</button>
+        <button class="sidebar-pill" data-value="720">Month</button>
+      </div>
     </div>
 
     <!-- Keywords — compact chip input -->
     <div class="sidebar-section">
       <div class="sidebar-section-label">Keywords</div>
-      <input type="text" id="sidebar-keywords-input" class="sidebar-search-input"
+      <input type="text" id="sidebar-keywords-input" class="sidebar-search-input" style="padding-left:12px;"
              placeholder="Add keyword..." autocomplete="off" />
       <div class="sidebar-keyword-chips" id="sidebar-keyword-chips"></div>
     </div>

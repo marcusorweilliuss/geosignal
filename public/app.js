@@ -2081,6 +2081,77 @@ handleFiltersChanged();
       syncMainToSidebar();
     });
   }
+
+  // ── Wire sidebar source-type pills ──
+  const sidebarSourcePills = sidebar ? sidebar.querySelectorAll('[data-source-type]') : [];
+  sidebarSourcePills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      pill.classList.toggle('active');
+      // Sync to main source pills
+      if (sourcePills) {
+        sourcePills.querySelectorAll('.pill').forEach(p => {
+          const match = Array.from(sidebarSourcePills).find(sp => sp.dataset.sourceType === p.dataset.value);
+          if (match) p.classList.toggle('active', match.classList.contains('active'));
+        });
+      }
+      handleFiltersChanged();
+    });
+  });
+
+  // ── Wire sidebar date-range pills (single-select) ──
+  const sidebarDateRange = document.getElementById('sidebar-date-range');
+  if (sidebarDateRange) {
+    sidebarDateRange.addEventListener('click', (e) => {
+      const pill = e.target.closest('.sidebar-pill');
+      if (!pill) return;
+      sidebarDateRange.querySelectorAll('.sidebar-pill.active').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      // Sync to main date-range pills
+      if (dateRangePills) {
+        dateRangePills.querySelectorAll('.pill').forEach(p => {
+          p.classList.toggle('active', p.dataset.value === pill.dataset.value);
+        });
+      }
+      handleFiltersChanged();
+    });
+  }
+
+  // ── Wire sidebar locations input → main locations ──
+  const sidebarLocations = document.getElementById('sidebar-locations-input');
+  if (sidebarLocations) {
+    sidebarLocations.addEventListener('input', () => {
+      if (locationsInput) locationsInput.value = sidebarLocations.value;
+      handleFiltersChanged();
+    });
+  }
+
+  // ── Wire sidebar "Other" sector input ──
+  const sidebarSectorOther = document.getElementById('sidebar-sector-other');
+  const sidebarSectorOtherChips = document.getElementById('sidebar-sector-other-chips');
+  if (sidebarSectorOther) {
+    sidebarSectorOther.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        expandAndCommitSector(sidebarSectorOther, customFilterSectors, () => {
+          if (sidebarSectorOtherChips) {
+            sidebarSectorOtherChips.innerHTML = customFilterSectors.map((s, i) =>
+              '<span class="keyword-chip" data-idx="' + i + '">' + escapeHtml(s) +
+              '<button type="button">&times;</button></span>').join('');
+          }
+          renderSectorOtherChips();
+        });
+      }
+    });
+  }
+
+  // ── Wire sidebar Manage Sources button ──
+  const sidebarManageSources = document.getElementById('sidebar-manage-sources-btn');
+  if (sidebarManageSources) {
+    sidebarManageSources.addEventListener('click', () => {
+      if (typeof openSourceBrowser === 'function') openSourceBrowser();
+      closeSidebar();
+    });
+  }
 })();
 
 // ── Utilities ───────────────────────────────────────────────────
@@ -3332,10 +3403,8 @@ async function fetchBriefing(article, container) {
     // the user sees (dismissable; never shown again after dismissed).
     maybeShowAnnotateHint(container);
 
-    // Auto-highlight terms when annotate mode is on
-    if (isAnnotateActive()) {
-      highlightTermsInElement(container);
-    }
+    // Always highlight terms — annotation is a core feature, not opt-in.
+    highlightTermsInElement(container);
   } catch (err) {
     console.error('Briefing error:', err);
     container.innerHTML = '<div class="briefing-error">Failed to generate briefing.</div>';
@@ -3460,17 +3529,19 @@ function markAnnotateUsed() {
 // Inject a one-time in-briefing hint pointing out the annotate feature
 function maybeShowAnnotateHint(container) {
   if (!container) return;
-  if (isAnnotateHintDismissed()) return;
-  if (container.querySelector('.annotate-hint')) return; // already shown in this briefing
+  if (container.querySelector('.annotate-hint')) return;
 
+  // Always show the annotate banner (not dismissable) — this is
+  // a core feature that users love but consistently miss.
   const hint = document.createElement('div');
-  hint.className = 'annotate-hint';
+  hint.className = 'annotate-hint annotate-hint-permanent';
   hint.innerHTML =
-    '<span class="annotate-hint-icon" aria-hidden="true">i</span>' +
+    '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="flex-shrink:0;color:var(--accent)">' +
+      '<path d="M2 14l4-1 7-7a1.4 1.4 0 0 0-2-2L4 11z"/><path d="M9 5l2 2"/>' +
+    '</svg>' +
     '<div class="annotate-hint-body">' +
-      '<strong>Tip:</strong> highlight any word or phrase for an instant plain-English explanation.' +
-    '</div>' +
-    '<button class="annotate-hint-dismiss" type="button" aria-label="Dismiss tip">&times;</button>';
+      '<strong>Tap any highlighted term</strong> for an instant plain-English explanation. Or select any text to look it up.' +
+    '</div>';
 
   // Insert as the very first child of the briefing content block
   const content = container.querySelector('.briefing-content') || container;
