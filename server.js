@@ -172,9 +172,9 @@ async function fetchFullArticleText(url) {
 
   try {
     const response = await fetch(url, {
-      timeout: 8000,
+      timeout: 15000, // VPN-friendly
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; GeoSignal/1.0)',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html'
       },
       redirect: 'follow'
@@ -281,8 +281,8 @@ function findRelatedThinkTankArticles(articleTitle, regionSlug, limit = 5) {
 // ── RSS Feed Fetching with Cache ────────────────────────────────
 
 const rssParser = new Parser({
-  timeout: 5000,
-  headers: { 'User-Agent': 'GeoSignal/1.0' },
+  timeout: 15000, // 15s — VPN-friendly (was 5s, too tight behind slow tunnels)
+  headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
   customFields: {
     item: [
       ['media:content', 'mediaContent', { keepArray: true }],
@@ -414,7 +414,7 @@ async function fetchFeed(source) {
 }
 
 // Fetch multiple feeds with high concurrency
-async function fetchFeeds(sources, maxConcurrent = 25) {
+async function fetchFeeds(sources, maxConcurrent = 10) { // 10 concurrent — VPN-safe (was 25)
   const results = [];
   for (let i = 0; i < sources.length; i += maxConcurrent) {
     const batch = sources.slice(i, i + maxConcurrent);
@@ -436,9 +436,9 @@ async function prefetchAllFeeds() {
   console.log(`Background: pre-fetching ${allSources.length} RSS feeds...`);
   const startTime = Date.now();
 
-  // Fetch in large batches for speed
-  for (let i = 0; i < allSources.length; i += 30) {
-    const batch = allSources.slice(i, i + 30);
+  // Fetch in moderate batches — VPN-safe concurrency
+  for (let i = 0; i < allSources.length; i += 15) {
+    const batch = allSources.slice(i, i + 15);
     await Promise.all(batch.map(s => fetchFeed(s)));
   }
 
@@ -2111,7 +2111,7 @@ app.post('/api/enrich-source', async (req, res) => {
         const timer = setTimeout(() => controller.abort(), 6000);
         const resp = await fetch(trimmedUrl, {
           signal: controller.signal,
-          headers: { 'User-Agent': 'Mozilla/5.0 (GeoSignal)', 'Accept': 'text/html' }
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', 'Accept': 'text/html' }
         });
         clearTimeout(timer);
         if (resp.ok) {
