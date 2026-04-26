@@ -425,6 +425,43 @@ html {
   }
 }
 
+/* Card feedback buttons (like / dislike) */
+.card-feedback {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+.card-feedback-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.card-feedback-btn:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+.card-like-btn.liked {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--accent-soft);
+}
+.card-dislike-btn.disliked {
+  background: #FEF2F2;
+  color: var(--red, #B54534);
+  border-color: rgba(181, 69, 52, 0.3);
+}
+
 /* Manage Sources CTA — big and obvious */
 .sidebar-manage-sources-btn {
   display: flex;

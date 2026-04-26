@@ -62,6 +62,28 @@ const gsTracker = (() => {
   function termAnnotated(term, articleId, region) {
     log('term_annotated', { term, id: articleId || '', region: region || '' });
   }
+  function articleLiked(article) {
+    if (!article) return;
+    log('article_liked', {
+      id: article.url || article.title,
+      source: article.source || '',
+      region: article.region || '',
+      country: article.country || '',
+      articleType: article.articleType || '',
+      title: (article.title || '').slice(0, 120)
+    });
+  }
+  function articleDisliked(article) {
+    if (!article) return;
+    log('article_disliked', {
+      id: article.url || article.title,
+      source: article.source || '',
+      region: article.region || '',
+      country: article.country || '',
+      articleType: article.articleType || '',
+      title: (article.title || '').slice(0, 120)
+    });
+  }
 
   // ── Pattern extraction ──
   // Returns a summary of the user's behavioural patterns.
@@ -104,7 +126,21 @@ const gsTracker = (() => {
       if (e.type === 'term_annotated' && e.term) {
         annotatedTerms[e.term] = (annotatedTerms[e.term] || 0) + 1;
       }
+      if (e.type === 'article_liked') {
+        if (e.source) sourceCounts[e.source] = (sourceCounts[e.source] || 0) + 2;
+        if (e.region) regionCounts[e.region] = (regionCounts[e.region] || 0) + 2;
+      }
+      if (e.type === 'article_disliked') {
+        if (e.source) sourceCounts[e.source] = (sourceCounts[e.source] || 0) - 1;
+        if (e.region) regionCounts[e.region] = (regionCounts[e.region] || 0) - 1;
+      }
     });
+
+    // Extract liked/disliked titles for LLM context
+    const likedTitles = events.filter(e => e.type === 'article_liked' && e.title)
+      .map(e => e.title).slice(-10);
+    const dislikedTitles = events.filter(e => e.type === 'article_disliked' && e.title)
+      .map(e => e.title).slice(-10);
 
     const top = (obj, n) => Object.entries(obj)
       .sort(([, a], [, b]) => b - a)
@@ -120,6 +156,8 @@ const gsTracker = (() => {
       topSources: top(sourceCounts, 5),
       topKeywords: top(keywordCounts, 5),
       topAnnotatedTerms: top(annotatedTerms, 5),
+      likedTitles,
+      dislikedTitles,
       preferredFormat: conciseCount > detailedCount ? 'concise' : 'detailed',
       peakHour,
       peakHourLabel: (peakHour < 12 ? peakHour || 12 : peakHour - 12 || 12) +
@@ -129,6 +167,7 @@ const gsTracker = (() => {
 
   return {
     articleOpened, articleTimeSpent, articleSaved,
+    articleLiked, articleDisliked,
     briefingSectionRead, conciseVsDetailed,
     searchQuery, filtersApplied, termAnnotated,
     getPatternSummary, getEvents
@@ -2651,6 +2690,11 @@ async function fetchStories() {
       params.set('readArticles', Array.from(readCards).slice(0, 50).join(','));
     }
     params.set('testMode', '1'); // LLM-first ranking always active
+    // Send behavioral patterns so the LLM can use engagement history
+    const patterns = gsTracker.getPatternSummary();
+    if (patterns) {
+      params.set('patterns', JSON.stringify(patterns));
+    }
     if (sourceSelection.include.size > 0) {
       params.set('includeSources', Array.from(sourceSelection.include).join(','));
     }
@@ -3166,8 +3210,18 @@ function renderFeed(articles) {
           '</svg>' +
         '</button>';
 
-      const badges = (officialBadge || regionPill || countryPill || saveBtn)
-        ? '<div class="card-badges">' + officialBadge + regionPill + countryPill + saveBtn + '</div>'
+      const feedbackBtns =
+        '<div class="card-feedback">' +
+          '<button class="card-feedback-btn card-like-btn" data-action="like" title="Interested — show more like this" aria-label="Interested">' +
+            '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3l1.5-1.5a2.12 2.12 0 0 1 3 3L8 9 3.5 4.5a2.12 2.12 0 0 1 3-3z"/></svg>' +
+          '</button>' +
+          '<button class="card-feedback-btn card-dislike-btn" data-action="dislike" title="Not interested — show less like this" aria-label="Not interested">' +
+            '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>' +
+          '</button>' +
+        '</div>';
+
+      const badges = (officialBadge || regionPill || countryPill || saveBtn || feedbackBtns)
+        ? '<div class="card-badges">' + officialBadge + regionPill + countryPill + feedbackBtns + saveBtn + '</div>'
         : '';
 
       const eyebrow = isFeatured ? '<div class="card-eyebrow">Lead Story</div>' : '';
@@ -3321,6 +3375,28 @@ function renderFeed(articles) {
         if (e.target.closest('.annotate-keyword')) return;
         if (e.target.closest('.more-section-toggle')) return;
         if (e.target.closest('.briefing') || e.target.closest('.impact-section')) return;
+
+        // Feedback buttons (like / dislike)
+        const feedbackBtn = e.target.closest('.card-feedback-btn');
+        if (feedbackBtn) {
+          e.stopPropagation();
+          const action = feedbackBtn.dataset.action;
+          if (action === 'like') {
+            gsTracker.articleLiked(article);
+            feedbackBtn.classList.add('liked');
+            feedbackBtn.title = 'Thanks — we\'ll show more like this';
+            // Remove dislike state if present
+            const disBtn = feedbackBtn.parentElement.querySelector('.card-dislike-btn');
+            if (disBtn) disBtn.classList.remove('disliked');
+          } else if (action === 'dislike') {
+            gsTracker.articleDisliked(article);
+            feedbackBtn.classList.add('disliked');
+            feedbackBtn.title = 'Got it — less of this';
+            const likeBtn = feedbackBtn.parentElement.querySelector('.card-like-btn');
+            if (likeBtn) likeBtn.classList.remove('liked');
+          }
+          return;
+        }
 
         // Save button toggles saved state without expanding the card
         const saveClick = e.target.closest('.card-save-btn');
