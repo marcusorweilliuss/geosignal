@@ -3685,12 +3685,6 @@ function maybeShowAnnotateHint(container) {
   // Insert as the very first child of the briefing content block
   const content = container.querySelector('.briefing-content') || container;
   content.insertBefore(hint, content.firstChild);
-
-  hint.querySelector('.annotate-hint-dismiss').addEventListener('click', (e) => {
-    e.stopPropagation();
-    markAnnotateHintDismissed();
-    hint.remove();
-  });
 }
 
 function hideAnnotatePopup() {
