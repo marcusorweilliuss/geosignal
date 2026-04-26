@@ -2028,7 +2028,6 @@ body.briefing-concise .briefing-content .briefing-bullets li:nth-child(n+3) {
 /* Control bar + expandable filter panel hidden — sidebar has all controls */
 .control-bar { display: none !important; }
 .filters { display: none !important; }
-._control-bar-old {
 
 /* Search bar — warm editorial input */
 .search-bar {
