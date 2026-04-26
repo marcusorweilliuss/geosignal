@@ -799,9 +799,12 @@ app.get('/api/news', async (req, res) => {
     const typeList = sourceTypes ? sourceTypes.split(',') : ['Mainstream news', 'Independent journalism', 'Think tanks & academic'];
     const activeSectors = sectors ? sectors.split(',') : [];
     const searchTerms = search ? search.toLowerCase().trim().split(/\s+/).filter(w => w.length > 1) : [];
-    // Semantic expansion of the search query — cached, async. Used for
-    // scoring boost (both modes) and matching in test-mode pool selection.
-    const expandedSearchTerms = search ? await expandSearchTerms(search) : [];
+    // Semantic expansion — wrapped in try/catch because these hit Groq
+    // and can fail under rate limits. Falls back gracefully to literal
+    // terms. The expansion cache means only the very first request pays.
+    let expandedSearchTerms = [];
+    try { expandedSearchTerms = search ? await expandSearchTerms(search) : []; }
+    catch (e) { console.log('Search expansion failed:', e.message); }
     const activeArticleTypes = articleTypes
       ? articleTypes.split(',').map(t => t.trim()).filter(Boolean)
       : ['News', 'Analysis']; // default: News + Analysis, Opinion off
@@ -1241,13 +1244,37 @@ app.get('/api/news', async (req, res) => {
         articleType: article.articleType || 'News',
         country: article.country || '',
         sourceDescription: getSourceDescription(article.source),
-        matchReason: buildMatchReason(article, userProfile, expandedSearchTerms, expandedProfileKeywords, activeSectors, regionList)
+        matchReason: (() => { try { return buildMatchReason(article, userProfile, expandedSearchTerms, expandedProfileKeywords, activeSectors, regionList); } catch { return ''; } })()
       };
     });
 
     res.json({ articles, governmentCaveat: GOVERNMENT_CAVEAT });
   } catch (err) {
-    console.error('News fetch error:', err);
+    console.error('News fetch error:', err.stack || err.message || err);
+    // Last-resort fallback: return whatever we can from the cache
+    // without any LLM/expansion calls.
+    try {
+      const fallbackArticles = [];
+      Object.values(feedCache).forEach(cached => {
+        if (cached && cached.articles) fallbackArticles.push(...cached.articles);
+      });
+      const seen = new Set();
+      const deduped = fallbackArticles.filter(a => {
+        const key = (a.title || '').toLowerCase().trim();
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      }).slice(0, 30).map(a => ({
+        title: a.title, source: a.source, sourceTier: a.sourceTier,
+        publishedAt: a.publishedAt, description: (a.description || '').slice(0, 200),
+        content: '', url: a.url, region: 'Global', isOfficial: false,
+        score: 0, thumbnail: a.thumbnail || '', articleType: 'News',
+        country: '', sourceDescription: '', matchReason: ''
+      }));
+      if (deduped.length > 0) {
+        return res.json({ articles: deduped, governmentCaveat: GOVERNMENT_CAVEAT });
+      }
+    } catch {}
     res.status(500).json({ error: 'Internal server error' });
   }
 });
