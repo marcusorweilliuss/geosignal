@@ -613,7 +613,7 @@ async function expandSectorList(sectors) {
   return out;
 }
 
-async function llmSelectAndRank({ articles, profile, activeFilters, searchQuery, expandedSearchTerms, topN = 30 }) {
+async function llmSelectAndRank({ articles, profile, activeFilters, searchQuery, expandedSearchTerms, behavioralPatterns, topN = 30 }) {
   if (!Array.isArray(articles) || articles.length === 0) return null;
 
   // Cap the pool size we send to the LLM. Each article line costs
@@ -647,7 +647,16 @@ ${contextBlock}
 ${searchQuery ? '\nSEARCH QUERY: "' + searchQuery + '"' +
   (Array.isArray(expandedSearchTerms) && expandedSearchTerms.length ? '\nRelated terms (any of these counts as a hit on the search topic): ' + expandedSearchTerms.join(', ') : '') +
   '\nThe user is searching for this topic. Articles directly about it should rank highest. Articles tangentially related can fill out the lower ranks.\n' : ''}
-RANKING RULES:
+${behavioralPatterns ? `BEHAVIORAL PATTERNS (from this user's reading history):
+- Topics they engage with most: ${(behavioralPatterns.topSectors || []).join(', ') || 'not enough data yet'}
+- Regions they read about: ${(behavioralPatterns.topRegions || []).join(', ') || 'not enough data yet'}
+- Go-to sources: ${(behavioralPatterns.topSources || []).join(', ') || 'not enough data yet'}
+- Recurring keywords: ${(behavioralPatterns.topKeywords || []).join(', ') || 'not enough data yet'}
+- Terms they look up (annotate): ${(behavioralPatterns.topAnnotatedTerms || []).join(', ') || 'none yet'}
+${(behavioralPatterns.likedTitles || []).length ? '- Articles they LIKED (show more like these): ' + behavioralPatterns.likedTitles.slice(-5).join(' | ') : ''}
+${(behavioralPatterns.dislikedTitles || []).length ? '- Articles they DISLIKED (show fewer like these): ' + behavioralPatterns.dislikedTitles.slice(-5).join(' | ') : ''}
+Use these patterns as a secondary signal. Liked article patterns boost similar content. Disliked patterns deprioritize similar content. But explicit filters always take priority over behavioral patterns.
+` : ''}RANKING RULES:
 - Prioritise GENUINE relevance over recency. A week-old article that directly matters to the reader beats a brand-new one that doesn't.
 - A specific, named hit on the reader's country, region, sector, company, or tracked keywords beats a tangential association.
 - Do NOT manufacture connections. If an article has no clear link to the reader's interests, rank it lower — don't invent a reason to include it.
@@ -1127,11 +1136,18 @@ app.get('/api/news', async (req, res) => {
         // send the top 300 candidates to the LLM for semantic reranking.
         const candidatePool = unique.slice().sort((a, b) => b.score - a.score).slice(0, 300);
         console.log('Test mode: reranking top ' + candidatePool.length + ' of ' + unique.length + ' articles with LLM');
+        // Parse behavioral patterns from the client (if available)
+        let behavioralPatterns = null;
+        try {
+          if (req.query.patterns) behavioralPatterns = JSON.parse(req.query.patterns);
+        } catch {}
+
         const llmRanked = await llmSelectAndRank({
           articles: candidatePool,
           searchQuery: searchTerms.length > 0 ? req.query.search : null,
           expandedSearchTerms,
           profile: userProfile,
+          behavioralPatterns,
           activeFilters: {
             regions: regionList,
             sectors: activeSectors,
