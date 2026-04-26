@@ -2154,6 +2154,44 @@ handleFiltersChanged();
   }
 })();
 
+// ── Annotate awareness card ─────────────────────────────────────
+// "Try it" scrolls to the first highlighted term in the feed and
+// clicks it to demo the feature. After the user has clicked any
+// annotated term once, the card fades out permanently.
+(function wireAnnotateAwareness() {
+  const card = document.getElementById('annotate-awareness');
+  const tryBtn = document.getElementById('annotate-awareness-try');
+  if (!card) return;
+
+  // Hide after the user has used annotate at least once
+  if (localStorage.getItem('geosignal_annotate_used') === 'true') {
+    card.style.display = 'none';
+    return;
+  }
+
+  if (tryBtn) {
+    tryBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const firstKw = document.querySelector('.annotate-keyword');
+      if (firstKw) {
+        firstKw.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => firstKw.click(), 600);
+      }
+    });
+  }
+
+  // Watch for the user engaging with annotate — then hide the card
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('.annotate-keyword') || e.target.closest('.annotate-popup')) {
+      setTimeout(() => {
+        card.style.transition = 'opacity 0.4s';
+        card.style.opacity = '0';
+        setTimeout(() => card.style.display = 'none', 400);
+      }, 2000);
+    }
+  });
+})();
+
 // ── Utilities ───────────────────────────────────────────────────
 
 function timeAgo(dateStr) {

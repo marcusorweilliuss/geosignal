@@ -321,6 +321,110 @@ html {
 }
 .sidebar-clear-btn:hover { color: var(--red, #B54534); }
 
+/* ── Annotate awareness floating card ── */
+.annotate-awareness {
+  position: fixed;
+  right: 24px;
+  bottom: 100px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--accent);
+  border-radius: 14px;
+  box-shadow: 0 8px 28px rgba(15, 110, 86, 0.15), 0 2px 8px rgba(0,0,0,0.06);
+  max-width: 280px;
+  animation: annotate-float-in 0.5s cubic-bezier(0.2, 0, 0, 1);
+  transition: opacity 0.3s;
+}
+
+@keyframes annotate-float-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.annotate-awareness-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: var(--accent);
+  color: #FFFFFF;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.annotate-awareness-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.annotate-awareness-body strong {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.annotate-awareness-body span {
+  font-family: var(--sans);
+  font-size: 11.5px;
+  color: var(--text-secondary);
+}
+
+.annotate-awareness-try {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid var(--accent-soft);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.annotate-awareness-try:hover {
+  background: var(--accent);
+  color: #FFFFFF;
+}
+
+/* Pulse the border to draw the eye */
+.annotate-awareness {
+  animation: annotate-float-in 0.5s cubic-bezier(0.2, 0, 0, 1),
+             annotate-pulse-border 3s ease-in-out 1s 3;
+}
+
+@keyframes annotate-pulse-border {
+  0%, 100% { box-shadow: 0 8px 28px rgba(15, 110, 86, 0.15); }
+  50%      { box-shadow: 0 8px 28px rgba(15, 110, 86, 0.15), 0 0 0 6px rgba(15, 110, 86, 0.12); }
+}
+
+@media (max-width: 960px) {
+  .annotate-awareness {
+    right: 16px;
+    bottom: 80px;
+    max-width: 240px;
+    padding: 10px 14px;
+  }
+}
+
+@media (max-width: 540px) {
+  .annotate-awareness {
+    right: 12px;
+    left: 12px;
+    bottom: 16px;
+    max-width: none;
+  }
+}
+
 /* Manage Sources CTA — big and obvious */
 .sidebar-manage-sources-btn {
   display: flex;
