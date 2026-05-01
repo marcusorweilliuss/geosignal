@@ -6,6 +6,9 @@ const Parser = require('rss-parser');
 
 const { SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT, classifyArticleType, extractPrimaryCountry, getSourceDescription, SECTOR_KEYWORDS, getAllSourcesForBrowser, getSourceBias, getTierCategory } = require('./sources');
 
+const { queryArticles, upsertManyArticles } = require('./db');
+const { runFullIngest, googleNewsLiveSearch } = require('./ingest');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -231,36 +234,38 @@ function findRelatedThinkTankArticles(articleTitle, regionSlug, limit = 5) {
   const keywords = extractKeywords(articleTitle);
   if (keywords.length === 0) return [];
 
-  // Get all think-tank-academic sources for this region + global + neighbors
+  // Get all think-tank-academic source NAMES for this region + global,
+  // then pull matching articles from the corpus (db.js).
   const thinkTankSources = [
     ...(SOURCES[regionSlug] || []),
     ...(SOURCES['global'] || [])
   ].filter(s => s.tier === 'think-tank-academic');
+  const thinkTankNames = thinkTankSources.map(s => s.name);
+  if (!thinkTankNames.length) return [];
 
-  // Collect cached articles from these sources
+  const corpusArticles = queryArticles({
+    regionSlugs: ['__all__'],
+    sinceMs: Date.now() - 30 * 24 * 60 * 60 * 1000,
+    includeSources: thinkTankNames,
+    limit: 500
+  });
+
   const candidates = [];
-  for (const source of thinkTankSources) {
-    const cached = feedCache[source.rssUrl];
-    if (!cached) continue;
-    for (const article of cached.articles) {
-      if (article.title?.toLowerCase().trim() === articleTitle.toLowerCase().trim()) continue;
-
-      const articleWords = extractKeywords(article.title + ' ' + (article.description || ''));
-      let matches = 0;
-      for (const kw of keywords) {
-        if (articleWords.includes(kw)) matches++;
-      }
-
-      // Lower threshold: 1 match qualifies but with scaled score
-      if (matches >= 1) {
-        candidates.push({
-          title: article.title,
-          source: article.source,
-          description: (article.description || '').substring(0, 200),
-          url: article.url,
-          matchScore: matches
-        });
-      }
+  for (const article of corpusArticles) {
+    if (article.title?.toLowerCase().trim() === articleTitle.toLowerCase().trim()) continue;
+    const articleWords = extractKeywords(article.title + ' ' + (article.description || ''));
+    let matches = 0;
+    for (const kw of keywords) {
+      if (articleWords.includes(kw)) matches++;
+    }
+    if (matches >= 1) {
+      candidates.push({
+        title: article.title,
+        source: article.source,
+        description: (article.description || '').substring(0, 200),
+        url: article.url,
+        matchScore: matches
+      });
     }
   }
 
@@ -424,33 +429,14 @@ async function fetchFeeds(sources, maxConcurrent = 10) { // 10 concurrent — VP
   return results;
 }
 
-// ── Background Pre-fetching ─────────────────────────────────────
-// Pre-fetches all feeds on startup and every 15 minutes so user requests are instant
+// ── Background ingest ───────────────────────────────────────────
+// Replaces the in-memory feedCache with a SQLite-backed corpus
+// fed by RSS + Google News + GDELT. See ingest.js. Runs once on
+// startup, then every 30 min.
 
-let prefetchRunning = false;
-
-async function prefetchAllFeeds() {
-  if (prefetchRunning) return;
-  prefetchRunning = true;
-  const allSources = Object.values(SOURCES).flat();
-  console.log(`Background: pre-fetching ${allSources.length} RSS feeds...`);
-  const startTime = Date.now();
-
-  // Fetch in moderate batches — VPN-safe concurrency
-  for (let i = 0; i < allSources.length; i += 15) {
-    const batch = allSources.slice(i, i + 15);
-    await Promise.all(batch.map(s => fetchFeed(s)));
-  }
-
-  const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-  const cached = Object.keys(feedCache).length;
-  console.log(`Background: pre-fetch complete — ${cached} feeds cached in ${elapsed}s`);
-  prefetchRunning = false;
-}
-
-// Start pre-fetching after server boots, then every 15 minutes
-setTimeout(() => prefetchAllFeeds(), 2000);
-setInterval(() => prefetchAllFeeds(), CACHE_TTL);
+const INGEST_INTERVAL_MS = 30 * 60 * 1000;
+setTimeout(() => runFullIngest(), 2000);
+setInterval(() => runFullIngest(), INGEST_INTERVAL_MS);
 
 // ── Region slug mapping ─────────────────────────────────────────
 
@@ -837,60 +823,51 @@ app.get('/api/news', async (req, res) => {
       ? new Set(excludeSources.split(',').map(s => s.trim()).filter(Boolean))
       : null;
 
-    // Get filtered sources from registry
-    // Union of sources across every selected region, deduped by RSS URL
-    const seenRss = new Set();
-    const sources = regionSlugs
-      .flatMap(slug => getSourcesForRegion(slug, typeList))
-      .filter(s => {
-        if (!s || !s.rssUrl) return true;
-        if (seenRss.has(s.rssUrl)) return false;
-        seenRss.add(s.rssUrl);
-        return true;
-      });
-
-    // Serve from cache first — only fetch uncached feeds
-    const cachedArticles = [];
-    const uncachedSources = [];
-
-    sources.forEach(s => {
-      const cached = feedCache[s.rssUrl];
-      if (cached) {
-        cachedArticles.push(...cached.articles);
-      } else {
-        uncachedSources.push(s);
-      }
-    });
-
-    // Fetch only uncached feeds (fast since most are pre-cached)
-    let freshArticles = [];
-    if (uncachedSources.length > 0) {
-      console.log(`Fetching ${uncachedSources.length} uncached feeds for ${region} (${cachedArticles.length} from cache)`);
-      freshArticles = await fetchFeeds(uncachedSources);
-    } else {
-      console.log(`Serving ${cachedArticles.length} cached articles for ${region}`);
-    }
-
-    let allArticles = [...cachedArticles, ...freshArticles];
-
-    // If searching, also pull from ALL cached feeds across every region
-    if (searchTerms.length > 0) {
-      Object.values(feedCache).forEach(cached => {
-        if (cached.articles) allArticles.push(...cached.articles);
-      });
-    }
-
     // ── Hard 30-day cap ── never return anything older regardless of
     // other filter settings. Also accept an optional dateRange param
     // (in hours) for tighter ranges from the client-side date filter.
     const dateRangeHours = parseInt(req.query.dateRange, 10);
     const maxAgeMs = (dateRangeHours > 0 ? Math.min(dateRangeHours, 720) : 720) * 60 * 60 * 1000;
     const cutoff = Date.now() - maxAgeMs;
-    allArticles = allArticles.filter(a => {
-      if (!a.publishedAt) return true; // keep items with no timestamp — scored lower anyway
-      const ts = new Date(a.publishedAt).getTime();
-      return !isNaN(ts) && ts >= cutoff;
+
+    // Pull articles from the SQLite corpus (RSS + GDELT + Google News
+    // all live in the same store, written by ingest.js). When the user
+    // is searching, query across every region — searches shouldn't be
+    // capped to whichever regions they've selected as their reading set.
+    const includeArr = includeSet ? [...includeSet] : null;
+    const excludeArr = excludeSet ? [...excludeSet] : null;
+    let allArticles = queryArticles({
+      regionSlugs: searchTerms.length > 0 ? ['__all__'] : regionSlugs,
+      sinceMs: cutoff,
+      q: searchTerms.length > 0 ? searchTerms.join(' ') : null,
+      includeSources: includeArr,
+      excludeSources: excludeArr,
+      limit: 2000
     });
+
+    // Live search: when the user types a query, also fire off a
+    // Google News search and merge in fresh matches the corpus may
+    // not have yet. GDELT is skipped here because of its 5s rate
+    // limit — it gets called only during the background ingest.
+    if (searchTerms.length > 0) {
+      try {
+        const liveQuery = (search || searchTerms.join(' ')).trim();
+        const live = await googleNewsLiveSearch(liveQuery, {
+          regionSlug: regionSlugs[0] || ''
+        });
+        if (live.length) {
+          // Side-effect: write them to the DB so subsequent queries
+          // hit cache. Fire-and-forget — failure here doesn't block.
+          try { upsertManyArticles(live); } catch {}
+          // Merge with current pool. Dedup happens later by title.
+          allArticles = allArticles.concat(live);
+        }
+      } catch (e) {
+        console.log('Live search failed (continuing with corpus only):', e.message);
+      }
+    }
+
+    console.log(`Serving ${allArticles.length} candidate articles from corpus for [${regionSlugs.join(',')}]${searchTerms.length ? ` search="${searchTerms.join(' ')}"` : ''}`);
 
     // Parse user profile for scoring
     let userProfile = null;
@@ -1267,12 +1244,13 @@ app.get('/api/news', async (req, res) => {
     res.json({ articles, governmentCaveat: GOVERNMENT_CAVEAT });
   } catch (err) {
     console.error('News fetch error:', err.stack || err.message || err);
-    // Last-resort fallback: return whatever we can from the cache
+    // Last-resort fallback: return whatever we can from the corpus
     // without any LLM/expansion calls.
     try {
-      const fallbackArticles = [];
-      Object.values(feedCache).forEach(cached => {
-        if (cached && cached.articles) fallbackArticles.push(...cached.articles);
+      const fallbackArticles = queryArticles({
+        regionSlugs: ['__all__'],
+        sinceMs: Date.now() - 7 * 24 * 60 * 60 * 1000,
+        limit: 100
       });
       const seen = new Set();
       const deduped = fallbackArticles.filter(a => {
@@ -2088,7 +2066,8 @@ app.get('/api/sources/stats', (req, res) => {
     stats[region] = SOURCES[region].length;
   });
   const total = Object.values(stats).reduce((a, b) => a + b, 0);
-  res.json({ regions: stats, total, cachedFeeds: Object.keys(feedCache).length });
+  const corpus = require('./db').stats();
+  res.json({ regions: stats, total, corpus });
 });
 
 // Full list of sources with metadata for the source browser UI
@@ -2271,20 +2250,25 @@ app.post('/api/cross-sector', async (req, res) => {
     ].filter(s => s.tier === 'think-tank-academic');
 
     const expertPool = [];
-    for (const src of thinkTankSources) {
-      const cached = feedCache[src.rssUrl];
-      if (!cached) continue;
-      for (const a of cached.articles.slice(0, 3)) {
+    const ttNames = thinkTankSources.map(s => s.name);
+    if (ttNames.length) {
+      const ttArticles = queryArticles({
+        regionSlugs: ['__all__'],
+        sinceMs: Date.now() - 30 * 24 * 60 * 60 * 1000,
+        includeSources: ttNames,
+        limit: 60
+      });
+      for (const a of ttArticles) {
         if (a.title && a.url) {
           expertPool.push({
-            source: src.name,
+            source: a.source,
             title: a.title,
             description: (a.description || '').substring(0, 150),
             url: a.url
           });
         }
+        if (expertPool.length >= 20) break;
       }
-      if (expertPool.length >= 20) break;
     }
 
     // Build the list of allowed citation tags
