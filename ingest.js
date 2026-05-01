@@ -276,30 +276,70 @@ function unescapeXml(s) {
     .replace(/&apos;/g, "'");
 }
 
+// Google News blocks shared cloud IPs (Render etc.) when it sees
+// burst traffic. We work around it by:
+//   - sending a real-browser User-Agent
+//   - keeping a cooldown after any 503 (gives Google time to forget us)
+//   - serializing all fetches through a single in-flight slot with
+//     a 1.2s gap between calls — well under Google's quota for a
+//     single client.
+
+let gnewsCooldownUntil = 0;
+let gnewsLastCall = 0;
+let gnewsQueue = Promise.resolve();
+const GNEWS_MIN_GAP_MS = 1200;
+
+const REAL_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+
+async function paceGoogleNews() {
+  const wait = gnewsLastCall + GNEWS_MIN_GAP_MS - Date.now();
+  if (wait > 0) await new Promise(r => setTimeout(r, wait));
+  gnewsLastCall = Date.now();
+}
+
 async function fetchGoogleNewsQuery(query, { regionSlug = '', max = 60 } = {}) {
-  const url = `${GOOGLE_NEWS_BASE}?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
-  try {
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; GeoSignal/1.0)',
-        'Accept': 'application/rss+xml, application/xml, text/xml, */*'
-      },
-      timeout: 15000
-    });
-    if (!res.ok) {
-      console.log(`Google News HTTP ${res.status} on "${query.slice(0, 40)}…"`);
+  if (Date.now() < gnewsCooldownUntil) return [];
+
+  // Serialize. Each call waits its turn behind the queue head.
+  const myTurn = gnewsQueue.then(async () => {
+    if (Date.now() < gnewsCooldownUntil) return [];
+    await paceGoogleNews();
+
+    const url = `${GOOGLE_NEWS_BASE}?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
+    try {
+      const res = await fetch(url, {
+        headers: {
+          'User-Agent': REAL_UA,
+          'Accept': 'application/rss+xml, application/xml, text/xml, */*',
+          'Accept-Language': 'en-US,en;q=0.9'
+        },
+        timeout: 15000
+      });
+      if (res.status === 503 || res.status === 429) {
+        gnewsCooldownUntil = Date.now() + 5 * 60 * 1000;
+        console.log(`Google News ${res.status} — entering 5min cooldown.`);
+        return [];
+      }
+      if (!res.ok) {
+        console.log(`Google News HTTP ${res.status} on "${query.slice(0, 40)}…"`);
+        return [];
+      }
+      const xml = await res.text();
+      const items = parseGoogleNewsXml(xml, regionSlug);
+      if (!items.length) {
+        console.log(`Google News parsed 0 items for "${query.slice(0, 40)}…" (xml ${xml.length} chars)`);
+      }
+      return items.slice(0, max);
+    } catch (err) {
+      console.log(`Google News fetch error on "${query.slice(0, 40)}…": ${err.message}`);
       return [];
     }
-    const xml = await res.text();
-    const items = parseGoogleNewsXml(xml, regionSlug);
-    if (!items.length) {
-      console.log(`Google News parsed 0 items for "${query.slice(0, 40)}…" (xml ${xml.length} chars)`);
-    }
-    return items.slice(0, max);
-  } catch (err) {
-    console.log(`Google News fetch error on "${query.slice(0, 40)}…": ${err.message}`);
-    return [];
-  }
+  });
+
+  // Update the queue tail so subsequent callers wait for this one's
+  // network call (not just its turn-grab).
+  gnewsQueue = myTurn.catch(() => {});
+  return myTurn;
 }
 
 // Broad ingest: hit a wide spread of queries so the corpus has both
@@ -384,7 +424,10 @@ async function ingestGoogleNews() {
 // across the dozens of concurrent users hitting /api/news; short enough
 // that fresh news still surfaces.
 const liveSearchCache = new Map();
-const LIVE_SEARCH_TTL_MS = 10 * 60 * 1000;
+// Cache live-search results for an hour. Google News blocks
+// shared-cloud IPs aggressively; aggressive caching means a single
+// lookup of "bitcoin" populates the corpus for everyone for an hour.
+const LIVE_SEARCH_TTL_MS = 60 * 60 * 1000;
 
 // Track every distinct query a real user has searched for. The next
 // bulk ingest cycle picks these up so they're already in the corpus
