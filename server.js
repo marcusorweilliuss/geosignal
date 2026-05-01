@@ -431,10 +431,12 @@ async function fetchFeeds(sources, maxConcurrent = 10) { // 10 concurrent — VP
 
 // ── Background ingest ───────────────────────────────────────────
 // Replaces the in-memory feedCache with a SQLite-backed corpus
-// fed by RSS + Google News + GDELT. See ingest.js. Runs once on
-// startup, then every 30 min.
+// fed by RSS + Perplexity (Google News fallback) + GDELT. See
+// ingest.js. Runs once on startup, then every 4 hours. We don't
+// run more often because Perplexity calls cost money — per-request
+// live fetching handles topics the bulk pass missed.
 
-const INGEST_INTERVAL_MS = 30 * 60 * 1000;
+const INGEST_INTERVAL_MS = 4 * 60 * 60 * 1000;
 setTimeout(() => runFullIngest(), 2000);
 setInterval(() => runFullIngest(), INGEST_INTERVAL_MS);
 
@@ -2119,38 +2121,28 @@ app.get('/api/sources/stats', (req, res) => {
   res.json({ regions: stats, total, corpus });
 });
 
-// Debug endpoint: fire a raw fetch against Google News and return
-// the actual HTTP status, headers, and body snippet. Lets us see
-// exactly what the deploy host is getting back.
-app.get('/api/debug/gnews', async (req, res) => {
+// Debug endpoint: fire one Perplexity news search and return the
+// articles. Lets us verify the live-search path on the deploy host.
+app.get('/api/debug/news-search', async (req, res) => {
   const q = String(req.query.q || 'bitcoin').slice(0, 100);
-  const url = `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-US&gl=US&ceid=US:en`;
   try {
-    const fetch = require('node-fetch');
+    const { perplexityNewsSearch } = require('./ingest');
     const t0 = Date.now();
-    const r = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; GeoSignal/1.0)',
-        'Accept': 'application/rss+xml, application/xml, text/xml, */*'
-      },
-      timeout: 20000
-    });
+    const articles = await perplexityNewsSearch(q, { regionSlug: 'global' });
     const took = Date.now() - t0;
-    const body = await r.text();
-    const itemMatches = (body.match(/<item>/g) || []).length;
     res.json({
       query: q,
-      url,
       took_ms: took,
-      status: r.status,
-      content_type: r.headers.get('content-type'),
-      body_length: body.length,
-      item_count_in_xml: itemMatches,
-      body_first_500: body.slice(0, 500),
-      body_last_300: body.slice(-300)
+      count: articles.length,
+      sample: articles.slice(0, 8).map(a => ({
+        title: a.title,
+        source: a.source,
+        url: a.url,
+        publishedAt: a.publishedAt
+      }))
     });
   } catch (err) {
-    res.status(500).json({ error: err.message, code: err.code, stack: err.stack?.slice(0, 500) });
+    res.status(500).json({ error: err.message, stack: err.stack?.slice(0, 500) });
   }
 });
 

@@ -16,6 +16,87 @@ const Parser = require('rss-parser');
 const { SOURCES, getSourcesForRegion } = require('./sources');
 const { upsertManyArticles, pruneOlderThan, stats } = require('./db');
 
+// ── Perplexity Sonar — primary topical news source ──────────────
+// Google News blocks Render's IP pool, so Perplexity is now our
+// primary source for both bulk ingest of topical news and per-request
+// live search. Perplexity returns up to ~10-20 search_results per
+// query with title, url, date, and a snippet. Great quality but
+// each call costs money — heavy caching elsewhere keeps the bill low.
+const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
+const PERPLEXITY_MODEL = process.env.PERPLEXITY_MODEL || 'sonar';
+
+function prettySourceFromUrl(url) {
+  if (!url) return '';
+  try {
+    const u = new URL(url);
+    let host = u.hostname.replace(/^www\./, '');
+    // Trim a trailing TLD pair like ".com" / ".co.uk" — keep the brand.
+    host = host.replace(/\.(com|org|net|gov|co|news|io|info)(\.[a-z]{2})?$/i, '');
+    return host
+      .split(/[.\-]/)
+      .filter(Boolean)
+      .map(p => p.charAt(0).toUpperCase() + p.slice(1))
+      .join(' ');
+  } catch {
+    return '';
+  }
+}
+
+async function perplexityNewsSearch(query, { regionSlug = '', max = 20, recency = 'week' } = {}) {
+  if (!PERPLEXITY_API_KEY) return [];
+  if (!query || String(query).trim().length < 2) return [];
+
+  const messages = [
+    { role: 'system', content: 'You are a news search engine. Return only the most recent news articles about the user\'s topic. Do not summarize or analyze. Just acknowledge with one short sentence — the citations are what matter.' },
+    { role: 'user', content: `List the most recent news articles about: ${String(query).trim()}` }
+  ];
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 18000);
+  try {
+    const res = await fetch('https://api.perplexity.ai/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${PERPLEXITY_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: PERPLEXITY_MODEL,
+        messages,
+        temperature: 0,
+        max_tokens: 80,
+        search_recency_filter: recency
+      }),
+      signal: controller.signal
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      console.log(`Perplexity HTTP ${res.status} on "${String(query).slice(0, 40)}…": ${body.slice(0, 150)}`);
+      return [];
+    }
+    const data = await res.json();
+    const results = Array.isArray(data.search_results) ? data.search_results : [];
+    return results.slice(0, max).map(r => ({
+      title: r.title || '',
+      description: r.snippet || r.title || '',
+      content: r.snippet || '',
+      url: r.url || '',
+      publishedAt: r.date ? new Date(r.date).toISOString() : new Date().toISOString(),
+      source: prettySourceFromUrl(r.url) || 'Perplexity',
+      sourceTier: 'perplexity',
+      sourceCountry: [],
+      region: regionSlug,
+      thumbnail: '',
+      ingestOrigin: 'perplexity'
+    })).filter(a => a.title && a.url);
+  } catch (err) {
+    console.log(`Perplexity error on "${String(query).slice(0, 40)}…": ${err.message}`);
+    return [];
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 const rssParser = new Parser({
   timeout: 12000,
   headers: {
@@ -349,74 +430,67 @@ async function fetchGoogleNewsQuery(query, { regionSlug = '', max = 60 } = {}) {
 // or "AI regulation" finds nothing because the firehose never went
 // looking for those topics.
 
-// Region-themed queries — broad regional headlines.
+// Region-themed queries — broad regional headlines. Trimmed to one
+// per region to keep bulk-ingest costs bounded when going through
+// Perplexity (each call costs money).
 const GOOGLE_NEWS_REGION_QUERIES = {
-  'global':                ['world news', 'geopolitics', 'breaking news'],
-  'middle-east':           ['middle east news', 'iran israel', 'saudi arabia'],
-  'south-asia':            ['india news', 'pakistan news', 'bangladesh news'],
-  'southeast-asia':        ['southeast asia news', 'asean', 'singapore news', 'indonesia news'],
-  'east-asia':             ['china news', 'japan news', 'south korea news', 'taiwan news'],
-  'europe':                ['europe news', 'eu politics', 'uk news', 'germany news'],
-  'africa':                ['africa news', 'african union', 'nigeria news', 'south africa news'],
-  'latin-america':         ['latin america news', 'mexico news', 'brazil news', 'argentina news'],
-  'north-america':         ['us politics', 'canada news', 'us economy'],
-  'central-asia-caucasus': ['central asia', 'caucasus news', 'kazakhstan news'],
-  'oceania':               ['australia news', 'new zealand news', 'pacific islands']
+  'global':                ['world news geopolitics'],
+  'middle-east':           ['middle east news'],
+  'south-asia':            ['india pakistan news'],
+  'southeast-asia':        ['southeast asia news'],
+  'east-asia':             ['china japan korea news'],
+  'europe':                ['europe news eu politics'],
+  'africa':                ['africa news'],
+  'latin-america':         ['latin america news'],
+  'north-america':         ['us politics canada news'],
+  'central-asia-caucasus': ['central asia caucasus news'],
+  'oceania':               ['australia oceania news']
 };
 
-// Topic-themed queries — these populate the corpus with story types
-// people actually search for. Each maps loosely to a sector.
+// Topic-themed queries — populate the corpus with story types
+// people actually search for. Pruned to a focused set; per-user
+// requests fan out to Perplexity for anything else (Tamil news,
+// portfolio management, K-pop, etc.) so we don't need to predict.
 const GOOGLE_NEWS_TOPIC_QUERIES = [
-  // Tech & AI
-  'artificial intelligence', 'AI regulation', 'OpenAI Anthropic', 'semiconductor industry',
-  'cybersecurity', 'data privacy',
-  // Finance & crypto
-  'bitcoin', 'cryptocurrency', 'stock market', 'inflation interest rates',
-  'federal reserve', 'wall street',
-  // Climate & energy
-  'climate change', 'renewable energy', 'oil prices', 'carbon emissions',
-  // Trade & supply chain
-  'trade war tariffs', 'supply chain', 'global trade',
-  // Defence
-  'ukraine russia war', 'military aid', 'nato',
-  // Health
-  'public health', 'pandemic preparedness',
-  // Society / migration
-  'immigration policy', 'refugee crisis',
-  // Misc that round out the corpus
-  'elections', 'corruption', 'human rights'
+  'artificial intelligence',
+  'bitcoin cryptocurrency',
+  'stock market',
+  'climate change energy',
+  'trade war tariffs',
+  'ukraine russia',
+  'elections democracy'
 ];
 
 async function ingestGoogleNews() {
+  // Routes through Perplexity Sonar when configured (the bulk path
+  // can't rely on Google News from a cloud host — it gets 503'd).
+  // Falls through to a sequential Google News pass if Perplexity is
+  // not configured (e.g. local dev without an API key).
   let inserted = 0;
   let fetched = 0;
+  let queryCount = 0;
 
-  const tasks = [];
+  const useFn = PERPLEXITY_API_KEY ? perplexityNewsSearch : fetchGoogleNewsQuery;
+
   // Region-themed queries — articles tagged with the region.
   for (const [regionSlug, queries] of Object.entries(GOOGLE_NEWS_REGION_QUERIES)) {
     for (const q of queries) {
-      tasks.push(fetchGoogleNewsQuery(q, { regionSlug }).then(arr => ({ arr })));
-    }
-  }
-  // Topic-themed queries — articles tagged 'global' so they show up
-  // regardless of which region the user picks. Bitcoin is global,
-  // climate is global, AI regulation is global, etc.
-  for (const q of GOOGLE_NEWS_TOPIC_QUERIES) {
-    tasks.push(fetchGoogleNewsQuery(q, { regionSlug: 'global' }).then(arr => ({ arr })));
-  }
-
-  // Google News tolerates parallel requests — keep it modest.
-  const concurrency = 4;
-  for (let i = 0; i < tasks.length; i += concurrency) {
-    const batch = tasks.slice(i, i + concurrency);
-    const results = await Promise.all(batch);
-    for (const { arr } of results) {
+      const arr = await useFn(q, { regionSlug });
+      queryCount++;
       fetched += arr.length;
       inserted += upsertManyArticles(arr);
     }
   }
+  // Topic-themed queries — tagged 'global' so they appear regardless
+  // of the region the user picks.
+  for (const q of GOOGLE_NEWS_TOPIC_QUERIES) {
+    const arr = await useFn(q, { regionSlug: 'global' });
+    queryCount++;
+    fetched += arr.length;
+    inserted += upsertManyArticles(arr);
+  }
 
-  return { queries: tasks.length, fetched, inserted };
+  return { queries: queryCount, fetched, inserted };
 }
 
 // In-memory cache of recent live searches. Key by lowercased query.
@@ -448,7 +522,19 @@ async function googleNewsLiveSearch(query, { regionSlug = '' } = {}) {
     return cached.articles;
   }
 
-  const articles = await fetchGoogleNewsQuery(query, { regionSlug });
+  // Primary: Perplexity Sonar. Returns ~10-20 high-quality citations
+  // per query, doesn't get IP-blocked like Google News from Render.
+  let articles = [];
+  if (PERPLEXITY_API_KEY) {
+    articles = await perplexityNewsSearch(query, { regionSlug });
+  }
+
+  // Fallback: Google News (only useful when running locally — gets
+  // 503'd on shared cloud IPs).
+  if (!articles.length) {
+    articles = await fetchGoogleNewsQuery(query, { regionSlug });
+  }
+
   liveSearchCache.set(key, { t: Date.now(), articles });
 
   // Keep cache bounded — drop the oldest entries if we get past 500.
@@ -513,16 +599,13 @@ async function runFullIngest() {
     // care about — Tamil news, IR nuclear, portfolio management, etc.
     const userQueries = recentUserQueries().slice(0, 40);
     if (userQueries.length) {
-      const userIngest = await Promise.allSettled(
-        userQueries.map(q => fetchGoogleNewsQuery(q, { regionSlug: 'global' }))
-      );
+      const useFn = PERPLEXITY_API_KEY ? perplexityNewsSearch : fetchGoogleNewsQuery;
       let userFetched = 0;
       let userInserted = 0;
-      for (const r of userIngest) {
-        if (r.status === 'fulfilled' && Array.isArray(r.value)) {
-          userFetched += r.value.length;
-          userInserted += upsertManyArticles(r.value);
-        }
+      for (const q of userQueries) {
+        const arr = await useFn(q, { regionSlug: 'global' });
+        userFetched += arr.length;
+        userInserted += upsertManyArticles(arr);
       }
       console.log(`Ingest user-queries: ${userQueries.length} queries fetched=${userFetched} inserted=${userInserted}`);
     }
@@ -553,6 +636,7 @@ module.exports = {
   ingestGoogleNews,
   gdeltLiveSearch,
   googleNewsLiveSearch,
+  perplexityNewsSearch,
   liveFetchManyQueries,
   recentUserQueries
 };
