@@ -2119,24 +2119,38 @@ app.get('/api/sources/stats', (req, res) => {
   res.json({ regions: stats, total, corpus });
 });
 
-// Debug endpoint: fire a single Google News query and return what
-// we got. Lets us verify whether outbound calls to Google News work
-// from the deploy environment without trawling logs.
+// Debug endpoint: fire a raw fetch against Google News and return
+// the actual HTTP status, headers, and body snippet. Lets us see
+// exactly what the deploy host is getting back.
 app.get('/api/debug/gnews', async (req, res) => {
   const q = String(req.query.q || 'bitcoin').slice(0, 100);
+  const url = `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-US&gl=US&ceid=US:en`;
   try {
-    const ingest = require('./ingest');
+    const fetch = require('node-fetch');
     const t0 = Date.now();
-    const live = await ingest.googleNewsLiveSearch(q, { regionSlug: 'global' });
+    const r = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; GeoSignal/1.0)',
+        'Accept': 'application/rss+xml, application/xml, text/xml, */*'
+      },
+      timeout: 20000
+    });
     const took = Date.now() - t0;
+    const body = await r.text();
+    const itemMatches = (body.match(/<item>/g) || []).length;
     res.json({
       query: q,
+      url,
       took_ms: took,
-      count: live.length,
-      sample: live.slice(0, 5).map(a => ({ title: a.title, source: a.source, url: a.url }))
+      status: r.status,
+      content_type: r.headers.get('content-type'),
+      body_length: body.length,
+      item_count_in_xml: itemMatches,
+      body_first_500: body.slice(0, 500),
+      body_last_300: body.slice(-300)
     });
   } catch (err) {
-    res.status(500).json({ error: err.message, stack: err.stack });
+    res.status(500).json({ error: err.message, code: err.code, stack: err.stack?.slice(0, 500) });
   }
 });
 
