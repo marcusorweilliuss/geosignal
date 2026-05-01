@@ -335,9 +335,63 @@ async function ingestGoogleNews() {
   return { queries: tasks.length, fetched, inserted };
 }
 
+// In-memory cache of recent live searches. Key by lowercased query.
+// 10-minute TTL — long enough to amortize the Google News round trip
+// across the dozens of concurrent users hitting /api/news; short enough
+// that fresh news still surfaces.
+const liveSearchCache = new Map();
+const LIVE_SEARCH_TTL_MS = 10 * 60 * 1000;
+
+// Track every distinct query a real user has searched for. The next
+// bulk ingest cycle picks these up so they're already in the corpus
+// next time anyone with a similar interest hits /api/news.
+const seenQueries = new Set();
+
+function recentUserQueries() {
+  return Array.from(seenQueries);
+}
+
 async function googleNewsLiveSearch(query, { regionSlug = '' } = {}) {
   if (!query || query.length < 2) return [];
-  return await fetchGoogleNewsQuery(query, { regionSlug });
+  const key = query.toLowerCase().trim();
+  seenQueries.add(key);
+
+  const cached = liveSearchCache.get(key);
+  if (cached && (Date.now() - cached.t) < LIVE_SEARCH_TTL_MS) {
+    return cached.articles;
+  }
+
+  const articles = await fetchGoogleNewsQuery(query, { regionSlug });
+  liveSearchCache.set(key, { t: Date.now(), articles });
+
+  // Keep cache bounded — drop the oldest entries if we get past 500.
+  if (liveSearchCache.size > 500) {
+    const oldestKey = liveSearchCache.keys().next().value;
+    liveSearchCache.delete(oldestKey);
+  }
+
+  return articles;
+}
+
+// Fan-out helper: takes a list of queries, fires them in parallel
+// (with the cache absorbing repeats), returns a deduplicated flat
+// list of articles. Failures on individual queries don't poison the
+// whole batch.
+async function liveFetchManyQueries(queries, { regionSlug = '', perQueryLimit = 8, totalLimit = 5 } = {}) {
+  const cleaned = [...new Set(queries.map(q => String(q || '').trim()).filter(q => q.length > 1))]
+    .slice(0, totalLimit);
+  if (!cleaned.length) return { queries: [], articles: [] };
+
+  const results = await Promise.allSettled(
+    cleaned.map(q => googleNewsLiveSearch(q, { regionSlug }))
+  );
+  const flat = [];
+  for (const r of results) {
+    if (r.status === 'fulfilled' && Array.isArray(r.value)) {
+      flat.push(...r.value.slice(0, perQueryLimit));
+    }
+  }
+  return { queries: cleaned, articles: flat };
 }
 
 // ── Orchestration ───────────────────────────────────────────────
@@ -366,6 +420,26 @@ async function runFullIngest() {
     });
     console.log(`Ingest GNews:  queries=${gnews.queries} fetched=${gnews.fetched} inserted=${gnews.inserted}`);
 
+    // Pick up any queries real users have searched for since the last
+    // ingest cycle and run them as ingest queries too. This way the
+    // corpus naturally grows toward what your beta testers actually
+    // care about — Tamil news, IR nuclear, portfolio management, etc.
+    const userQueries = recentUserQueries().slice(0, 40);
+    if (userQueries.length) {
+      const userIngest = await Promise.allSettled(
+        userQueries.map(q => fetchGoogleNewsQuery(q, { regionSlug: 'global' }))
+      );
+      let userFetched = 0;
+      let userInserted = 0;
+      for (const r of userIngest) {
+        if (r.status === 'fulfilled' && Array.isArray(r.value)) {
+          userFetched += r.value.length;
+          userInserted += upsertManyArticles(r.value);
+        }
+      }
+      console.log(`Ingest user-queries: ${userQueries.length} queries fetched=${userFetched} inserted=${userInserted}`);
+    }
+
     const gdelt = await ingestGdelt().catch(e => {
       console.error('GDELT ingest failed:', e.message);
       return { regions: 0, fetched: 0, inserted: 0 };
@@ -391,5 +465,7 @@ module.exports = {
   ingestGdelt,
   ingestGoogleNews,
   gdeltLiveSearch,
-  googleNewsLiveSearch
+  googleNewsLiveSearch,
+  liveFetchManyQueries,
+  recentUserQueries
 };

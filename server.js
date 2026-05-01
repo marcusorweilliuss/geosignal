@@ -7,7 +7,7 @@ const Parser = require('rss-parser');
 const { SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT, classifyArticleType, extractPrimaryCountry, getSourceDescription, SECTOR_KEYWORDS, getAllSourcesForBrowser, getSourceBias, getTierCategory } = require('./sources');
 
 const { queryArticles, upsertManyArticles } = require('./db');
-const { runFullIngest, googleNewsLiveSearch } = require('./ingest');
+const { runFullIngest, googleNewsLiveSearch, liveFetchManyQueries } = require('./ingest');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -855,28 +855,44 @@ app.get('/api/news', async (req, res) => {
       limit: 2500
     });
 
-    // Live search: when the user types a query, also fire off a
-    // Google News search and merge in fresh matches the corpus may
-    // not have yet. GDELT is skipped here because of its 5s rate
-    // limit — it gets called only during the background ingest.
-    if (searchTerms.length > 0) {
+    // Live fetch — fire off Google News queries for everything the
+    // user actually cares about right now, in parallel: their typed
+    // search, their durable profile keywords, their location filters,
+    // and any sectors they've narrowed to. Cached for 10 min per
+    // query so this doesn't hammer Google News when many users have
+    // overlapping interests. Lets the corpus serve "Tamil news",
+    // "portfolio management", "IR nuclear" — whatever — without me
+    // having to predict topics in advance.
+    let parsedProfileEarly = null;
+    if (profileStr) { try { parsedProfileEarly = JSON.parse(profileStr); } catch {} }
+    const profileKeywordsForLive = (parsedProfileEarly && Array.isArray(parsedProfileEarly.keywords))
+      ? parsedProfileEarly.keywords.filter(Boolean).slice(0, 3)
+      : [];
+    const totalSectorCount0 = Object.keys(SECTOR_KEYWORDS || {}).length;
+    const narrowedSectors = (activeSectors.length > 0 && activeSectors.length < totalSectorCount0)
+      ? activeSectors.slice(0, 2)
+      : [];
+    const liveQueries = [];
+    if (search && search.trim().length > 1) liveQueries.push(search.trim());
+    liveQueries.push(...profileKeywordsForLive);
+    if (locationTerms.length) liveQueries.push(locationTerms.slice(0, 2).join(' '));
+    liveQueries.push(...narrowedSectors);
+
+    if (liveQueries.length) {
       try {
-        const liveQuery = (search || searchTerms.join(' ')).trim();
         const t0 = Date.now();
-        const live = await googleNewsLiveSearch(liveQuery, {
-          regionSlug: regionSlugs[0] || ''
-        });
+        const { queries: ranQueries, articles: liveArticles } = await liveFetchManyQueries(
+          liveQueries,
+          { regionSlug: regionSlugs[0] || 'global', perQueryLimit: 12, totalLimit: 5 }
+        );
         const took = Date.now() - t0;
-        console.log(`Live Google News for "${liveQuery}": ${live.length} articles in ${took}ms`);
-        if (live.length) {
-          // Side-effect: write them to the DB so subsequent queries
-          // hit cache. Fire-and-forget — failure here doesn't block.
-          try { upsertManyArticles(live); } catch {}
-          // Merge with current pool. Dedup happens later by title.
-          allArticles = allArticles.concat(live);
+        console.log(`Live Google News [${ranQueries.join(' | ')}]: ${liveArticles.length} articles in ${took}ms`);
+        if (liveArticles.length) {
+          try { upsertManyArticles(liveArticles); } catch {}
+          allArticles = allArticles.concat(liveArticles);
         }
       } catch (e) {
-        console.log('Live search failed (continuing with corpus only):', e.message);
+        console.log('Live fetch failed (continuing with corpus only):', e.message);
       }
     }
 
