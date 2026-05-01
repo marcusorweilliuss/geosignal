@@ -862,9 +862,12 @@ app.get('/api/news', async (req, res) => {
     if (searchTerms.length > 0) {
       try {
         const liveQuery = (search || searchTerms.join(' ')).trim();
+        const t0 = Date.now();
         const live = await googleNewsLiveSearch(liveQuery, {
           regionSlug: regionSlugs[0] || ''
         });
+        const took = Date.now() - t0;
+        console.log(`Live Google News for "${liveQuery}": ${live.length} articles in ${took}ms`);
         if (live.length) {
           // Side-effect: write them to the DB so subsequent queries
           // hit cache. Fire-and-forget — failure here doesn't block.
@@ -1033,11 +1036,12 @@ app.get('/api/news', async (req, res) => {
         a.score += Math.min(kwBoost, 50);
       }
 
-      // Search-bar boost — every typed token contributes. Each match
-      // adds points; multiple matches stack. No "must contain all" gate.
-      // We boost both the expanded set (semantic) and the raw tokens
-      // because Groq expansion can fail under rate limits and we still
-      // want literal matches to surface.
+      // Search-bar boost — when the user actively types a query, that
+      // intent should dominate. The boost is large enough that any
+      // article literally matching a search term outranks an article
+      // that doesn't, regardless of how strong its other signals are.
+      // Multi-term matches stack so the most-relevant article rises
+      // to the top.
       const allSearchTerms = [
         ...expandedSearchTerms,
         ...searchTerms.filter(t => !expandedSearchTerms.includes(t))
@@ -1046,11 +1050,15 @@ app.get('/api/news', async (req, res) => {
         const titleLower = (a.title || '').toLowerCase();
         const descLower = (a.description || '').toLowerCase();
         let searchBoost = 0;
+        let titleHits = 0;
         for (const term of allSearchTerms) {
-          if (titleLower.includes(term)) searchBoost += 22;
-          else if (descLower.includes(term)) searchBoost += 8;
+          if (titleLower.includes(term)) { searchBoost += 120; titleHits++; }
+          else if (descLower.includes(term)) searchBoost += 40;
         }
-        a.score += Math.min(searchBoost, 80);
+        // Big floor: any article with a search-term hit anywhere gets at
+        // least a 100-point bump so it clears the typical regional /
+        // think-tank base score of non-matching articles.
+        if (searchBoost > 0) a.score += Math.max(searchBoost, 100);
       }
       // Location boost — typed cities/countries float up but never
       // delete other articles. Title matches count more than body.
@@ -1084,10 +1092,16 @@ app.get('/api/news', async (req, res) => {
       a.country = extractPrimaryCountry(a);
     });
 
-    // Apply article-type filter (defaults to News + Analysis)
+    // Article-type as a soft preference. Articles outside the user's
+    // selected types get down-ranked but never deleted — otherwise a
+    // crypto headline that happens to read like opinion gets dropped
+    // even when it's exactly what the user searched for. Only kicks
+    // in when the user has narrowed below the full set.
     if (activeArticleTypes.length > 0 && activeArticleTypes.length < 3) {
       const allowed = new Set(activeArticleTypes);
-      unique = unique.filter(a => allowed.has(a.articleType));
+      unique.forEach(a => {
+        if (!allowed.has(a.articleType)) a.score -= 30;
+      });
     }
 
     // ── Test mode: LLM-first selection + ranking ──

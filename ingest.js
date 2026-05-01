@@ -258,31 +258,67 @@ async function fetchGoogleNewsQuery(query, { regionSlug = '', max = 60 } = {}) {
   }
 }
 
-// Broad ingest: hit a few well-chosen queries per region so we have
-// region coverage even when no user has searched yet.
+// Broad ingest: hit a wide spread of queries so the corpus has both
+// regional AND topical coverage. Without topical queries, the corpus
+// is biased toward whatever's geopolitically dominant on a given day
+// (Iran-Israel, US politics, etc.) and a user searching "bitcoin"
+// or "AI regulation" finds nothing because the firehose never went
+// looking for those topics.
+
+// Region-themed queries — broad regional headlines.
 const GOOGLE_NEWS_REGION_QUERIES = {
-  'global':                ['world news', 'geopolitics'],
-  'middle-east':           ['middle east news', 'iran israel'],
-  'south-asia':            ['india news', 'pakistan news'],
-  'southeast-asia':        ['southeast asia news', 'asean'],
-  'east-asia':             ['china news', 'japan korea news'],
-  'europe':                ['europe news', 'eu politics'],
-  'africa':                ['africa news', 'african union'],
-  'latin-america':         ['latin america news', 'mexico brazil'],
-  'north-america':         ['us politics', 'canada news'],
-  'central-asia-caucasus': ['central asia', 'caucasus news'],
-  'oceania':               ['australia news', 'pacific islands news']
+  'global':                ['world news', 'geopolitics', 'breaking news'],
+  'middle-east':           ['middle east news', 'iran israel', 'saudi arabia'],
+  'south-asia':            ['india news', 'pakistan news', 'bangladesh news'],
+  'southeast-asia':        ['southeast asia news', 'asean', 'singapore news', 'indonesia news'],
+  'east-asia':             ['china news', 'japan news', 'south korea news', 'taiwan news'],
+  'europe':                ['europe news', 'eu politics', 'uk news', 'germany news'],
+  'africa':                ['africa news', 'african union', 'nigeria news', 'south africa news'],
+  'latin-america':         ['latin america news', 'mexico news', 'brazil news', 'argentina news'],
+  'north-america':         ['us politics', 'canada news', 'us economy'],
+  'central-asia-caucasus': ['central asia', 'caucasus news', 'kazakhstan news'],
+  'oceania':               ['australia news', 'new zealand news', 'pacific islands']
 };
+
+// Topic-themed queries — these populate the corpus with story types
+// people actually search for. Each maps loosely to a sector.
+const GOOGLE_NEWS_TOPIC_QUERIES = [
+  // Tech & AI
+  'artificial intelligence', 'AI regulation', 'OpenAI Anthropic', 'semiconductor industry',
+  'cybersecurity', 'data privacy',
+  // Finance & crypto
+  'bitcoin', 'cryptocurrency', 'stock market', 'inflation interest rates',
+  'federal reserve', 'wall street',
+  // Climate & energy
+  'climate change', 'renewable energy', 'oil prices', 'carbon emissions',
+  // Trade & supply chain
+  'trade war tariffs', 'supply chain', 'global trade',
+  // Defence
+  'ukraine russia war', 'military aid', 'nato',
+  // Health
+  'public health', 'pandemic preparedness',
+  // Society / migration
+  'immigration policy', 'refugee crisis',
+  // Misc that round out the corpus
+  'elections', 'corruption', 'human rights'
+];
 
 async function ingestGoogleNews() {
   let inserted = 0;
   let fetched = 0;
 
   const tasks = [];
+  // Region-themed queries — articles tagged with the region.
   for (const [regionSlug, queries] of Object.entries(GOOGLE_NEWS_REGION_QUERIES)) {
     for (const q of queries) {
-      tasks.push(fetchGoogleNewsQuery(q, { regionSlug }).then(arr => ({ regionSlug, arr })));
+      tasks.push(fetchGoogleNewsQuery(q, { regionSlug }).then(arr => ({ arr })));
     }
+  }
+  // Topic-themed queries — articles tagged 'global' so they show up
+  // regardless of which region the user picks. Bitcoin is global,
+  // climate is global, AI regulation is global, etc.
+  for (const q of GOOGLE_NEWS_TOPIC_QUERIES) {
+    tasks.push(fetchGoogleNewsQuery(q, { regionSlug: 'global' }).then(arr => ({ arr })));
   }
 
   // Google News tolerates parallel requests — keep it modest.
