@@ -856,25 +856,31 @@ app.get('/api/news', async (req, res) => {
     });
 
     // Live fetch — fire off Google News queries for everything the
-    // user actually cares about right now, in parallel: their typed
-    // search, their durable profile keywords, their location filters,
-    // and any sectors they've narrowed to. Cached for 10 min per
-    // query so this doesn't hammer Google News when many users have
-    // overlapping interests. Lets the corpus serve "Tamil news",
-    // "portfolio management", "IR nuclear" — whatever — without me
-    // having to predict topics in advance.
+    // user actually cares about right now, in parallel.
+    //
+    // Profile keywords + sidebar keywords + search box are all treated
+    // as PRIMARY INTENT. Each becomes a live query, and each is also
+    // boosted heavily during scoring so matching articles dominate
+    // the top of the feed. Locations and narrowed sectors are
+    // included too but lower priority.
     let parsedProfileEarly = null;
     if (profileStr) { try { parsedProfileEarly = JSON.parse(profileStr); } catch {} }
-    const profileKeywordsForLive = (parsedProfileEarly && Array.isArray(parsedProfileEarly.keywords))
-      ? parsedProfileEarly.keywords.filter(Boolean).slice(0, 3)
+    const profileKeywordsList = (parsedProfileEarly && Array.isArray(parsedProfileEarly.keywords))
+      ? parsedProfileEarly.keywords.filter(Boolean)
       : [];
     const totalSectorCount0 = Object.keys(SECTOR_KEYWORDS || {}).length;
     const narrowedSectors = (activeSectors.length > 0 && activeSectors.length < totalSectorCount0)
       ? activeSectors.slice(0, 2)
       : [];
+
+    // Build the live-query list in priority order: search bar first
+    // (highest intent), then profile keywords (durable interests),
+    // then sidebar keywords (session interests), then location/sector
+    // refinements. Capped at 7 total to keep latency reasonable.
     const liveQueries = [];
     if (search && search.trim().length > 1) liveQueries.push(search.trim());
-    liveQueries.push(...profileKeywordsForLive);
+    liveQueries.push(...profileKeywordsList.slice(0, 4));
+    liveQueries.push(...keywordTerms.slice(0, 4));
     if (locationTerms.length) liveQueries.push(locationTerms.slice(0, 2).join(' '));
     liveQueries.push(...narrowedSectors);
 
@@ -883,7 +889,7 @@ app.get('/api/news', async (req, res) => {
         const t0 = Date.now();
         const { queries: ranQueries, articles: liveArticles } = await liveFetchManyQueries(
           liveQueries,
-          { regionSlug: regionSlugs[0] || 'global', perQueryLimit: 12, totalLimit: 5 }
+          { regionSlug: regionSlugs[0] || 'global', perQueryLimit: 12, totalLimit: 7 }
         );
         const took = Date.now() - t0;
         console.log(`Live Google News [${ranQueries.join(' | ')}]: ${liveArticles.length} articles in ${took}ms`);
@@ -1052,29 +1058,39 @@ app.get('/api/news', async (req, res) => {
         a.score += Math.min(kwBoost, 50);
       }
 
-      // Search-bar boost — when the user actively types a query, that
-      // intent should dominate. The boost is large enough that any
-      // article literally matching a search term outranks an article
-      // that doesn't, regardless of how strong its other signals are.
-      // Multi-term matches stack so the most-relevant article rises
-      // to the top.
-      const allSearchTerms = [
-        ...expandedSearchTerms,
-        ...searchTerms.filter(t => !expandedSearchTerms.includes(t))
-      ];
-      if (allSearchTerms.length > 0) {
+      // Unified user-intent boost. Search bar + profile keywords +
+      // sidebar keywords are ALL primary intent — they're things the
+      // user explicitly told us they care about. Any article matching
+      // any of them gets a dominant boost so it outranks region- or
+      // recency-favored articles that match nothing the user typed.
+      //
+      // Multi-term matches stack so an article hitting 3 keywords
+      // beats one hitting 1.
+      const userIntentTerms = new Set();
+      for (const t of expandedSearchTerms) userIntentTerms.add(t.toLowerCase());
+      for (const t of searchTerms) userIntentTerms.add(t.toLowerCase());
+      for (const t of keywordTerms) userIntentTerms.add(t.toLowerCase());
+      // Profile keywords often come as multi-word phrases ("Donald Trump").
+      // Keep them whole AND also tokenize so partial matches still hit.
+      for (const kw of profileKeywordsList) {
+        const lower = String(kw).toLowerCase().trim();
+        if (lower.length > 1) userIntentTerms.add(lower);
+        for (const tok of lower.split(/\s+/)) {
+          if (tok.length > 2) userIntentTerms.add(tok);
+        }
+      }
+      if (userIntentTerms.size > 0) {
         const titleLower = (a.title || '').toLowerCase();
         const descLower = (a.description || '').toLowerCase();
-        let searchBoost = 0;
+        let intentBoost = 0;
         let titleHits = 0;
-        for (const term of allSearchTerms) {
-          if (titleLower.includes(term)) { searchBoost += 120; titleHits++; }
-          else if (descLower.includes(term)) searchBoost += 40;
+        for (const term of userIntentTerms) {
+          if (titleLower.includes(term)) { intentBoost += 120; titleHits++; }
+          else if (descLower.includes(term)) intentBoost += 40;
         }
-        // Big floor: any article with a search-term hit anywhere gets at
-        // least a 100-point bump so it clears the typical regional /
-        // think-tank base score of non-matching articles.
-        if (searchBoost > 0) a.score += Math.max(searchBoost, 100);
+        // Floor: any article matching ANY intent term clears the
+        // typical region/recency base score of non-matching articles.
+        if (intentBoost > 0) a.score += Math.max(intentBoost, 100);
       }
       // Location boost — typed cities/countries float up but never
       // delete other articles. Title matches count more than body.
