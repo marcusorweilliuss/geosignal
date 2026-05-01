@@ -212,48 +212,92 @@ async function gdeltLiveSearch(query, { regionSlug = '', timespan = '7d', max = 
 
 const GOOGLE_NEWS_BASE = 'https://news.google.com/rss/search';
 
-function googleNewsItemToArticle(item, regionSlug, originTag = 'google_news') {
-  // Google News wraps the link with their own redirect URL — keep it
-  // as-is. The user clicks through and Google handles the redirect.
-  // The actual outlet name lives in <source> (sometimes) or as a
-  // suffix on the title (" - CNN"). We extract whichever we can.
-  let source = '';
-  if (item.source && item.source._) source = item.source._;
-  else if (item.source && typeof item.source === 'string') source = item.source;
-  if (!source && item.title) {
-    const m = String(item.title).match(/ - ([^-]+)$/);
-    if (m) source = m[1].trim();
+// Direct XML parse for Google News RSS. We don't go through rss-parser
+// here because on some hosts (notably Render) it intermittently hangs
+// or returns empty feeds with no error — likely a TLS / fetch wrapper
+// issue. node-fetch + regex is uglier but bulletproof, and Google
+// News' RSS is structurally simple so the regex is reliable.
+function parseGoogleNewsXml(xml, regionSlug) {
+  if (!xml || xml.length < 100) return [];
+  const items = [];
+  // Walk every <item>...</item> block.
+  const itemRe = /<item>([\s\S]*?)<\/item>/g;
+  let m;
+  while ((m = itemRe.exec(xml)) !== null) {
+    const block = m[1];
+    const title = unescapeXml(matchTag(block, 'title'));
+    const link = matchTag(block, 'link');
+    const pubDate = matchTag(block, 'pubDate');
+    const description = unescapeXml(matchTag(block, 'description'));
+    // Google News puts the outlet in <source url="...">Outlet</source>
+    let source = '';
+    const srcMatch = block.match(/<source[^>]*>([^<]+)<\/source>/);
+    if (srcMatch) source = srcMatch[1].trim();
+    if (!source && title) {
+      const m2 = title.match(/ - ([^-]+)$/);
+      if (m2) source = m2[1].trim();
+    }
+    let cleanTitle = title;
+    if (source && cleanTitle.endsWith(` - ${source}`)) {
+      cleanTitle = cleanTitle.slice(0, cleanTitle.length - ` - ${source}`.length);
+    }
+    if (!cleanTitle || !link) continue;
+    items.push({
+      title: cleanTitle,
+      description: description || '',
+      content: description || '',
+      url: link,
+      publishedAt: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
+      source: source || 'Google News',
+      sourceTier: 'google_news',
+      sourceCountry: [],
+      region: regionSlug,
+      thumbnail: '',
+      ingestOrigin: 'google_news'
+    });
   }
+  return items;
+}
 
-  let cleanTitle = item.title || '';
-  if (source && cleanTitle.endsWith(` - ${source}`)) {
-    cleanTitle = cleanTitle.slice(0, cleanTitle.length - ` - ${source}`.length);
-  }
+function matchTag(block, tag) {
+  // Handles <tag>value</tag> AND <tag><![CDATA[value]]></tag>.
+  const re = new RegExp(`<${tag}>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/${tag}>`, 'i');
+  const m = block.match(re);
+  return m ? m[1].trim() : '';
+}
 
-  return {
-    title: cleanTitle,
-    description: item.contentSnippet || item.content || '',
-    content: item.content || item.contentSnippet || '',
-    url: item.link || '',
-    publishedAt: item.isoDate || item.pubDate || new Date().toISOString(),
-    source: source || 'Google News',
-    sourceTier: 'google_news',
-    sourceCountry: [],
-    region: regionSlug,
-    thumbnail: '',
-    ingestOrigin: originTag
-  };
+function unescapeXml(s) {
+  return String(s || '')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'");
 }
 
 async function fetchGoogleNewsQuery(query, { regionSlug = '', max = 60 } = {}) {
   const url = `${GOOGLE_NEWS_BASE}?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
   try {
-    const feed = await rssParser.parseURL(url);
-    return (feed.items || [])
-      .slice(0, max)
-      .map(it => googleNewsItemToArticle(it, regionSlug));
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; GeoSignal/1.0)',
+        'Accept': 'application/rss+xml, application/xml, text/xml, */*'
+      },
+      timeout: 15000
+    });
+    if (!res.ok) {
+      console.log(`Google News HTTP ${res.status} on "${query.slice(0, 40)}…"`);
+      return [];
+    }
+    const xml = await res.text();
+    const items = parseGoogleNewsXml(xml, regionSlug);
+    if (!items.length) {
+      console.log(`Google News parsed 0 items for "${query.slice(0, 40)}…" (xml ${xml.length} chars)`);
+    }
+    return items.slice(0, max);
   } catch (err) {
-    console.log(`Google News error on "${query.slice(0, 40)}…": ${err.message}`);
+    console.log(`Google News fetch error on "${query.slice(0, 40)}…": ${err.message}`);
     return [];
   }
 }

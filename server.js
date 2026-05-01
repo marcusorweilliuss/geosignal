@@ -2119,6 +2119,43 @@ app.get('/api/sources/stats', (req, res) => {
   res.json({ regions: stats, total, corpus });
 });
 
+// Debug endpoint: fire a single Google News query and return what
+// we got. Lets us verify whether outbound calls to Google News work
+// from the deploy environment without trawling logs.
+app.get('/api/debug/gnews', async (req, res) => {
+  const q = String(req.query.q || 'bitcoin').slice(0, 100);
+  try {
+    const ingest = require('./ingest');
+    const t0 = Date.now();
+    const live = await ingest.googleNewsLiveSearch(q, { regionSlug: 'global' });
+    const took = Date.now() - t0;
+    res.json({
+      query: q,
+      took_ms: took,
+      count: live.length,
+      sample: live.slice(0, 5).map(a => ({ title: a.title, source: a.source, url: a.url }))
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message, stack: err.stack });
+  }
+});
+
+// Debug endpoint: trigger a one-off bulk ingest synchronously and
+// return what each phase produced. Use this to verify that ingest
+// works at all on the deploy host.
+app.get('/api/debug/ingest', async (req, res) => {
+  try {
+    const ingest = require('./ingest');
+    const out = {};
+    out.gnews = await ingest.ingestGoogleNews().catch(e => ({ error: e.message }));
+    out.gdelt_skipped = 'GDELT skipped to keep this endpoint snappy';
+    out.corpus = require('./db').stats();
+    res.json(out);
+  } catch (err) {
+    res.status(500).json({ error: err.message, stack: err.stack });
+  }
+});
+
 // Full list of sources with metadata for the source browser UI
 app.get('/api/sources/list', (req, res) => {
   try {
