@@ -831,18 +831,28 @@ app.get('/api/news', async (req, res) => {
     const cutoff = Date.now() - maxAgeMs;
 
     // Pull articles from the SQLite corpus (RSS + GDELT + Google News
-    // all live in the same store, written by ingest.js). When the user
-    // is searching, query across every region — searches shouldn't be
-    // capped to whichever regions they've selected as their reading set.
+    // all live in the same store, written by ingest.js).
+    //
+    // Region is a *soft* signal. We pull from every region in the
+    // user's selection plus 'global' (broad-coverage articles get
+    // tagged 'global' on ingest, so this prevents losing cross-region
+    // stories like a major Bitcoin headline when the user picks just
+    // Middle East). When the user is searching, we query across the
+    // entire corpus regardless. The scoring step below boosts in-region
+    // matches so a Middle East selection still produces a Middle East
+    // –leaning feed.
     const includeArr = includeSet ? [...includeSet] : null;
     const excludeArr = excludeSet ? [...excludeSet] : null;
+    const queryRegionSlugs = searchTerms.length > 0
+      ? ['__all__']
+      : Array.from(new Set([...regionSlugs, 'global']));
     let allArticles = queryArticles({
-      regionSlugs: searchTerms.length > 0 ? ['__all__'] : regionSlugs,
+      regionSlugs: queryRegionSlugs,
       sinceMs: cutoff,
       q: searchTerms.length > 0 ? searchTerms.join(' ') : null,
       includeSources: includeArr,
       excludeSources: excludeArr,
-      limit: 2000
+      limit: 2500
     });
 
     // Live search: when the user types a query, also fire off a
@@ -919,19 +929,18 @@ app.get('/api/news', async (req, res) => {
       return true;
     });
 
-    // Apply search filter if present. In Test mode (LLM-first) we skip
-    // the hard text-match and instead pass the search query to the LLM
-    // as context so it can find semantically-related articles (e.g.
-    // "Palestine" also matches Gaza, Hamas, ceasefire, etc.).
-    const testMode = req.query.testMode === '1' || req.query.testMode === 'true';
-    if (searchTerms.length > 0 && !testMode) {
-      unique = unique.filter(a => {
-        const text = ((a.title || '') + ' ' + (a.description || '') + ' ' + (a.source || '')).toLowerCase();
-        return searchTerms.every(term => text.includes(term));
-      });
-    }
+    // ── Filtering policy ────────────────────────────────────────
+    // Almost everything the user types is a *ranking signal*, not a
+    // hard filter. Hard filters (drop-on-no-match) are limited to
+    // explicit "no" choices: date range, source include/exclude.
+    // Sectors, search-bar terms, location terms, keywords, and
+    // profile interests all influence score below — they never
+    // delete articles.
 
-    // Apply source include/exclude filters (by publication name)
+    const testMode = req.query.testMode === '1' || req.query.testMode === 'true';
+
+    // Source include/exclude — these ARE hard filters because the
+    // user explicitly picked outlets in the Manage Sources panel.
     if (includeSet && includeSet.size > 0) {
       unique = unique.filter(a => includeSet.has(a.source));
     }
@@ -939,22 +948,8 @@ app.get('/api/news', async (req, res) => {
       unique = unique.filter(a => !excludeSet.has(a.source));
     }
 
-    // Apply location filter — article must mention at least one typed
-    // country or city in title or description (case-insensitive). This is
-    // the user's narrow-down-to-specific-places knob.
-    if (locationTerms.length > 0) {
-      unique = unique.filter(a => {
-        const text = ((a.title || '') + ' ' + (a.description || '')).toLowerCase();
-        return locationTerms.some(term => text.includes(term));
-      });
-    }
-
-    // Apply sector filter — article must match at least one active sector's keywords.
-    // Custom sectors (typed by the user in the "Other" input) have no pre-defined
-    // keyword list, so they fall back to literal match. If the hard filter drops
-    // to zero results, skip it and use the terms as a BOOST instead — this
-    // prevents the empty-feed scenario for niche interests like "Animals".
-    const totalSectorCount = Object.keys(SECTOR_KEYWORDS || {}).length;
+    // Sector keywords are always treated as a boost. We build the
+    // term list here so the scoring loop below can use it.
     const buildSectorKeywords = (sectors) => sectors
       .flatMap(s => {
         const list = SECTOR_KEYWORDS[s];
@@ -964,23 +959,13 @@ app.get('/api/news', async (req, res) => {
       .map(k => String(k || '').toLowerCase())
       .filter(Boolean);
 
+    const totalSectorCount = Object.keys(SECTOR_KEYWORDS || {}).length;
     let sectorKeywordsForBoost = [];
+    // Only boost when a meaningful subset of sectors is selected.
+    // If everything is on (the new default) or nothing is on, the
+    // boost is a no-op so we skip the work.
     if (activeSectors.length > 0 && activeSectors.length < totalSectorCount) {
-      const activeSectorKeywords = buildSectorKeywords(activeSectors);
-      if (activeSectorKeywords.length > 0) {
-        const filtered = unique.filter(a => {
-          const text = ((a.title || '') + ' ' + (a.description || '')).toLowerCase();
-          return activeSectorKeywords.some(kw => text.includes(kw));
-        });
-        if (filtered.length > 0) {
-          unique = filtered;
-        } else {
-          // Hard filter produced 0 results — fall back to boosting instead.
-          // All articles stay in the pool; matching ones get scored higher.
-          sectorKeywordsForBoost = activeSectorKeywords;
-          console.log('Sector hard-filter produced 0 results — switching to boost mode for:', activeSectors.join(', '));
-        }
-      }
+      sectorKeywordsForBoost = buildSectorKeywords(activeSectors);
     }
 
     // Score, filter junk, and sort
@@ -992,7 +977,9 @@ app.get('/api/news', async (req, res) => {
       }, -Infinity);
       if (!isFinite(a.score)) a.score = scoreArticle(a, regionSlug, userProfile, activeSectors);
 
-      // Sector boost (only active when the hard filter fell through to 0)
+      // Sector boost — articles matching any selected sector's keywords
+      // float up. Sectors are never a hard filter; people have varied
+      // interests and a great article often spans sectors.
       if (sectorKeywordsForBoost.length > 0) {
         const titleLower = (a.title || '').toLowerCase();
         const descLower = (a.description || '').toLowerCase();
@@ -1046,20 +1033,36 @@ app.get('/api/news', async (req, res) => {
         a.score += Math.min(kwBoost, 50);
       }
 
-      if (expandedSearchTerms.length > 0) {
+      // Search-bar boost — every typed token contributes. Each match
+      // adds points; multiple matches stack. No "must contain all" gate.
+      // We boost both the expanded set (semantic) and the raw tokens
+      // because Groq expansion can fail under rate limits and we still
+      // want literal matches to surface.
+      const allSearchTerms = [
+        ...expandedSearchTerms,
+        ...searchTerms.filter(t => !expandedSearchTerms.includes(t))
+      ];
+      if (allSearchTerms.length > 0) {
         const titleLower = (a.title || '').toLowerCase();
         const descLower = (a.description || '').toLowerCase();
         let searchBoost = 0;
-        for (const term of expandedSearchTerms) {
-          if (titleLower.includes(term)) searchBoost += 18;
-          else if (descLower.includes(term)) searchBoost += 6;
+        for (const term of allSearchTerms) {
+          if (titleLower.includes(term)) searchBoost += 22;
+          else if (descLower.includes(term)) searchBoost += 8;
         }
-        a.score += Math.min(searchBoost, 60);
+        a.score += Math.min(searchBoost, 80);
       }
+      // Location boost — typed cities/countries float up but never
+      // delete other articles. Title matches count more than body.
       if (locationTerms.length > 0) {
         const titleLower = (a.title || '').toLowerCase();
-        const titleHit = locationTerms.some(term => titleLower.includes(term));
-        if (titleHit) a.score += 15;
+        const descLower = (a.description || '').toLowerCase();
+        let locBoost = 0;
+        for (const term of locationTerms) {
+          if (titleLower.includes(term)) locBoost += 25;
+          else if (descLower.includes(term)) locBoost += 8;
+        }
+        a.score += Math.min(locBoost, 60);
       }
       if (keywordTerms.length > 0) {
         const titleLower = (a.title || '').toLowerCase();
