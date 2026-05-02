@@ -3131,21 +3131,29 @@ function renderFeed(articles) {
   const groups = groupArticlesByTime(articles);
   let globalIndex = 0;
 
-  // Featured story: the highest-scoring article in the first non-empty group
+  // Featured story: highest-scoring article across the entire feed,
+  // NOT just whichever group is non-empty first. The previous behavior
+  // gave breaking-news articles automatic Lead Story status even when
+  // they didn't match the user's interests at all — so a generic
+  // "Trump says…" headline posted 9 min ago would beat a high-scoring
+  // crypto article from 6 hours ago. Score is the user-relevance
+  // signal; let it decide the lead.
   let featuredArticle = null;
-  for (const key of ['breaking', 'today', 'week']) {
-    if (groups[key].length > 0) {
-      featuredArticle = groups[key].reduce((best, a) =>
-        (a.score || 0) > (best.score || 0) ? a : best, groups[key][0]);
-      break;
+  for (const a of articles) {
+    if (!featuredArticle || (a.score || 0) > (featuredArticle.score || 0)) {
+      featuredArticle = a;
     }
   }
 
+  // Render the feed as ONE relevance-sorted list. We used to split
+  // into Breaking / Today / Earlier buckets, but that pushed time-
+  // sensitive but irrelevant articles ("Trump Iran proposal — 9 min
+  // ago") above the user's actual interests (a crypto article from
+  // 6 hours ago). Score already factors in recency; trust it.
   const groupLabels = [
-    { key: 'breaking', label: 'Breaking', hint: 'Last 3 hours' },
-    { key: 'today', label: 'Today', hint: 'Last 24 hours' },
-    { key: 'week', label: 'Earlier', hint: 'Past week' }
+    { key: 'all', label: 'For you', hint: 'Sorted by relevance to your interests' }
   ];
+  groups.all = [...articles].sort((a, b) => (b.score || 0) - (a.score || 0));
 
   groupLabels.forEach(({ key, label, hint }) => {
     const groupArticles = groups[key];
@@ -3155,8 +3163,8 @@ function renderFeed(articles) {
     const section = document.createElement('div');
     section.className = 'feed-section';
     const countTip = groupArticles.length === 1
-      ? '1 article in this time window (' + hint.toLowerCase() + ')'
-      : groupArticles.length + ' articles in this time window (' + hint.toLowerCase() + ')';
+      ? '1 article'
+      : groupArticles.length + ' articles, ' + hint.toLowerCase();
     section.innerHTML =
       '<div class="feed-section-header" title="' + escapeHtml(countTip) + '">' +
         '<span class="feed-section-label">' + label + '</span>' +
