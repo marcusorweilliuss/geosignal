@@ -3131,19 +3131,11 @@ function renderFeed(articles) {
   const groups = groupArticlesByTime(articles);
   let globalIndex = 0;
 
-  // Featured story: highest-scoring article across the entire feed,
-  // NOT just whichever group is non-empty first. The previous behavior
-  // gave breaking-news articles automatic Lead Story status even when
-  // they didn't match the user's interests at all — so a generic
-  // "Trump says…" headline posted 9 min ago would beat a high-scoring
-  // crypto article from 6 hours ago. Score is the user-relevance
-  // signal; let it decide the lead.
-  let featuredArticle = null;
-  for (const a of articles) {
-    if (!featuredArticle || (a.score || 0) > (featuredArticle.score || 0)) {
-      featuredArticle = a;
-    }
-  }
+  // No "Lead Story" / featured article — every card renders the same.
+  // The first card in the relevance-sorted list is naturally the
+  // highest-scoring one anyway; making it bigger and labelling it
+  // "Lead Story" misled users when our scoring was off.
+  const featuredArticle = null;
 
   // Render the feed as ONE relevance-sorted list. We used to split
   // into Breaking / Today / Earlier buckets, but that pushed time-
