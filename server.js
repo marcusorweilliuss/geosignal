@@ -9,6 +9,82 @@ const { SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT, classifyA
 const { queryArticles, upsertManyArticles } = require('./db');
 const { runFullIngest, googleNewsLiveSearch, liveFetchManyQueries } = require('./ingest');
 
+// Glue words that aren't useful as keyword tokens. Used by both the
+// user-intent boost (so "the" doesn't match every article) and the
+// story-clustering heuristic below.
+const COMMON_GLUE = new Set([
+  'the', 'and', 'for', 'with', 'from', 'into', 'over', 'about', 'after',
+  'before', 'this', 'that', 'they', 'their', 'them', 'these', 'those',
+  'what', 'when', 'where', 'who', 'why', 'how', 'has', 'have', 'had',
+  'are', 'was', 'were', 'will', 'would', 'should', 'could', 'can', 'may',
+  'might', 'just', 'also', 'than', 'then', 'into', 'amid', 'per', 'via',
+  'one', 'two', 'three', 'first', 'last', 'new', 'news', 'says', 'said',
+  'gets', 'get', 'goes', 'goes', 'live', 'update', 'updates', 'latest',
+  'top', 'all', 'any', 'every', 'some', 'most', 'many', 'much', 'few',
+  'how', 'why', 'still', 'now', 'here', 'there', 'good', 'bad', 'big',
+  'best', 'worst', 'hello', 'happy'
+]);
+
+// Cluster articles by title bigrams. If two titles share a rare 2-word
+// phrase like "iran war" / "bitcoin price" / "fed cuts", they're the
+// same story — keep the highest-scoring one and drop the rest. This is
+// what stops a single hot story (Iran war coverage) from flooding the
+// feed with 25 near-duplicate headlines.
+function significantBigrams(title) {
+  const tokens = String(title || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, ' ')
+    .split(/\s+/)
+    .filter(t => t.length > 2 && !COMMON_GLUE.has(t));
+  const grams = new Set();
+  for (let i = 0; i < tokens.length - 1; i++) {
+    grams.add(tokens[i] + ' ' + tokens[i + 1]);
+  }
+  return grams;
+}
+
+function clusterArticlesByTitle(articles, maxPerCluster = 1) {
+  if (!articles || !articles.length) return articles || [];
+  const clusters = []; // [{ signature: Set<bigram>, items: [] }]
+  // Process in score-descending order so each cluster's representative
+  // is the highest-scoring article (the rest get dropped or kept as
+  // alternates depending on maxPerCluster).
+  const sorted = [...articles].sort((a, b) => (b.score || 0) - (a.score || 0));
+  for (const a of sorted) {
+    const grams = significantBigrams(a.title);
+    if (grams.size === 0) {
+      // No usable bigram (very short title) — keep as singleton.
+      clusters.push({ signature: new Set(['__' + (a.url || Math.random())]), items: [a] });
+      continue;
+    }
+    let placed = false;
+    for (const c of clusters) {
+      let hits = 0;
+      for (const g of grams) {
+        if (c.signature.has(g)) { hits++; if (hits >= 1) break; }
+      }
+      // Even ONE shared significant bigram is enough — these are
+      // post-stopword n-grams, so a shared "iran war" or "bitcoin
+      // price" is a strong same-story signal.
+      if (hits >= 1) {
+        c.items.push(a);
+        for (const g of grams) c.signature.add(g);
+        placed = true;
+        break;
+      }
+    }
+    if (!placed) {
+      clusters.push({ signature: new Set(grams), items: [a] });
+    }
+  }
+  const out = [];
+  for (const c of clusters) {
+    out.push(...c.items.slice(0, maxPerCluster));
+  }
+  // Already roughly score-sorted but re-sort to be safe.
+  return out.sort((a, b) => (b.score || 0) - (a.score || 0));
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -878,11 +954,15 @@ app.get('/api/news', async (req, res) => {
     // Build the live-query list in priority order: search bar first
     // (highest intent), then profile keywords (durable interests),
     // then sidebar keywords (session interests), then location/sector
-    // refinements. Capped at 7 total to keep latency reasonable.
+    // refinements. We pull every user keyword (not a top-N slice)
+    // because cutting off at 4 means a beta tester with "Stock prices,
+    // Good news, Happy news, Cute animals, Cryptocurrency, Bitcoin"
+    // never gets the relevant ones live-fetched. Dedup happens in
+    // liveFetchManyQueries.
     const liveQueries = [];
     if (search && search.trim().length > 1) liveQueries.push(search.trim());
-    liveQueries.push(...profileKeywordsList.slice(0, 4));
-    liveQueries.push(...keywordTerms.slice(0, 4));
+    liveQueries.push(...profileKeywordsList);
+    liveQueries.push(...keywordTerms);
     if (locationTerms.length) liveQueries.push(locationTerms.slice(0, 2).join(' '));
     liveQueries.push(...narrowedSectors);
 
@@ -891,7 +971,7 @@ app.get('/api/news', async (req, res) => {
         const t0 = Date.now();
         const { queries: ranQueries, articles: liveArticles } = await liveFetchManyQueries(
           liveQueries,
-          { regionSlug: regionSlugs[0] || 'global', perQueryLimit: 12, totalLimit: 7 }
+          { regionSlug: regionSlugs[0] || 'global', perQueryLimit: 10, totalLimit: 12 }
         );
         const took = Date.now() - t0;
         console.log(`Live Google News [${ranQueries.join(' | ')}]: ${liveArticles.length} articles in ${took}ms`);
@@ -1071,16 +1151,21 @@ app.get('/api/news', async (req, res) => {
       const userIntentTerms = new Set();
       for (const t of expandedSearchTerms) userIntentTerms.add(t.toLowerCase());
       for (const t of searchTerms) userIntentTerms.add(t.toLowerCase());
-      for (const t of keywordTerms) userIntentTerms.add(t.toLowerCase());
-      // Profile keywords often come as multi-word phrases ("Donald Trump").
-      // Keep them whole AND also tokenize so partial matches still hit.
-      for (const kw of profileKeywordsList) {
+      // Sidebar + profile keywords often come as multi-word phrases
+      // ("Stock Market Prices", "Donald Trump"). Add the whole phrase
+      // AND each significant token, so an article titled "stock futures
+      // rally" hits "stock" while "Donald Trump speech" hits "donald"
+      // AND "trump". Tokens shorter than 3 chars are dropped to avoid
+      // matching English glue words.
+      const expandKeyword = (kw) => {
         const lower = String(kw).toLowerCase().trim();
         if (lower.length > 1) userIntentTerms.add(lower);
-        for (const tok of lower.split(/\s+/)) {
-          if (tok.length > 2) userIntentTerms.add(tok);
+        for (const tok of lower.split(/[\s\-,]+/)) {
+          if (tok.length > 2 && !COMMON_GLUE.has(tok)) userIntentTerms.add(tok);
         }
-      }
+      };
+      for (const t of keywordTerms) expandKeyword(t);
+      for (const kw of profileKeywordsList) expandKeyword(kw);
       if (userIntentTerms.size > 0) {
         const titleLower = (a.title || '').toLowerCase();
         const descLower = (a.description || '').toLowerCase();
@@ -1136,6 +1221,16 @@ app.get('/api/news', async (req, res) => {
       unique.forEach(a => {
         if (!allowed.has(a.articleType)) a.score -= 30;
       });
+    }
+
+    // Story clustering. 25 articles about "Iran war 60-day deadline"
+    // become 1 article (the highest-scoring rep). Frees up slots in
+    // the user-visible feed for stories the user actually asked for.
+    // Done AFTER scoring so the rep is the best-ranked variant.
+    const beforeCluster = unique.length;
+    unique = clusterArticlesByTitle(unique, 1);
+    if (beforeCluster - unique.length > 0) {
+      console.log(`Story clustering collapsed ${beforeCluster} → ${unique.length} articles`);
     }
 
     // ── Test mode: LLM-first selection + ranking ──
