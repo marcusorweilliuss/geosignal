@@ -25,63 +25,65 @@ const COMMON_GLUE = new Set([
   'best', 'worst', 'hello', 'happy'
 ]);
 
-// Cluster articles by title bigrams. If two titles share a rare 2-word
-// phrase like "iran war" / "bitcoin price" / "fed cuts", they're the
-// same story — keep the highest-scoring one and drop the rest. This is
-// what stops a single hot story (Iran war coverage) from flooding the
-// feed with 25 near-duplicate headlines.
-function significantBigrams(title) {
-  const tokens = String(title || '')
+// Cluster articles by significant title tokens. If two titles share
+// 2 or more distinctive words, they're the same story — keep the
+// highest-scoring one and drop the rest. Stops a single big topic
+// (Iran/Pakistan/Singapore coverage of the day) from flooding the
+// feed with near-duplicate-but-different-angle headlines.
+//
+// Tokens are post-stopword content words. Bigrams were too strict —
+// "Iran war" and "Iran peace plan" share no bigram even though they're
+// clearly the same story cluster.
+function significantTokens(title) {
+  return new Set(String(title || '')
     .toLowerCase()
     .replace(/[^a-z0-9 ]/g, ' ')
     .split(/\s+/)
-    .filter(t => t.length > 2 && !COMMON_GLUE.has(t));
-  const grams = new Set();
-  for (let i = 0; i < tokens.length - 1; i++) {
-    grams.add(tokens[i] + ' ' + tokens[i + 1]);
-  }
-  return grams;
+    .filter(t => t.length > 2 && !COMMON_GLUE.has(t)));
 }
 
 function clusterArticlesByTitle(articles, maxPerCluster = 1) {
   if (!articles || !articles.length) return articles || [];
-  const clusters = []; // [{ signature: Set<bigram>, items: [] }]
-  // Process in score-descending order so each cluster's representative
-  // is the highest-scoring article (the rest get dropped or kept as
-  // alternates depending on maxPerCluster).
+  const clusters = []; // [{ signature: Set<token>, items: [] }]
+  // Process in score-descending order so each cluster's rep is the
+  // highest-scoring article.
   const sorted = [...articles].sort((a, b) => (b.score || 0) - (a.score || 0));
   for (const a of sorted) {
-    const grams = significantBigrams(a.title);
-    if (grams.size === 0) {
-      // No usable bigram (very short title) — keep as singleton.
+    const tokens = significantTokens(a.title);
+    if (tokens.size === 0) {
       clusters.push({ signature: new Set(['__' + (a.url || Math.random())]), items: [a] });
       continue;
     }
     let placed = false;
     for (const c of clusters) {
       let hits = 0;
-      for (const g of grams) {
-        if (c.signature.has(g)) { hits++; if (hits >= 1) break; }
+      for (const t of tokens) {
+        if (c.signature.has(t)) {
+          hits++;
+          if (hits >= 2) break;
+        }
       }
-      // Even ONE shared significant bigram is enough — these are
-      // post-stopword n-grams, so a shared "iran war" or "bitcoin
-      // price" is a strong same-story signal.
-      if (hits >= 1) {
+      // 2+ shared significant tokens → same cluster.
+      // "Iran war" + "Iran peace plan" share { iran } — only 1, no cluster.
+      // But also "Iran nuclear talks" + "Iran nuclear deal" share
+      // { iran, nuclear } → cluster.
+      // "Singapore travellers flight prices" + "Singapore safe-haven Chinese capital" share
+      // only { singapore } → no cluster (different stories).
+      if (hits >= 2) {
         c.items.push(a);
-        for (const g of grams) c.signature.add(g);
+        for (const t of tokens) c.signature.add(t);
         placed = true;
         break;
       }
     }
     if (!placed) {
-      clusters.push({ signature: new Set(grams), items: [a] });
+      clusters.push({ signature: new Set(tokens), items: [a] });
     }
   }
   const out = [];
   for (const c of clusters) {
     out.push(...c.items.slice(0, maxPerCluster));
   }
-  // Already roughly score-sorted but re-sort to be safe.
   return out.sort((a, b) => (b.score || 0) - (a.score || 0));
 }
 
@@ -1166,18 +1168,39 @@ app.get('/api/news', async (req, res) => {
       };
       for (const t of keywordTerms) expandKeyword(t);
       for (const kw of profileKeywordsList) expandKeyword(kw);
+      // Count how many distinct user-explicit signals exist. When the
+      // user has put real effort in (3+ keywords/profile/search terms),
+      // we treat keyword matching as a near-hard filter — articles
+      // matching nothing the user typed get a heavy penalty so they
+      // can't dominate just because they have high base scores from
+      // sector / recency stacking.
+      const explicitSignalCount =
+        searchTerms.length +
+        keywordTerms.length +
+        profileKeywordsList.length;
+      const explicitMode = explicitSignalCount >= 3;
+
       if (userIntentTerms.size > 0) {
         const titleLower = (a.title || '').toLowerCase();
         const descLower = (a.description || '').toLowerCase();
         let intentBoost = 0;
         let titleHits = 0;
+        let descHits = 0;
         for (const term of userIntentTerms) {
-          if (titleLower.includes(term)) { intentBoost += 120; titleHits++; }
-          else if (descLower.includes(term)) intentBoost += 40;
+          if (titleLower.includes(term)) { intentBoost += 200; titleHits++; }
+          else if (descLower.includes(term)) { intentBoost += 60; descHits++; }
         }
-        // Floor: any article matching ANY intent term clears the
-        // typical region/recency base score of non-matching articles.
-        if (intentBoost > 0) a.score += Math.max(intentBoost, 100);
+        if (intentBoost > 0) {
+          // Floor: any matching article clears typical base scores for
+          // non-matching articles by a wide margin.
+          a.score += Math.max(intentBoost, 200);
+        } else if (explicitMode) {
+          // User has 3+ explicit keywords AND this article matches none
+          // of them. Penalize heavily so it falls below every matching
+          // article. Still in the pool (for serendipity) but won't
+          // dominate the feed.
+          a.score -= 300;
+        }
       }
       // Location boost — typed cities/countries float up but never
       // delete other articles. Title matches count more than body.
