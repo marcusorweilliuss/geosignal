@@ -12,6 +12,7 @@
 const path = require('path');
 const fs = require('fs');
 const Database = require('better-sqlite3');
+const { isJunkArticle } = require('./quality-filters');
 
 const DATA_DIR = path.join(__dirname, 'data');
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -110,6 +111,12 @@ const dupCheckStmt = db.prepare(`
 
 function upsertArticle(article) {
   if (!article || !article.url || !article.title) return false;
+
+  // Quality gate — drops social-media URLs, product/affiliate pages,
+  // shopping listings. Centralised in quality-filters.js so both the
+  // ingest layer and the response layer use the same rules.
+  if (isJunkArticle(article)) return false;
+
   const titleHash = makeTitleHash(article.title);
   if (!titleHash) return false;
 

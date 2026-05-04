@@ -15,6 +15,7 @@ const Parser = require('rss-parser');
 
 const { SOURCES, getSourcesForRegion } = require('./sources');
 const { upsertManyArticles, pruneOlderThan, stats } = require('./db');
+const { isNonNewsUrl, looksLikeProductSpam, isJunkArticle } = require('./quality-filters');
 
 // ── Perplexity Sonar — primary topical news source ──────────────
 // Google News blocks Render's IP pool, so Perplexity is now our
@@ -41,6 +42,10 @@ function prettySourceFromUrl(url) {
     return '';
   }
 }
+
+// Quality filters (isNonNewsUrl, looksLikeProductSpam, isJunkArticle)
+// are imported from quality-filters.js so the storage layer (db.js)
+// applies the same rules and we never persist junk.
 
 async function perplexityNewsSearch(query, { regionSlug = '', max = 20, recency = 'week' } = {}) {
   if (!PERPLEXITY_API_KEY) return [];
@@ -76,19 +81,23 @@ async function perplexityNewsSearch(query, { regionSlug = '', max = 20, recency 
     }
     const data = await res.json();
     const results = Array.isArray(data.search_results) ? data.search_results : [];
-    return results.slice(0, max).map(r => ({
-      title: r.title || '',
-      description: r.snippet || r.title || '',
-      content: r.snippet || '',
-      url: r.url || '',
-      publishedAt: r.date ? new Date(r.date).toISOString() : new Date().toISOString(),
-      source: prettySourceFromUrl(r.url) || 'Perplexity',
-      sourceTier: 'perplexity',
-      sourceCountry: [],
-      region: regionSlug,
-      thumbnail: '',
-      ingestOrigin: 'perplexity'
-    })).filter(a => a.title && a.url);
+    return results
+      .filter(r => r && r.url && !isNonNewsUrl(r.url) && !looksLikeProductSpam(r.title))
+      .slice(0, max)
+      .map(r => ({
+        title: r.title || '',
+        description: r.snippet || r.title || '',
+        content: r.snippet || '',
+        url: r.url || '',
+        publishedAt: r.date ? new Date(r.date).toISOString() : new Date().toISOString(),
+        source: prettySourceFromUrl(r.url) || 'Perplexity',
+        sourceTier: 'perplexity',
+        sourceCountry: [],
+        region: regionSlug,
+        thumbnail: '',
+        ingestOrigin: 'perplexity'
+      }))
+      .filter(a => a.title && a.url);
   } catch (err) {
     console.log(`Perplexity error on "${String(query).slice(0, 40)}…": ${err.message}`);
     return [];
@@ -561,7 +570,11 @@ async function liveFetchManyQueries(queries, { regionSlug = '', perQueryLimit = 
   const flat = [];
   for (const r of results) {
     if (r.status === 'fulfilled' && Array.isArray(r.value)) {
-      flat.push(...r.value.slice(0, perQueryLimit));
+      // Apply the same junk filter we use at storage time so callers
+      // who concat these results into their candidate pool (rather
+      // than going through upsertArticle) don't surface spam either.
+      const clean = r.value.filter(a => !isJunkArticle(a));
+      flat.push(...clean.slice(0, perQueryLimit));
     }
   }
   return { queries: cleaned, articles: flat };
@@ -638,5 +651,6 @@ module.exports = {
   googleNewsLiveSearch,
   perplexityNewsSearch,
   liveFetchManyQueries,
-  recentUserQueries
+  recentUserQueries,
+  isJunkArticle
 };

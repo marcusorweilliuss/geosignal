@@ -1246,15 +1246,10 @@ app.get('/api/news', async (req, res) => {
       });
     }
 
-    // Story clustering. 25 articles about "Iran war 60-day deadline"
-    // become 1 article (the highest-scoring rep). Frees up slots in
-    // the user-visible feed for stories the user actually asked for.
-    // Done AFTER scoring so the rep is the best-ranked variant.
-    const beforeCluster = unique.length;
-    unique = clusterArticlesByTitle(unique, 1);
-    if (beforeCluster - unique.length > 0) {
-      console.log(`Story clustering collapsed ${beforeCluster} → ${unique.length} articles`);
-    }
+    // (Story clustering removed — was promoting weak sources like
+    // YouTube to cluster reps when their score happened to edge out
+    // mainstream coverage. Keep articles individually for now; we
+    // can revisit clustering once we have a source-quality signal.)
 
     // ── Test mode: LLM-first selection + ranking ──
     // When the client sends testMode=1, skip the deterministic sort
