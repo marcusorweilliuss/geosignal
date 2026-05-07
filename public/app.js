@@ -377,30 +377,16 @@ function clearProfile() {
 // ── Profile form rendering (shared between welcome modal & side panel) ──
 function renderProfileForm(mountEl, idPrefix) {
   const profile = getProfile() || {};
-  const industries = Array.isArray(profile.industries) ? profile.industries : [];
 
   mountEl.innerHTML = `
+    <p class="profile-form-hint">
+      Profile = who you are. <em>Regions, sectors, sources and keywords live in the sidebar</em> — your day-to-day filter view.
+    </p>
+
     <div class="form-group">
       <label for="${idPrefix}-role">Your role</label>
       <input type="text" id="${idPrefix}-role" data-field="role"
              placeholder="e.g., Analyst, Founder, Consultant, Investor..." autocomplete="off" />
-    </div>
-
-    <div class="form-group">
-      <label>Sectors of interest <span class="sector-checkbox-count" id="${idPrefix}-sector-count"></span></label>
-      <div class="sector-checkbox-group" id="${idPrefix}-sectors">
-        ${SECTOR_OPTIONS.map(s => `
-          <label class="sector-checkbox">
-            <input type="checkbox" value="${s}" data-sector />
-            <span>${s}</span>
-          </label>`).join('')}
-      </div>
-      <div class="sector-other-row">
-        <input type="text" id="${idPrefix}-sector-other" class="sector-other-input"
-               placeholder="Other (type a custom sector and press Enter)..."
-               autocomplete="off" />
-        <div class="sector-other-chips" id="${idPrefix}-sector-other-chips"></div>
-      </div>
     </div>
 
     <div class="form-group">
@@ -416,15 +402,6 @@ function renderProfileForm(mountEl, idPrefix) {
     </div>
 
     <div class="form-group">
-      <label>Keywords &amp; topics you track <span class="optional">(optional)</span></label>
-      <div class="keyword-input-row">
-        <input type="text" id="${idPrefix}-keywords-input" class="keyword-input"
-               placeholder="Type a keyword and press Enter or comma..." autocomplete="off" />
-      </div>
-      <div class="keyword-chips" id="${idPrefix}-keyword-chips"></div>
-    </div>
-
-    <div class="form-group">
       <label for="${idPrefix}-focus">Key concerns / focus areas <span class="optional">(optional)</span></label>
       <input type="text" id="${idPrefix}-focus" data-field="focus"
              placeholder="e.g., supply chain risk, ESG, emerging markets..." autocomplete="off" />
@@ -436,126 +413,28 @@ function renderProfileForm(mountEl, idPrefix) {
   mountEl.querySelector(`#${idPrefix}-company`).value = profile.company || '';
   mountEl.querySelector(`#${idPrefix}-location`).value = profile.location || '';
   mountEl.querySelector(`#${idPrefix}-focus`).value = profile.focus || '';
-  mountEl.querySelectorAll(`#${idPrefix}-sectors input[data-sector]`).forEach(cb => {
-    cb.checked = industries.includes(cb.value);
-  });
 
-  // Wire the "Other" sector free-text — each term the user types
-  // becomes a chip and gets treated as a custom sector.
-  const customSectors = Array.isArray(profile.customSectors)
-    ? profile.customSectors.slice()
-    : [];
-  const chipsEl = mountEl.querySelector(`#${idPrefix}-sector-other-chips`);
-  const otherInput = mountEl.querySelector(`#${idPrefix}-sector-other`);
-  const renderCustomSectorChips = () => {
-    chipsEl.innerHTML = customSectors
-      .map((s, i) => `<span class="sector-other-chip" data-idx="${i}">${escapeHtml(s)}<button type="button" aria-label="Remove ${escapeHtml(s)}">&times;</button></span>`)
-      .join('');
-  };
-  renderCustomSectorChips();
-  chipsEl.addEventListener('click', (e) => {
-    const btn = e.target.closest('button');
-    if (!btn) return;
-    const chip = btn.closest('.sector-other-chip');
-    if (!chip) return;
-    const idx = parseInt(chip.dataset.idx, 10);
-    if (!isNaN(idx)) {
-      customSectors.splice(idx, 1);
-      renderCustomSectorChips();
-    }
-  });
-  const commitOther = () => {
-    const raw = otherInput.value.trim().replace(/,+$/, '').trim();
-    if (!raw) return;
-    raw.split(',').map(s => s.trim()).filter(Boolean).forEach(term => {
-      if (!customSectors.includes(term)) customSectors.push(term);
-    });
-    otherInput.value = '';
-    renderCustomSectorChips();
-  };
-  otherInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      commitOther();
-    }
-  });
-  otherInput.addEventListener('blur', commitOther);
-
-  // Wire keywords & topics — same chip pattern as Other sectors
-  const keywords = Array.isArray(profile.keywords) ? profile.keywords.slice() : [];
-  const keywordChipsEl = mountEl.querySelector(`#${idPrefix}-keyword-chips`);
-  const keywordInput = mountEl.querySelector(`#${idPrefix}-keywords-input`);
-  const renderKeywordChips = () => {
-    keywordChipsEl.innerHTML = keywords
-      .map((k, i) => `<span class="keyword-chip" data-idx="${i}">${escapeHtml(k)}<button type="button" aria-label="Remove ${escapeHtml(k)}">&times;</button></span>`)
-      .join('');
-  };
-  renderKeywordChips();
-  keywordChipsEl.addEventListener('click', (e) => {
-    const btn = e.target.closest('button');
-    if (!btn) return;
-    const chip = btn.closest('.keyword-chip');
-    if (!chip) return;
-    const idx = parseInt(chip.dataset.idx, 10);
-    if (!isNaN(idx)) {
-      keywords.splice(idx, 1);
-      renderKeywordChips();
-    }
-  });
-  const commitKeyword = () => {
-    const raw = keywordInput.value.trim().replace(/,+$/, '').trim();
-    if (!raw) return;
-    raw.split(',').map(s => s.trim()).filter(Boolean).forEach(term => {
-      if (!keywords.includes(term)) keywords.push(term);
-    });
-    keywordInput.value = '';
-    renderKeywordChips();
-  };
-  keywordInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      commitKeyword();
-    }
-  });
-  keywordInput.addEventListener('blur', commitKeyword);
-
-  // Stash the live arrays on the mount so readProfileFromForm can pick them up
-  mountEl._customSectors = customSectors;
-  mountEl._keywords = keywords;
-
-  const countEl = mountEl.querySelector(`#${idPrefix}-sector-count`);
-  const updateCount = () => {
-    const n = mountEl.querySelectorAll(`#${idPrefix}-sectors input:checked`).length;
-    countEl.textContent = n > 0 ? `· ${n} selected` : '· select any that apply';
-  };
-  updateCount();
-  mountEl.querySelectorAll(`#${idPrefix}-sectors input[data-sector]`).forEach(cb => {
-    cb.addEventListener('change', updateCount);
-  });
 }
 
 function readProfileFromForm(mountEl, idPrefix) {
+  // The slide-in profile panel only edits identity fields now —
+  // role / company / location / focus. Sector + keyword editing
+  // happens in the sidebar (the day-to-day filter view), so we
+  // preserve whatever the user previously set there.
+  const existing = (typeof getProfile === 'function' ? getProfile() : null) || {};
   const role = mountEl.querySelector(`#${idPrefix}-role`).value;
   const company = mountEl.querySelector(`#${idPrefix}-company`).value;
   const location = mountEl.querySelector(`#${idPrefix}-location`).value;
   const focus = mountEl.querySelector(`#${idPrefix}-focus`).value;
-  const industries = Array.from(mountEl.querySelectorAll(`#${idPrefix}-sectors input:checked`))
-    .map(cb => cb.value);
-
-  // Flush any unfinished text in the chip inputs so a user who typed
-  // a term but never pressed Enter doesn't lose it on save.
-  const otherInput = mountEl.querySelector(`#${idPrefix}-sector-other`);
-  if (otherInput && otherInput.value.trim()) {
-    otherInput.dispatchEvent(new Event('blur'));
-  }
-  const kwInput = mountEl.querySelector(`#${idPrefix}-keywords-input`);
-  if (kwInput && kwInput.value.trim()) {
-    kwInput.dispatchEvent(new Event('blur'));
-  }
-
-  const customSectors = Array.isArray(mountEl._customSectors) ? mountEl._customSectors.slice() : [];
-  const keywords = Array.isArray(mountEl._keywords) ? mountEl._keywords.slice() : [];
-  return { role, industries, company, location, focus, customSectors, keywords };
+  return {
+    role,
+    industries: Array.isArray(existing.industries) ? existing.industries : [],
+    company,
+    location,
+    focus,
+    customSectors: Array.isArray(existing.customSectors) ? existing.customSectors : [],
+    keywords: Array.isArray(existing.keywords) ? existing.keywords : []
+  };
 }
 
 // ── Welcome wizard (multi-step onboarding) ──

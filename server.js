@@ -706,13 +706,13 @@ async function llmSelectAndRank({ articles, profile, activeFilters, searchQuery,
     return parts.join(' ');
   }).join('\n');
 
-  const prompt = `You are a senior news editor curating a personalised briefing. Below is a pool of ${pool.length} recent news articles and a profile of the reader. Pick the top ${topN} articles that are MOST GENUINELY RELEVANT to this specific reader — not just popular, not just recent.
+  const prompt = `You are a senior news editor curating a personalised briefing. Below is a pool of ${pool.length} recent news articles and a profile of the reader. Pick the articles that are GENUINELY RELEVANT to this specific reader — not popular, not recent — relevant.
 
 READER PROFILE + ACTIVE FILTERS:
 ${contextBlock}
 ${searchQuery ? '\nSEARCH QUERY: "' + searchQuery + '"' +
   (Array.isArray(expandedSearchTerms) && expandedSearchTerms.length ? '\nRelated terms (any of these counts as a hit on the search topic): ' + expandedSearchTerms.join(', ') : '') +
-  '\nThe user is searching for this topic. Articles directly about it should rank highest. Articles tangentially related can fill out the lower ranks.\n' : ''}
+  '\nArticles directly about this topic rank highest. Tangentially related articles should be excluded entirely.\n' : ''}
 ${behavioralPatterns ? `BEHAVIORAL PATTERNS (from this user's reading history):
 - Topics they engage with most: ${(behavioralPatterns.topSectors || []).join(', ') || 'not enough data yet'}
 - Regions they read about: ${(behavioralPatterns.topRegions || []).join(', ') || 'not enough data yet'}
@@ -721,17 +721,16 @@ ${behavioralPatterns ? `BEHAVIORAL PATTERNS (from this user's reading history):
 - Terms they look up (annotate): ${(behavioralPatterns.topAnnotatedTerms || []).join(', ') || 'none yet'}
 ${(behavioralPatterns.likedTitles || []).length ? '- Articles they LIKED (show more like these): ' + behavioralPatterns.likedTitles.slice(-5).join(' | ') : ''}
 ${(behavioralPatterns.dislikedTitles || []).length ? '- Articles they DISLIKED (show fewer like these): ' + behavioralPatterns.dislikedTitles.slice(-5).join(' | ') : ''}
-Use these patterns as a secondary signal. Liked article patterns boost similar content. Disliked patterns deprioritize similar content. But explicit filters always take priority over behavioral patterns.
-` : ''}RANKING RULES:
-- Prioritise GENUINE relevance over recency. A week-old article that directly matters to the reader beats a brand-new one that doesn't.
-- A specific, named hit on the reader's country, region, sector, company, or tracked keywords beats a tangential association.
-- Do NOT manufacture connections. If an article has no clear link to the reader's interests, rank it lower — don't invent a reason to include it.
-- Do NOT invent or imply ties to the reader's employer / university unless the article specifically references them.
-- Break ties with recency: newer article wins.
-- Avoid duplicates on the same story from different outlets — pick the strongest single version and skip the rest.
-- SOURCE DIVERSITY: Do not let any single outlet (e.g. Reuters, Straits Times, Bloomberg) contribute more than 3 articles in the top 30. Spread across sources to give the reader a variety of perspectives.
-- TOPIC DIVERSITY: Avoid listing 5 articles about the same topic back-to-back. Interleave different subjects for a more scannable, interesting feed.
-- RECENCY AS TIEBREAKER: When two articles have similar relevance, rank the newer one higher. But never place a fresh-but-irrelevant article above an older-but-directly-relevant one.
+Liked article patterns boost similar content. Disliked patterns deprioritize similar content. Explicit filters always take priority.
+` : ''}HARD RANKING RULES:
+- QUALITY OVER QUANTITY. Return only articles that genuinely match the reader's interests. If only 8 of the 300 are truly relevant, return 8 — DO NOT pad with tangential articles to hit a target count. A short relevant feed beats a long irrelevant one.
+- An article must have a SPECIFIC, NAMED hit on the reader's country, region, sector, company, profile keywords, or filter keywords. "Could affect the broader industry" is not a hit. "Mentions India" is not a hit if the reader's regions don't include India and India isn't in their keywords.
+- Do NOT manufacture connections. If you can't justify in one sentence WHY this article matches the reader's stated interests, exclude it.
+- Do NOT invent ties to the reader's employer / university unless the article specifically references them.
+- Recency is ONLY a tiebreaker between two equally-relevant articles — never elevates a recent-but-irrelevant article above an older-but-relevant one.
+- Avoid duplicates on the same story from different outlets — pick the strongest single version.
+- Source diversity: cap any single outlet at 3 articles in the response.
+- Topic diversity: don't return 5 articles back-to-back on the same sub-topic. Interleave.
 
 CANDIDATE ARTICLES (each line starts with [id]):
 ${lines}
@@ -739,43 +738,70 @@ ${lines}
 Return ONLY this JSON (no prose, no code fences):
 {"top": [id, id, id, ...]}
 
-CRITICAL OUTPUT REQUIREMENTS:
-- Return EXACTLY ${Math.min(topN, pool.length)} IDs. Not fewer. If you think only a handful are highly relevant, fill the remainder with the next-most-relevant articles ranked from best to worst. The user wants a full feed, not a curated handful.
-- Each ID must be a number between 0 and ${pool.length - 1}.
-- Each ID appears at most once.
-- First ID is most relevant; last is least relevant (but still in the list).
-- Do not return prose, explanations, or code fences — ONLY the JSON object.`;
+OUTPUT:
+- Return UP TO ${Math.min(topN, pool.length)} IDs — fewer is fine and PREFERRED if only a handful are truly relevant.
+- Order by relevance (most relevant first).
+- Each ID is between 0 and ${pool.length - 1}, and each appears at most once.
+- No prose, no code fences — only the JSON object.`;
 
+  // Attempt 1: Groq (fast, free, but rate-limited).
+  // Attempt 2: Perplexity (paid, slower, no rate limits we hit).
+  // If both fail, return null so the caller falls back to deterministic
+  // scoring.
   let rankedIds = null;
+  let provider = '';
+  const t0 = Date.now();
+
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 18000);
     const completion = await groqChat(
       [{ role: 'user', content: prompt }],
       { temperature: 0.1, max_tokens: 900 }
     );
-    clearTimeout(timer);
     const raw = completion?.choices?.[0]?.message?.content || '';
-    const cleaned = stripCodeFences(raw);
-    let parsed;
-    try { parsed = JSON.parse(cleaned); }
-    catch {
-      const m = cleaned.match(/\{[\s\S]*\}/);
-      if (m) parsed = JSON.parse(m[0]);
-    }
-    if (parsed && Array.isArray(parsed.top)) {
-      const seen = new Set();
-      rankedIds = parsed.top
-        .map(n => parseInt(n, 10))
-        .filter(n => !isNaN(n) && n >= 0 && n < pool.length && !seen.has(n) && seen.add(n));
-    }
+    rankedIds = parseRankedIds(raw, pool.length);
+    if (rankedIds && rankedIds.length > 0) provider = 'groq';
   } catch (err) {
-    console.error('llmSelectAndRank failed:', err.message);
-    return null;
+    console.log('LLM rerank: Groq failed (' + err.message + '), trying Perplexity');
   }
 
-  if (!rankedIds || rankedIds.length === 0) return null;
+  if ((!rankedIds || rankedIds.length === 0) && PERPLEXITY_API_KEY) {
+    try {
+      const completion = await perplexityChat(
+        [{ role: 'user', content: prompt }],
+        { temperature: 0.1, max_tokens: 900 }
+      );
+      const raw = completion?.choices?.[0]?.message?.content || '';
+      rankedIds = parseRankedIds(raw, pool.length);
+      if (rankedIds && rankedIds.length > 0) provider = 'perplexity';
+    } catch (err) {
+      console.log('LLM rerank: Perplexity also failed (' + err.message + ')');
+    }
+  }
+
+  if (!rankedIds || rankedIds.length === 0) {
+    console.log(`LLM rerank: returned 0 articles in ${Date.now() - t0}ms — falling back to deterministic scoring`);
+    return null;
+  }
+  console.log(`LLM rerank: ${provider} picked ${rankedIds.length}/${pool.length} articles in ${Date.now() - t0}ms`);
   return rankedIds.map(i => pool[i]);
+}
+
+function parseRankedIds(raw, poolLength) {
+  const cleaned = stripCodeFences(raw || '');
+  let parsed;
+  try { parsed = JSON.parse(cleaned); }
+  catch {
+    const m = cleaned.match(/\{[\s\S]*\}/);
+    if (m) {
+      try { parsed = JSON.parse(m[0]); } catch {}
+    }
+  }
+  if (!parsed || !Array.isArray(parsed.top)) return null;
+  const seen = new Set();
+  const ids = parsed.top
+    .map(n => parseInt(n, 10))
+    .filter(n => !isNaN(n) && n >= 0 && n < poolLength && !seen.has(n) && seen.add(n));
+  return ids;
 }
 
 // Build a concise, human-readable reason why this article matched.
@@ -910,30 +936,49 @@ app.get('/api/news', async (req, res) => {
     const maxAgeMs = (dateRangeHours > 0 ? Math.min(dateRangeHours, 720) : 720) * 60 * 60 * 1000;
     const cutoff = Date.now() - maxAgeMs;
 
+    // Parse profile early so we can use its keywords for the SQL pull.
+    let parsedProfile = null;
+    if (profileStr) { try { parsedProfile = JSON.parse(profileStr); } catch {} }
+    const profileKeywords = (parsedProfile && Array.isArray(parsedProfile.keywords))
+      ? parsedProfile.keywords.filter(Boolean).map(s => String(s).toLowerCase().trim())
+      : [];
+
+    // Strict-keyword mode: when the user has typed ANY explicit
+    // interest (search bar, sidebar keywords, or profile keywords),
+    // we pull only articles whose title/description matches at least
+    // one of those terms via FTS5. This stops the pool from being
+    // dominated by hot-but-irrelevant regional news (Iran/Pakistan
+    // when the user only cares about crypto, etc.).
+    const allUserTerms = Array.from(new Set([
+      ...searchTerms,
+      ...keywordTerms,
+      ...profileKeywords
+    ])).filter(Boolean);
+    const strictKeywordMode = allUserTerms.length > 0;
+
     // Pull articles from the SQLite corpus (RSS + GDELT + Google News
     // all live in the same store, written by ingest.js).
     //
     // Region is a *soft* signal. We pull from every region in the
-    // user's selection plus 'global' (broad-coverage articles get
-    // tagged 'global' on ingest, so this prevents losing cross-region
-    // stories like a major Bitcoin headline when the user picks just
-    // Middle East). When the user is searching, we query across the
-    // entire corpus regardless. The scoring step below boosts in-region
-    // matches so a Middle East selection still produces a Middle East
-    // –leaning feed.
+    // user's selection plus 'global'. When strict-keyword mode is
+    // active, we also broaden to ALL regions so a crypto match in a
+    // Latin America–tagged article still surfaces.
     const includeArr = includeSet ? [...includeSet] : null;
     const excludeArr = excludeSet ? [...excludeSet] : null;
-    const queryRegionSlugs = searchTerms.length > 0
+    const queryRegionSlugs = strictKeywordMode
       ? ['__all__']
       : Array.from(new Set([...regionSlugs, 'global']));
     let allArticles = queryArticles({
       regionSlugs: queryRegionSlugs,
       sinceMs: cutoff,
-      q: searchTerms.length > 0 ? searchTerms.join(' ') : null,
+      q: strictKeywordMode ? allUserTerms.join(' ') : null,
       includeSources: includeArr,
       excludeSources: excludeArr,
       limit: 2500
     });
+    if (strictKeywordMode) {
+      console.log(`Strict-keyword mode active for [${allUserTerms.slice(0,8).join(', ')}…]: ${allArticles.length} articles match in corpus`);
+    }
 
     // Live fetch — fire off Google News queries for everything the
     // user actually cares about right now, in parallel.
@@ -943,10 +988,8 @@ app.get('/api/news', async (req, res) => {
     // boosted heavily during scoring so matching articles dominate
     // the top of the feed. Locations and narrowed sectors are
     // included too but lower priority.
-    let parsedProfileEarly = null;
-    if (profileStr) { try { parsedProfileEarly = JSON.parse(profileStr); } catch {} }
-    const profileKeywordsList = (parsedProfileEarly && Array.isArray(parsedProfileEarly.keywords))
-      ? parsedProfileEarly.keywords.filter(Boolean)
+    const profileKeywordsList = (parsedProfile && Array.isArray(parsedProfile.keywords))
+      ? parsedProfile.keywords.filter(Boolean)
       : [];
     const totalSectorCount0 = Object.keys(SECTOR_KEYWORDS || {}).length;
     const narrowedSectors = (activeSectors.length > 0 && activeSectors.length < totalSectorCount0)
@@ -988,11 +1031,8 @@ app.get('/api/news', async (req, res) => {
 
     console.log(`Serving ${allArticles.length} candidate articles from corpus for [${regionSlugs.join(',')}]${searchTerms.length ? ` search="${searchTerms.join(' ')}"` : ''}`);
 
-    // Parse user profile for scoring
-    let userProfile = null;
-    if (profileStr) {
-      try { userProfile = JSON.parse(profileStr); } catch {}
-    }
+    // Reuse the early-parsed profile so we don't double-parse.
+    const userProfile = parsedProfile;
 
     // Semantically expand every profile field once per request. The
     // helper caches by (kind,value) for 24h so repeated requests for
