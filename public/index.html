@@ -192,11 +192,7 @@
           </span>
           <span id="profile-btn-text" class="icon-btn-label">My profile</span>
         </button>
-        <div class="brief-length-toggle" role="group" aria-label="Briefing length">
-          <span class="brief-length-label-prefix">Briefings:</span>
-          <button class="brief-len-btn active" data-len="concise" type="button" title="Show the first sentence of each section — fast skim.">Concise</button>
-          <button class="brief-len-btn" data-len="detailed" type="button" title="Show every section in full, with all sentences and bullets.">Detailed</button>
-        </div>
+        <!-- Briefings are always rendered in full (detailed) — no toggle. -->
 
         <!-- Annotate is always on — no toggle needed -->
         <input type="checkbox" id="annotate-toggle" checked style="display:none">
@@ -368,6 +364,23 @@
     </div>
 
     <div class="stats-strip" id="stats-strip"></div>
+
+    <!-- Always-visible "how to use Annotate" banner. Closeable; stays
+         dismissed via localStorage. Designed to draw attention to the
+         feature so users discover the green-term explanations. -->
+    <div class="annotate-feature-banner" id="annotate-feature-banner" role="note">
+      <div class="annotate-feature-banner-icon">
+        <svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M2 14l4-1 7-7a1.4 1.4 0 0 0-2-2L4 11z"/>
+          <path d="M9 5l2 2"/>
+        </svg>
+      </div>
+      <div class="annotate-feature-banner-body">
+        <strong>Annotate is on.</strong>
+        <span>Inside any briefing, tap a <em>green-underlined term</em> for a plain-English explanation, or highlight any phrase to look it up. No toggle — it&rsquo;s always available.</span>
+      </div>
+      <button class="annotate-feature-banner-close" id="annotate-feature-banner-close" type="button" title="Hide this banner" aria-label="Hide this banner">&times;</button>
+    </div>
 
     <main id="feed">
       <div class="loading-feed">
@@ -566,21 +579,6 @@
   <div class="annotate-popup" id="annotate-popup">
     <button class="annotate-popup-close" id="annotate-popup-close">&times;</button>
     <div class="annotate-popup-body" id="annotate-popup-body"></div>
-  </div>
-
-  <!-- Annotate feature awareness — sticky floating card -->
-  <div class="annotate-awareness" id="annotate-awareness">
-    <div class="annotate-awareness-icon">
-      <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-        <path d="M2 14l4-1 7-7a1.4 1.4 0 0 0-2-2L4 11z"/>
-        <path d="M9 5l2 2"/>
-      </svg>
-    </div>
-    <div class="annotate-awareness-body">
-      <strong>Tap any green term</strong>
-      <span>to get an instant explanation</span>
-    </div>
-    <button class="annotate-awareness-try" id="annotate-awareness-try" type="button">Try it &darr;</button>
   </div>
 
   <script src="app.js"></script>

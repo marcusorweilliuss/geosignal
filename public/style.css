@@ -157,10 +157,10 @@ html {
 }
 
 .app-shell {
-  max-width: 1280px;
+  max-width: 1600px;     /* use more of wide screens; was 1280 */
   margin: 0 auto;
-  padding: 32px 40px 80px;
-  padding-left: 260px; /* room for the fixed left sidebar on desktop */
+  padding: 32px 28px 80px; /* tighter outer gutter so cards have room */
+  padding-left: 248px;     /* sidebar is 220px + ~28px gap */
 }
 
 /* ── Left sidebar (primary sector navigation) ────────────────── */
@@ -3197,8 +3197,13 @@ select:focus {
   border-color: var(--accent-soft);
   box-shadow: var(--shadow-lg);
   transform: none;
-  padding-bottom: 32px;
+  padding: 28px 44px 36px; /* generous side gutters so brief text breathes */
   margin-bottom: 20px;
+}
+
+/* On narrower viewports tighten the brief gutters back */
+@media (max-width: 720px) {
+  .card.card-expanded { padding: 22px 22px 28px; }
 }
 
 .card.card-expanded:hover {
@@ -5108,4 +5113,92 @@ footer span {
 ::selection {
   background: var(--accent-soft);
   color: var(--text-primary);
+}
+
+/* ── Persistent Annotate-feature awareness banner ───────────────
+   Sits above the feed, always visible until the user dismisses it
+   via the close button. Designed to draw attention to the green-
+   underlined-term feature so users discover the explainer popups. */
+.annotate-feature-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 0 0 24px 0;
+  padding: 16px 22px;
+  background: linear-gradient(135deg, rgba(15, 110, 86, 0.08), rgba(232, 118, 58, 0.06));
+  border: 1px solid var(--accent-soft);
+  border-left: 4px solid var(--accent);
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(28, 25, 23, 0.04);
+  color: var(--text-primary);
+  font-family: var(--sans);
+  position: relative;
+}
+
+.annotate-feature-banner-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+}
+
+.annotate-feature-banner-body {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  line-height: 1.55;
+  font-size: 14.5px;
+  color: var(--text-primary);
+}
+
+.annotate-feature-banner-body strong {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--accent);
+  letter-spacing: 0.1px;
+}
+
+.annotate-feature-banner-body em {
+  color: var(--accent);
+  font-style: normal;
+  font-weight: 500;
+  border-bottom: 1px dashed rgba(15, 110, 86, 0.45);
+}
+
+.annotate-feature-banner-close {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  border-radius: 50%;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.annotate-feature-banner-close:hover {
+  background: rgba(28, 25, 23, 0.06);
+  color: var(--text-primary);
+}
+
+@media (max-width: 720px) {
+  .annotate-feature-banner {
+    flex-wrap: wrap;
+    padding: 14px 16px;
+    gap: 10px;
+  }
+  .annotate-feature-banner-icon { width: 32px; height: 32px; }
 }

@@ -435,7 +435,7 @@ const groqCaches = {
 // Bump this whenever TL;DR parsing logic changes to invalidate cached entries
 // from previous versions that may have wrong summaries under right keys
 const TLDR_CACHE_VERSION = 'v2-indexed';
-const BRIEFING_CACHE_VERSION = 'v5-tight-bullets';
+const BRIEFING_CACHE_VERSION = 'v6-prose-cited';
 
 function cacheGet(bucket, key) {
   const entry = groqCaches[bucket]?.get(key);
@@ -1579,35 +1579,27 @@ No other text, no markdown, no prose. Just the JSON object.`;
 // Returns { briefing, citationMap } in the same shape as Groq so the
 // /api/briefing handler can use either source transparently.
 async function generateBriefingWithPerplexity({ title, articleContent, isOfficial, articleUrl }) {
-  const systemPrompt = "You are a geopolitical intelligence briefer for busy professionals. Produce SHORT, BULLETED briefings — never essays, never flowing prose. Every bullet must be a concrete fact or insight with specific actors, numbers, dates, or places. No filler, no throat-clearing, no hedges like 'could potentially', 'some observers', 'it is important to note'. If you do not have a specific fact, do not write the bullet.";
+  const systemPrompt = "You are a geopolitical intelligence analyst writing structured, factual briefings for professional audiences — consultants, investors, and policy professionals. You have access to real-time information and use it to enrich the article. Your output is specific, named, and concrete — never vague. You ALWAYS attach a numeric citation marker (e.g. [1], [2]) at the end of every sentence, pointing to the source you drew the claim from. Every sentence carries its own citation.";
 
-  const userPrompt = `Produce a BULLETED intelligence briefing on the following news article. Use real-time information to enrich the analysis beyond the article where helpful.
+  const userPrompt = `Produce a structured intelligence briefing on the following news article. Use your real-time search results to enrich each section beyond what is in the article alone — but every claim must be sourced.
 
 Article title: ${title}
 Article text: ${articleContent}
 
 Return ONLY this JSON (no prose outside, no markdown fences):
 {
-  "what_happened": [
-    "3-5 short bullets. Each bullet is ONE sentence, max 25 words, answering WHO did WHAT, WHEN, and the core factual claim with concrete figures, named actors, titles, or terms where present. Never generic — no 'officials', no 'a trade deal was reached' without saying what it covers. If the article is too thin for specifics, return exactly: ['Limited detail available — see original article for full context.']"
-  ],
-  "what_led_to_this": [
-    "2-4 short bullets. Each bullet names a specific prior event with a specific date or period, explaining why this is happening now. No vague backgrounders."
-  ],
-  "what_experts_say": [
-    "2-4 short bullets. Each bullet paraphrases a named analyst, think tank, official, or publication with a concrete position. Only cite real sources you actually know of — if none, return exactly: ['No substantive expert commentary available for this specific development.']"
-  ],
-  "why_it_matters": [
-    "2-3 short bullets. Each bullet is a concrete strategic consequence — a specific sector, region, price, deadline, or actor that is affected. No abstract 'has significant implications'."
-  ]
+  "what_happened": "3-5 sentences of factual reporting. Cover (a) WHO is involved with named actors, organisations, and countries — never collective nouns like 'officials' or 'the government', (b) WHAT specifically happened with the substantive content (e.g. not 'a trade deal was reached' but 'A and B signed a 10-year agreement covering semiconductors and critical minerals, with X% tariff reductions'), (c) WHEN it happened with specific dates, (d) the core factual claim — what was actually said, decided, signed, announced, or changed, with concrete figures, titles, or terms. Every sentence ends with a citation marker like [1] or [2] pointing to a search result. If the article is genuinely too thin to write this section, return exactly: 'Limited detail available — see original article for full context.'",
+  "what_led_to_this": "3-5 sentences of historical and political background explaining why this is happening now. Reference specific prior events with dates. Each sentence ends with a [n] citation.",
+  "what_experts_say": "3-5 sentences synthesising perspectives from named analysts, think tanks, or officials who have commented on this development or related issues. Name them, paraphrase their position, and cite. If genuinely no substantive expert commentary exists, return exactly: 'No substantive expert commentary available for this specific development.'",
+  "why_it_matters": "3-4 sentences on the strategic significance and broader implications. Each sentence ends with a [n] citation. Include specific consequences — a sector, region, price level, deadline, counterparty, or actor that is affected."
 }
 
 HARD RULES:
-- Bullets must be declarative, complete sentences.
-- Max 25 words per bullet. Aim for 12-20.
-- Every bullet must contain at least one concrete noun (name, place, date, number, title).
+- Each section is multi-sentence prose, not bullets. Aim for 60-130 words per section.
+- Every sentence MUST end with a citation marker like [1], [2], [3] — corresponding to the n-th search result. No sentence is unsourced.
+- Sentences are declarative and concrete. Every sentence has at least one named noun (actor, place, date, number, title).
+- No sentence starts with "This", "It", "The situation", or any vague pronoun referring to the whole story — name the subject explicitly.
 - Do not repeat the same fact across sections.
-- No bullet may start with "This", "It", "The situation", or any pronoun referring to the whole story — name the subject explicitly.
 - Output only the JSON object. No preamble, no code fences.`;
 
   const completion = await perplexityChat(
@@ -1615,7 +1607,7 @@ HARD RULES:
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userPrompt }
     ],
-    { temperature: 0.2, max_tokens: 900 }
+    { temperature: 0.2, max_tokens: 1400 }
   );
 
   const raw = completion?.choices?.[0]?.message?.content || '';
@@ -1645,29 +1637,32 @@ HARD RULES:
       .filter(Boolean);
   };
 
-  const whatHappened = asBullets(parsed.what_happened);
-  const whatLed = asBullets(parsed.what_led_to_this);
-  const whatExperts = asBullets(parsed.what_experts_say);
-  const whyMatters = asBullets(parsed.why_it_matters);
+  // Sections are now multi-sentence prose strings. We accept either
+  // a string (preferred) or an array (gracefully concat) so a model
+  // that misreads the prompt and returns an array still works.
+  const asProse = (val) => {
+    if (Array.isArray(val)) return val.map(s => String(s || '').trim()).filter(Boolean).join(' ');
+    return String(val || '').trim();
+  };
 
-  if (!whatHappened.length || !whatLed.length || !whatExperts.length || !whyMatters.length) {
+  const whatHappened = asProse(parsed.what_happened);
+  const whatLed = asProse(parsed.what_led_to_this);
+  const whatExperts = asProse(parsed.what_experts_say);
+  const whyMatters = asProse(parsed.why_it_matters);
+
+  if (!whatHappened || !whatLed || !whatExperts || !whyMatters) {
     throw new Error('Perplexity JSON is missing one or more required sections');
   }
-
-  // Convert bullet arrays to "- item" lines so the client's formatBullets()
-  // renders a proper <ul>, and the concise-mode CSS naturally hides all
-  // but the first <li>.
-  const bulletify = (arr) => arr.map(s => '- ' + s).join('\n');
 
   const expertsLabel = isOfficial
     ? 'WHAT THE GOVERNMENT IS CLAIMING AND ITS LIKELY STRATEGIC INTENT'
     : 'WHAT REGIONAL EXPERTS ARE SAYING';
 
   const briefingText =
-    `WHAT HAPPENED:\n${bulletify(whatHappened)}\n\n` +
-    `WHAT LED TO THIS:\n${bulletify(whatLed)}\n\n` +
-    `${expertsLabel}:\n${bulletify(whatExperts)}\n\n` +
-    `WHY THIS MATTERS:\n${bulletify(whyMatters)}`;
+    `WHAT HAPPENED:\n${whatHappened}\n\n` +
+    `WHAT LED TO THIS:\n${whatLed}\n\n` +
+    `${expertsLabel}:\n${whatExperts}\n\n` +
+    `WHY THIS MATTERS:\n${whyMatters}`;
 
   // Perplexity returns a `search_results` array (objects with title + url +
   // date) and/or a `citations` array of URL strings. Prefer search_results
@@ -1917,7 +1912,7 @@ app.post('/api/briefing', async (req, res) => {
 // Perplexity primary (web-grounded, higher quality), Groq fallback.
 // Returns bullet-style IMPACT SUMMARY + WHAT TO WATCH sections.
 
-const IMPACT_CACHE_VERSION = 'v2-perplexity-bullets';
+const IMPACT_CACHE_VERSION = 'v3-pplx-chat-prose';
 
 function buildImpactProfileDesc(profile) {
   return [
@@ -1964,50 +1959,48 @@ function buildFullContextBlock(profile, activeFilters) {
 async function generateImpactWithPerplexity({ title, source, articleContent, profile, activeFilters, expertArticles, url }) {
   const fullContext = buildFullContextBlock(profile, activeFilters);
 
-  const systemPrompt = "You are a rigorous analyst in the user's position. You only draw connections that genuinely exist. You never force relevance. Your credibility depends on intellectual honesty. You never invent or imply connections to a user's company, employer, university, or other identifying details unless the article genuinely and specifically references or implicates them.";
+  const systemPrompt = "You are Perplexity answering a personal-impact question. Imagine the user has just opened Perplexity and asked, with their full context attached, 'Given my profile, regions, sectors, keywords, and source preferences below, does THIS news story actually affect me, and how?' You answer with the same intellectual honesty Perplexity does: if there's a genuine, specific connection, you spell out the concrete mechanism with cited sources. If the story has no real relevance to the user's stated interests, you say so plainly — you do not stretch, hedge, or manufacture an angle. Your credibility depends on never forcing a connection that isn't there. You never invent or imply connections to a user's company, employer, or identifying details unless the article specifically references or implicates them.";
 
-  const userPrompt = `Here is a news article briefing:
+  const userPrompt = `Treat this exactly like a Perplexity chat where the user has attached their full context profile and asked: "Does this story affect me?"
 
-TITLE: ${title}
-SOURCE: ${source}
-BRIEFING CONTENT:
+THE STORY:
+Title: ${title}
+Source: ${source}
+Briefing content:
 ${articleContent}
 
-Here is the user's profile and tracked interests:
+THE USER'S CONTEXT (what they've told us they care about):
 ${fullContext}
 
-Does this article have a genuine, specific, and direct relevance to this user's work, role, country, regions, sectors, tracked keywords, or followed sources?
+Imagine the user pasted all of the above into a Perplexity chat. Now answer their question: "Given my profile, regions, sectors, keywords, and source preferences, does this story affect me, and how?"
 
-Check each dimension in sequence before deciding:
-1. Is the user's role or occupation directly affected by what the article describes?
-2. Is the user's company or organisation specifically named, referenced, or implicated in the article?
+Check each dimension before answering:
+1. Does the user's role or occupation get directly affected by what the article describes?
+2. Is the user's company or organisation specifically named, referenced, or implicated?
 3. Is the user's country of residence directly affected (policy, economy, security, society)?
-4. Does the article concern any of the user's selected regions?
-5. Does the article fall squarely within any of the user's selected sectors of interest?
+4. Does the article concern any of the user's selected regions in a substantive way (not just casual mention)?
+5. Does the article fall squarely within any of the user's selected sectors?
 6. Does the article directly mention or closely relate to any of the user's tracked keywords?
 7. Is the article from (or directly about) a source the user chose to follow?
 
-If ANY one of these dimensions yields a genuine, specific, non-tangential hit, produce the analysis. Otherwise produce the "no direct impact" response.
+Honesty rule: ANY dimension passing this bar yields analysis. If ALL of them are tangential or unrelated, you say so and stop — no forced impact. The user values your honesty more than your eagerness to find a connection.
 
 Return ONLY this JSON (no prose outside, no markdown fences):
 {
   "relevance": "HIGH | MEDIUM | LOW | NONE",
-  "matched_dimensions": ["List the SPECIFIC dimensions that genuinely matched, e.g. 'Sector: Climate & Environment', 'Region: Southeast Asia', 'Keyword: IRA'. Empty array if relevance = NONE."],
-  "impact_summary": [
-    "2-4 short bullets. Each bullet cites a SPECIFIC matched dimension and explains the concrete mechanism by which this story affects the user. Max 25 words per bullet. Only present if relevance != NONE."
-  ],
-  "what_to_watch": [
-    "2-3 short bullets. Concrete upcoming triggers, dates, data releases, or counterparty moves. Only present if relevance != NONE."
-  ],
-  "no_impact_reason": "Required ONLY if relevance = NONE. Use this exact text: 'This story does not appear to have a direct impact on your current focus areas. No forced analysis — check back if the situation develops.'"
+  "matched_dimensions": ["List ONLY the dimensions that genuinely match, e.g. 'Sector: Climate & Environment', 'Region: Southeast Asia', 'Keyword: IRA'. Empty array if relevance = NONE."],
+  "impact_summary": "2-4 sentences of prose. Each sentence ends with a citation marker like [1] or [2] pointing to a search result. Each sentence ties a SPECIFIC matched dimension to a concrete mechanism: 'Because you follow Southeast Asia and the article describes a 30% tariff on Vietnamese exports, [1]' — that level of specificity. Only present if relevance != NONE.",
+  "what_to_watch": "2-3 sentences of prose with [n] citations. Concrete upcoming triggers, dates, data releases, regulatory deadlines, or counterparty moves to track. Only present if relevance != NONE.",
+  "no_impact_reason": "Required ONLY if relevance = NONE. One short sentence explaining why this story has no direct relevance to the user's stated interests. Plain English, honest tone — e.g. 'This story is about UK rail strikes and doesn't intersect with your tracked sectors (crypto, climate), regions (Singapore, Southeast Asia), or keywords.'"
 }
 
 HARD RULES:
-- Do NOT manufacture connections. Do NOT mention the user's company, employer, or any identifying detail unless the article specifically references or implicates it.
-- Tangential associations (e.g. "this could affect the broader industry") are NOT genuine connections. Reject them.
-- Bullets must be declarative, max 25 words, contain at least one concrete noun.
-- No bullet may begin with "This", "It", "The situation", or any vague pronoun.
-- If every dimension comes up tangential or unrelated, set relevance to NONE and return the exact no_impact_reason string verbatim.
+- Do NOT manufacture connections. Tangential associations like "this could affect the broader industry" are NOT genuine.
+- Do NOT mention the user's company, employer, or any identifying detail unless the article specifically references or implicates them.
+- Each sentence in impact_summary and what_to_watch ends with a [n] citation marker.
+- Sentences are declarative and concrete — every sentence has a named noun (actor, place, date, number).
+- No sentence starts with "This", "It", "The situation", or any vague pronoun.
+- If every dimension comes up tangential or unrelated, set relevance to NONE and write the no_impact_reason explaining specifically what's missing.
 - Output ONLY the JSON object. No preamble, no code fences.`;
 
   const completion = await perplexityChat(
@@ -2059,15 +2052,21 @@ HARD RULES:
     };
   }
 
-  const summary = asBullets(parsed.impact_summary);
-  const watch = asBullets(parsed.what_to_watch);
-  if (!summary.length || !watch.length) throw new Error('Perplexity impact is missing bullets');
+  // impact_summary and what_to_watch are now multi-sentence prose
+  // strings (with inline [n] citations). Accept arrays as a tolerant
+  // fallback in case the model returns bullets.
+  const asProse = (val) => {
+    if (Array.isArray(val)) return val.map(s => String(s || '').trim()).filter(Boolean).join(' ');
+    return String(val || '').trim();
+  };
+  const summary = asProse(parsed.impact_summary);
+  const watch = asProse(parsed.what_to_watch);
+  if (!summary || !watch) throw new Error('Perplexity impact is missing prose sections');
 
-  const bulletify = (arr) => arr.map(s => '- ' + s).join('\n');
   const impact =
     `RELEVANCE:\n${relevance}\n\n` +
-    `IMPACT SUMMARY:\n${bulletify(summary)}\n\n` +
-    `WHAT TO WATCH:\n${bulletify(watch)}`;
+    `IMPACT SUMMARY:\n${summary}\n\n` +
+    `WHAT TO WATCH:\n${watch}`;
 
   return { impact, relevance, citationMap };
 }

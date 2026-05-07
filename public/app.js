@@ -273,33 +273,9 @@ applyTextSize(getTextSize());
 if (textSizeBtn) textSizeBtn.addEventListener('click', cycleTextSize);
 const profileBtnText = document.getElementById('profile-btn-text');
 
-// ── Briefing length toggle (concise vs detailed) ──────────────
-const BRIEF_LENGTH_KEY = 'geosignal_brief_length';
-
-function getBriefLength() {
-  return localStorage.getItem(BRIEF_LENGTH_KEY) || 'concise';
-}
-
-function applyBriefLength(mode) {
-  document.body.classList.toggle('briefing-concise', mode === 'concise');
-  document.querySelectorAll('.brief-len-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.len === mode);
-  });
-}
-
-function setBriefLength(mode) {
-  if (mode !== 'concise' && mode !== 'detailed') return;
-  localStorage.setItem(BRIEF_LENGTH_KEY, mode);
-  gsTracker.conciseVsDetailed(mode);
-  applyBriefLength(mode);
-}
-
-// Apply on load so concise-mode kicks in before the first briefing renders
-applyBriefLength(getBriefLength());
-
-document.querySelectorAll('.brief-len-btn').forEach(btn => {
-  btn.addEventListener('click', () => setBriefLength(btn.dataset.len));
-});
+// Briefings are always shown in full (detailed). The concise/detailed
+// toggle was removed — every briefing renders the entire prose block
+// with inline citations.
 
 // LLM-first ranking is always active — testMode=1 sent on every request.
 
@@ -2219,41 +2195,27 @@ handleFiltersChanged();
 })();
 
 // ── Annotate awareness card ─────────────────────────────────────
-// "Try it" scrolls to the first highlighted term in the feed and
-// clicks it to demo the feature. After the user has clicked any
-// annotated term once, the card fades out permanently.
-(function wireAnnotateAwareness() {
-  const card = document.getElementById('annotate-awareness');
-  const tryBtn = document.getElementById('annotate-awareness-try');
-  if (!card) return;
-
-  // Hide after the user has used annotate at least once
-  if (localStorage.getItem('geosignal_annotate_used') === 'true') {
-    card.style.display = 'none';
+// Wire up the persistent annotate-feature banner that sits above the
+// feed. User can dismiss it via the close button; once dismissed, it
+// stays hidden via localStorage. No auto-hide on engagement —
+// some users want the reminder permanently visible.
+(function wireAnnotateBanner() {
+  const banner = document.getElementById('annotate-feature-banner');
+  const closeBtn = document.getElementById('annotate-feature-banner-close');
+  if (!banner) return;
+  const STORAGE_KEY = 'geosignal_annotate_banner_dismissed';
+  if (localStorage.getItem(STORAGE_KEY) === 'true') {
+    banner.style.display = 'none';
     return;
   }
-
-  if (tryBtn) {
-    tryBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const firstKw = document.querySelector('.annotate-keyword');
-      if (firstKw) {
-        firstKw.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setTimeout(() => firstKw.click(), 600);
-      }
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      localStorage.setItem(STORAGE_KEY, 'true');
+      banner.style.transition = 'opacity 0.25s';
+      banner.style.opacity = '0';
+      setTimeout(() => banner.remove(), 250);
     });
   }
-
-  // Watch for the user engaging with annotate — then hide the card
-  document.addEventListener('click', (e) => {
-    if (e.target.closest('.annotate-keyword') || e.target.closest('.annotate-popup')) {
-      setTimeout(() => {
-        card.style.transition = 'opacity 0.4s';
-        card.style.opacity = '0';
-        setTimeout(() => card.style.display = 'none', 400);
-      }, 2000);
-    }
-  });
 })();
 
 // ── Utilities ───────────────────────────────────────────────────
