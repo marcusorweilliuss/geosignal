@@ -53,12 +53,12 @@
   --shadow-lg: 0 8px 24px rgba(28, 25, 23, 0.08), 0 2px 6px rgba(28, 25, 23, 0.04);
 
   /* User-controlled reading text scale — JS toggles body.size-* classes */
-  --text-scale: 1;
+  --text-scale: 1.1;   /* default a touch larger so the feed reads bigger out of the box */
 }
 
-body.size-small { --text-scale: 0.92; }
-body.size-large { --text-scale: 1.12; }
-body.size-xlarge { --text-scale: 1.22; }
+body.size-small { --text-scale: 1; }
+body.size-large { --text-scale: 1.2; }
+body.size-xlarge { --text-scale: 1.32; }
 
 /* Scale EVERYTHING proportionally when user cycles text size.
    Uses calc() with --text-scale to keep relative proportions. */
@@ -525,41 +525,74 @@ html {
 }
 
 /* Manage Sources CTA — big and obvious */
-.sidebar-manage-sources-btn {
+.sidebar-manage-sources-btn,
+.sidebar-choose-sources-btn {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
-  padding: 12px 14px;
+  padding: 14px 16px;
   background: var(--accent-dim);
   border: 1.5px solid var(--accent-soft);
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.15s;
   text-align: left;
+  margin-bottom: 12px;
 }
-.sidebar-manage-sources-btn:hover {
+.sidebar-manage-sources-btn:hover,
+.sidebar-choose-sources-btn:hover {
   background: var(--accent-soft);
   border-color: var(--accent);
 }
-.sidebar-manage-sources-btn svg {
+.sidebar-manage-sources-btn svg,
+.sidebar-choose-sources-btn svg {
   color: var(--accent);
   flex-shrink: 0;
 }
-.sidebar-manage-sources-btn strong {
+.sidebar-manage-sources-btn strong,
+.sidebar-choose-sources-btn strong {
   display: block;
   font-family: var(--sans);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--accent);
+  letter-spacing: 0.1px;
 }
-.sidebar-manage-sources-btn small {
+.sidebar-manage-sources-btn small,
+.sidebar-choose-sources-btn small {
   display: block;
   font-family: var(--sans);
-  font-size: 10.5px;
+  font-size: 11.5px;
   font-weight: 400;
   color: var(--text-secondary);
-  margin-top: 1px;
+  margin-top: 2px;
+}
+
+/* The Sources section gets pulled up the sidebar list visually so
+   "Choose your news sources" reads as a primary filter, not a buried
+   nice-to-have. */
+.sidebar-section-sources {
+  background: rgba(15, 110, 86, 0.04);
+  margin: 4px -8px 12px;
+  padding: 12px 12px 14px !important;
+  border-radius: 12px;
+  border: 1px solid var(--accent-soft);
+}
+.sidebar-section-sources .sidebar-section-label {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: var(--accent) !important;
+  letter-spacing: 0.4px !important;
+}
+.sidebar-section-sub-label {
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin: 8px 0 6px;
 }
 
 /* Sidebar mobile controls */
@@ -5116,23 +5149,29 @@ footer span {
 }
 
 /* ── Persistent Annotate-feature awareness banner ───────────────
-   Sits above the feed, always visible until the user dismisses it
-   via the close button. Designed to draw attention to the green-
-   underlined-term feature so users discover the explainer popups. */
+   STICKY at the top of the viewport so it stays visible while the
+   user scrolls. Bright orange to draw attention. Bigger text so
+   it can't be missed. Closeable via the × button (dismissal
+   persists in localStorage). */
 .annotate-feature-banner {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 18px;
   margin: 0 0 24px 0;
-  padding: 16px 22px;
-  background: linear-gradient(135deg, rgba(15, 110, 86, 0.08), rgba(232, 118, 58, 0.06));
-  border: 1px solid var(--accent-soft);
-  border-left: 4px solid var(--accent);
-  border-radius: 10px;
-  box-shadow: 0 1px 3px rgba(28, 25, 23, 0.04);
-  color: var(--text-primary);
+  padding: 18px 24px;
+  background: linear-gradient(135deg, #FFF1E5, #FFD9B8);
+  border: 2px solid #E8763A;
+  border-left: 6px solid #E8763A;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(232, 118, 58, 0.18);
+  color: #5A2A0E;
   font-family: var(--sans);
-  position: relative;
+  /* Stick to the top of the viewport once the user scrolls past. */
+  position: sticky;
+  top: 8px;
+  z-index: 80;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .annotate-feature-banner-icon {
@@ -5140,11 +5179,16 @@ footer span {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: var(--accent);
+  background: #E8763A;
   color: #fff;
+  box-shadow: 0 2px 6px rgba(232, 118, 58, 0.4);
+}
+.annotate-feature-banner-icon svg {
+  width: 24px;
+  height: 24px;
 }
 
 .annotate-feature-banner-body {
@@ -5152,35 +5196,37 @@ footer span {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 4px 8px;
-  line-height: 1.55;
-  font-size: 14.5px;
-  color: var(--text-primary);
+  gap: 4px 10px;
+  line-height: 1.5;
+  font-size: 16px;
+  color: #5A2A0E;
 }
 
 .annotate-feature-banner-body strong {
-  font-weight: 600;
-  font-size: 15px;
-  color: var(--accent);
-  letter-spacing: 0.1px;
+  font-weight: 800;
+  font-size: 18px;
+  color: #B84F1A;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
 }
 
 .annotate-feature-banner-body em {
-  color: var(--accent);
+  color: #B84F1A;
   font-style: normal;
-  font-weight: 500;
-  border-bottom: 1px dashed rgba(15, 110, 86, 0.45);
+  font-weight: 700;
+  border-bottom: 2px dashed #E8763A;
+  padding: 0 2px;
 }
 
 .annotate-feature-banner-close {
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  border: none;
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid #E8763A;
   background: transparent;
   font-size: 22px;
   line-height: 1;
-  color: var(--text-tertiary);
+  color: #B84F1A;
   cursor: pointer;
   border-radius: 50%;
   transition: all 0.15s;
@@ -5190,15 +5236,30 @@ footer span {
 }
 
 .annotate-feature-banner-close:hover {
-  background: rgba(28, 25, 23, 0.06);
-  color: var(--text-primary);
+  background: #E8763A;
+  color: #fff;
+  border-color: #B84F1A;
 }
 
 @media (max-width: 720px) {
   .annotate-feature-banner {
     flex-wrap: wrap;
     padding: 14px 16px;
-    gap: 10px;
+    gap: 12px;
+    top: 4px;
   }
-  .annotate-feature-banner-icon { width: 32px; height: 32px; }
+  .annotate-feature-banner-icon { width: 36px; height: 36px; }
+  .annotate-feature-banner-body { font-size: 14.5px; }
+  .annotate-feature-banner-body strong { font-size: 15.5px; }
+}
+
+/* ── Global text-size bump ──────────────────────────────────────
+   Bumps the root font scale so card titles, feed text, briefing
+   text, and labels all read larger. Cards already use rem-relative
+   sizing in many places via a CSS var — this lifts the floor. */
+html {
+  font-size: 17px; /* default is 16; ~6% bigger across the board */
+}
+@media (max-width: 720px) {
+  html { font-size: 16px; }
 }
