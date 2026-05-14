@@ -81,9 +81,12 @@ async function perplexityNewsSearch(query, { regionSlug = '', max = 20, recency 
     }
     const data = await res.json();
     const results = Array.isArray(data.search_results) ? data.search_results : [];
+    // Run the FULL junk filter (URL + product-spam + landing-page +
+    // aggregator-title). The previous shorter filter let through
+    // libguides, RSS directories, scraper tools, podcast indexes,
+    // research-org landing pages.
     return results
-      .filter(r => r && r.url && !isNonNewsUrl(r.url) && !looksLikeProductSpam(r.title))
-      .slice(0, max)
+      .filter(r => r && r.url && r.title)
       .map(r => ({
         title: r.title || '',
         description: r.snippet || r.title || '',
@@ -97,7 +100,8 @@ async function perplexityNewsSearch(query, { regionSlug = '', max = 20, recency 
         thumbnail: '',
         ingestOrigin: 'perplexity'
       }))
-      .filter(a => a.title && a.url);
+      .filter(a => !isJunkArticle(a))
+      .slice(0, max);
   } catch (err) {
     console.log(`Perplexity error on "${String(query).slice(0, 40)}…": ${err.message}`);
     return [];

@@ -17,8 +17,63 @@ const BLOCKED_NON_NEWS_HOSTS = new Set([
   'amazon.com', 'amazon.co.uk',
   'imdb.com', 'rotten.com', 'metacritic.com',
   'discord.com', 'telegram.org', 't.me',
-  'soundcloud.com', 'spotify.com', 'apple.com'
+  'soundcloud.com', 'spotify.com', 'apple.com',
+  // Non-news SaaS / tooling / directories that Perplexity's web
+  // search has been surfacing as if they were articles:
+  'apify.com',          // Web-scraping tool listings
+  'feedspot.com',       // RSS directory ("Top N AI RSS Feeds")
+  'omny.fm',            // Podcast hosting (radio show indexes)
+  'rss-database.com',   // RSS aggregator/directory
+  'rssatom.com',        // RSS aggregator/directory
+  'libsyn.com',         // Podcast hosting
+  'buzzsprout.com',     // Podcast hosting
+  'anchor.fm',          // Podcast hosting
+  'spreaker.com',       // Podcast hosting
+  'mixcloud.com',       // Audio hosting
+  'castbox.fm',         // Podcast aggregator
+  'patreon.com',        // Subscription tool, not news
+  'kickstarter.com',
+  'indiegogo.com',
+  'gofundme.com',
+  'fiverr.com',
+  'upwork.com',
+  'researchgate.net',   // Academic preprint platform — not news
+  'academia.edu',
+  'ssrn.com',
+  'scribd.com',
+  'slideshare.net',
+  'glassdoor.com',
+  'indeed.com',
+  'goodreads.com',
 ]);
+
+// Substring blocklist for hostname components. Catches subdomains and
+// SaaS-on-customer-domain patterns where the exact host varies.
+const BLOCKED_HOST_SUBSTRINGS = [
+  'libguides',          // Springshare LibGuides (mskcc.org/libguides, columbia.edu/libguides, *.libguides.com)
+  '.feedspot.',
+  '.omny.fm',
+  '.libsyn.',
+];
+
+// Path patterns that betray a non-article page even on legitimate
+// news / think-tank domains (e.g. nytimes.com/section/world,
+// theguardian.com/world/all, stimson.org/program/southeast-asia).
+const NON_ARTICLE_PATH_PATTERNS = [
+  /\/libguides?\//i,
+  /\/library-?guides?\//i,
+  /\/topic\/[^\/]+\/?$/i,     // bare topic landing page
+  /\/section\/[^\/]+\/?$/i,
+  /\/category\/[^\/]+\/?$/i,
+  /\/tag\/[^\/]+\/?$/i,
+  /\/archives?\/?$/i,
+  /\/program\/[^\/]+\/?$/i,   // think-tank program landing pages
+  /\/programs?\/[^\/]+\/?$/i,
+  /\/research\/[^\/]+\/?$/i,
+  /\/initiatives?\/[^\/]+\/?$/i,
+  /\/issues?\/[^\/]+\/?$/i,
+  /\/regions?\/[^\/]+\/?$/i,
+];
 
 const PRODUCT_PATH_PATTERNS = [
   /\/product\//i,
@@ -59,8 +114,14 @@ function isNonNewsUrl(url) {
     for (const blocked of BLOCKED_NON_NEWS_HOSTS) {
       if (host === blocked || host.endsWith('.' + blocked)) return true;
     }
+    for (const sub of BLOCKED_HOST_SUBSTRINGS) {
+      if (host.includes(sub)) return true;
+    }
     const path = u.pathname || '';
     for (const re of PRODUCT_PATH_PATTERNS) {
+      if (re.test(path)) return true;
+    }
+    for (const re of NON_ARTICLE_PATH_PATTERNS) {
       if (re.test(path)) return true;
     }
     return false;
@@ -103,6 +164,28 @@ const LANDING_PAGE_SECTION_TITLE = /^[A-Za-z][\w\s&'’\-,.]{0,40}\s+(archives?|
 // Catches "ASEAN BERNAMA", "TRAVELANDTOURWORLD", "PHILIPPINE DAILY INQUIRER".
 const LANDING_PAGE_ALLCAPS_BRAND = /^[A-Z][A-Z0-9 &.\-]{4,}$/;
 
+// Aggregator / tooling / non-article title shapes that keep slipping
+// through Perplexity's web search. Each pattern is anchored or scoped
+// so it doesn't accidentally drop real news.
+const AGGREGATOR_TITLE_PATTERNS = [
+  /\btop\s+\d+\s+.+\s+rss\s+feeds?\b/i,            // "Top 100 Artificial Intelligence RSS Feeds"
+  /\brss\s+(?:feed|database|directory|list)\b/i,    // "RSS Database", "RSS Directory"
+  /\blibrary\s+guides?\b/i,                         // "MSK Library Guides"
+  /\blibguides?\b/i,                                // hostname variant in title
+  /\b(?:research|publications?)\s+and\s+data\s+from\b/i, // "Research and data from Pew Research Center"
+  /\b(?:news\s+headlines?|headlines?)\s+from\s+.+\s+presented\s+by\b/i, // "News Headlines from X presented by MONEY FM"
+  /\b(?:article|content|web)\s+scrapers?\b/i,       // "Article Scraper - Apify"
+  /\bnews\s+updates?\s*:\s*latest\s+news\s+about\b/i, // "AI News Updates: Latest News About..."
+  /\binput\s*[·•:]\s*/i,                            // "Input · The Straits Times Article Scraper"
+  /\bbackground\s*[-—–]\s*.+\s+library\s+guides?\b/i, // "Artificial Intelligence: Background - MSK Library Guides"
+  /\b(?:overview|background)\s*[-—–:|]\s*.+\s+(?:wiki|guide|resource)s?\b/i,
+  /^.+\s+\|\s+(?:by|hosted on|powered by)\b/i,      // Tool/podcast title format
+  // Think-tank / NGO program landing pages — title shape:
+  // "<topic> Research - <Org>" or "<region> Program - <Org>".
+  /\b(?:research|programs?|initiatives?|publications?)\s*[-—–|]\s*(?:[A-Z][\w'’]+\s*){1,5}(?:Center|Institute|Foundation|Council|University|Programme?|Project|Initiative|Lab)\b/i,
+  /\brecent\s+publications?\b/i,                    // common landing-page heading
+];
+
 function looksLikeLandingPage(article) {
   if (!article) return false;
   const title = String(article.title || '').trim();
@@ -122,6 +205,10 @@ function looksLikeLandingPage(article) {
   // is a real all-caps news headline (≥6 words, contains a verb).
   const wordCount = title.split(/\s+/).length;
   if (wordCount <= 3 && LANDING_PAGE_ALLCAPS_BRAND.test(title)) return true;
+  // Aggregator / tooling / library-guide titles surfaced by Perplexity.
+  for (const re of AGGREGATOR_TITLE_PATTERNS) {
+    if (re.test(title)) return true;
+  }
   return false;
 }
 
