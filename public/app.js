@@ -590,6 +590,13 @@ function initWizard() {
       renderKeywordChips();
 
       saveFilters();
+      // Push everything we just set onto the main filter pills back
+      // into the sidebar so the two views start in sync. Otherwise
+      // the sidebar looks empty even though the user just selected
+      // 8 sectors / 3 regions / 5 keywords in the wizard.
+      if (typeof window.__syncSidebarFromMain === 'function') {
+        window.__syncSidebarFromMain();
+      }
       hideWelcomeModal();
       handleProfileSaved('welcome');
       fetchStories();
@@ -893,6 +900,13 @@ function handleProfileSaved(source) {
 
     saveFilters();
     handleFiltersChanged();
+    // Push everything we just synced onto the main pills into the
+    // sidebar too. Without this, the sidebar stays stale and the
+    // user sees "I just told the wizard I care about X but the
+    // sidebar still shows the defaults."
+    if (typeof window.__syncSidebarFromMain === 'function') {
+      window.__syncSidebarFromMain();
+    }
   }
 
   // Auto-apply to current view without a manual refresh
@@ -1892,32 +1906,39 @@ handleFiltersChanged();
     handleFiltersChanged();
   }
 
-  function syncMainToSidebar() {
-    // Sync main region pills → sidebar
+  // Expose syncMainToSidebar via module scope so the welcome wizard,
+  // profile save, and any other place that mutates the main filter
+  // state can push it back into the sidebar.
+  window.__syncSidebarFromMain = function syncMainToSidebar() {
     if (sidebarRegionPills && regionPills) {
       const mainActive = new Set(getActiveRegions());
       sidebarRegionPills.querySelectorAll('.sidebar-pill').forEach(p => {
         p.classList.toggle('active', mainActive.has(p.dataset.value));
       });
     }
-    // Sync main sector pills → sidebar
     if (sidebarSectorPills && sectorPills) {
       const mainActive = new Set(getActivePills(sectorPills));
       sidebarSectorPills.querySelectorAll('.sidebar-pill').forEach(p => {
         p.classList.toggle('active', mainActive.has(p.dataset.value));
       });
     }
-    // Sync keywords
     if (sidebarKeywordChips) {
       sidebarKeywordChips.innerHTML = filterKeywords.map((k, i) =>
         '<span class="keyword-chip" data-idx="' + i + '">' + escapeHtml(k) +
         '<button type="button">&times;</button></span>'
       ).join('');
     }
-  }
+    // Push country/location from profile into the sidebar location input.
+    const sidebarLoc = document.getElementById('sidebar-locations-input');
+    if (sidebarLoc) {
+      const prof = (typeof getProfile === 'function' ? getProfile() : null) || {};
+      const loc = prof.location || '';
+      if (loc && !sidebarLoc.value) sidebarLoc.value = loc;
+    }
+  };
 
   // Initial sync from main → sidebar
-  syncMainToSidebar();
+  window.__syncSidebarFromMain();
 
   // Wire sidebar pill toggles
   [sidebarRegionPills, sidebarSectorPills].forEach(container => {
@@ -3083,7 +3104,20 @@ function renderFeed(articles, options) {
     };
 
     let sentinelObserver = null;
+    // Track whether we've shown the "More you might like" divider —
+    // first broadened article triggers it.
+    let broadenedDividerShown = false;
     const renderOneCard = (article) => {
+      if (article.broadened && !broadenedDividerShown) {
+        broadenedDividerShown = true;
+        const divider = document.createElement('div');
+        divider.className = 'feed-broadened-divider';
+        divider.innerHTML =
+          '<span class="feed-broadened-rule"></span>' +
+          '<span class="feed-broadened-label">More you might like</span>' +
+          '<span class="feed-broadened-rule"></span>';
+        cardsGrid.appendChild(divider);
+      }
       const index = globalIndex++;
       const card = document.createElement('article');
 

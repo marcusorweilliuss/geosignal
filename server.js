@@ -1483,6 +1483,51 @@ app.get('/api/news', async (req, res) => {
     // Map to card format. Strip HTML server-side so descriptions arrive
     // as clean text — prevents truncation from cutting mid-entity on
     // the client and keeps the payload lean.
+    // ── Endless-scroll tail ─────────────────────────────────────
+    // When the user's strict filtered pool is small, append a tail
+    // of broader articles so the feed feels endless when scrolling.
+    // The tail is tagged with broadened=true so the client can
+    // visually divide it from the strictly-relevant section.
+    // Skip when user already has lots of strict hits (>= 60).
+    const STRICT_TARGET = 60;
+    if (unique.length < STRICT_TARGET) {
+      try {
+        const broader = queryArticles({
+          regionSlugs: ['__all__'],
+          sinceMs: cutoff,
+          // No FTS filter for the tail — we want diverse recent news
+          // related-by-recency, not strict keyword match.
+          q: null,
+          includeSources: includeArr,
+          excludeSources: excludeArr,
+          limit: 600
+        });
+        const seenUrls = new Set(unique.map(a => a.url));
+        const seenTitleHashes = new Set(unique.map(a => (a.title || '').toLowerCase().trim()));
+        const tail = [];
+        for (const a of broader) {
+          if (seenUrls.has(a.url)) continue;
+          const titleKey = (a.title || '').toLowerCase().trim();
+          if (!titleKey || seenTitleHashes.has(titleKey)) continue;
+          seenUrls.add(a.url);
+          seenTitleHashes.add(titleKey);
+          // Score by best regional match so the tail is still ordered
+          a.score = scoringSlugs.reduce((best, slug) => {
+            const s = scoreArticle(a, slug, userProfile, activeSectors);
+            return s > best ? s : best;
+          }, -Infinity);
+          if (!isFinite(a.score)) a.score = 0;
+          a.broadened = true;
+          tail.push(a);
+        }
+        tail.sort((x, y) => (y.score || 0) - (x.score || 0));
+        // Append up to 200 broadened articles. Plenty of scroll room.
+        unique = unique.concat(tail.slice(0, 200));
+      } catch (e) {
+        console.log('Endless-tail broaden failed:', e.message);
+      }
+    }
+
     const totalRanked = unique.length;
     const pagedSlice = unique.slice(offset, offset + pageSize);
     const articles = pagedSlice.map(article => {
@@ -1517,7 +1562,8 @@ app.get('/api/news', async (req, res) => {
         articleType: article.articleType || 'News',
         country: article.country || '',
         sourceDescription: getSourceDescription(article.source),
-        matchReason: (() => { try { return buildMatchReason(article, userProfile, expandedSearchTerms, expandedProfileKeywords, activeSectors, regionList); } catch { return ''; } })()
+        matchReason: (() => { try { return buildMatchReason(article, userProfile, expandedSearchTerms, expandedProfileKeywords, activeSectors, regionList); } catch { return ''; } })(),
+        broadened: !!article.broadened
       };
     });
 

@@ -5442,6 +5442,32 @@ footer span {
   .briefing-with-recs .briefing-main { order: 1; }
 }
 
+/* "More you might like" divider — shown once when the feed
+   transitions from the user's strict filter pool to the broader
+   recency-based tail. Sits across the full grid width. */
+.feed-broadened-divider {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 18px 0 8px;
+  color: var(--text-tertiary);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.feed-broadened-rule {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.feed-broadened-label {
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+
 /* Coverage note ribbon — shown when auto-broaden kicks in. */
 .feed-coverage-note {
   margin: 0 0 18px;
