@@ -889,6 +889,16 @@ app.get('/api/news', async (req, res) => {
   try {
     const { region, regions, sectors, sourceTypes, profile: profileStr, search, articleTypes, locations, keywords, includeSources, excludeSources, readArticles } = req.query;
 
+    // Pagination — true endless scroll. Client passes ?offset=N to
+    // fetch the next page. We hold the ranked pool in the LLM-rank
+    // cache (10 min TTL) so subsequent pages just slice it.
+    const offsetRaw = parseInt(req.query.offset, 10);
+    const offset = isNaN(offsetRaw) || offsetRaw < 0 ? 0 : offsetRaw;
+    const pageSizeRaw = parseInt(req.query.pageSize, 10);
+    const pageSize = !isNaN(pageSizeRaw) && pageSizeRaw > 0
+      ? Math.min(pageSizeRaw, 100)
+      : 50;
+
     // Multi-region support. Accepts ?regions=A,B,C (preferred) or
     // ?region=A (single, back-compat). If Global is among the choices,
     // behaves the same as Global-only.
@@ -1451,7 +1461,9 @@ app.get('/api/news', async (req, res) => {
     // Map to card format. Strip HTML server-side so descriptions arrive
     // as clean text — prevents truncation from cutting mid-entity on
     // the client and keeps the payload lean.
-    const articles = unique.slice(0, 100).map(article => {
+    const totalRanked = unique.length;
+    const pagedSlice = unique.slice(offset, offset + pageSize);
+    const articles = pagedSlice.map(article => {
       // Truncate description to the first sentence so the fallback TL;DR
       // is always a complete thought, never a mid-sentence cut.
       let desc = stripHtml(article.description || '');
@@ -1493,7 +1505,7 @@ app.get('/api/news', async (req, res) => {
     // surface "Showing broader results — limited coverage for your
     // exact filters."
     let coverageNote = null;
-    if (articles.length < 5 && (narrowedRegions.length || narrowedSectors.length || locationTerms.length)) {
+    if (offset === 0 && totalRanked < 5 && (narrowedRegions.length || narrowedSectors.length || locationTerms.length)) {
       try {
         const broader = queryArticles({
           regionSlugs: ['__all__'],
@@ -1550,7 +1562,17 @@ app.get('/api/news', async (req, res) => {
       }
     }
 
-    res.json({ articles, governmentCaveat: GOVERNMENT_CAVEAT, coverageNote });
+    const nextOffset = (offset + articles.length) < totalRanked
+      ? offset + articles.length
+      : null;
+    res.json({
+      articles,
+      governmentCaveat: GOVERNMENT_CAVEAT,
+      coverageNote,
+      total: totalRanked,
+      nextOffset,
+      hasMore: nextOffset !== null
+    });
   } catch (err) {
     console.error('News fetch error:', err.stack || err.message || err);
     // Last-resort fallback: return whatever we can from the corpus

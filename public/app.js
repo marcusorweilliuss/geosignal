@@ -2633,7 +2633,14 @@ async function fetchStories() {
     feedTimestamp.textContent = formatTimestamp();
 
     updateDispatchHeader(currentArticles);
-    renderFeed(currentArticles, { coverageNote: data.coverageNote || data.broadenedNotice });
+    renderFeed(currentArticles, {
+      coverageNote: data.coverageNote || data.broadenedNotice,
+      pagination: {
+        params: params.toString(),
+        nextOffset: data.nextOffset,
+        hasMore: !!data.hasMore
+      }
+    });
 
     // Filter state is now "applied" — clear the pending indicator and
     // snapshot the state that produced these results.
@@ -3006,6 +3013,10 @@ function groupArticlesByTime(articles) {
   return groups;
 }
 
+// Stash these on the module so the lazy-load sentinel can ask for
+// more pages without round-tripping every variable.
+let _feedPagination = null; // { nextOffset, hasMore, params, fetching, exhausted }
+
 function renderFeed(articles, options) {
   feed.innerHTML = '';
   tldrElementsById = new Map();
@@ -3016,6 +3027,17 @@ function renderFeed(articles, options) {
     noteEl.className = 'feed-coverage-note';
     noteEl.textContent = coverageNote;
     feed.appendChild(noteEl);
+  }
+  // Reset pagination state on a fresh render. The caller updates this
+  // via _feedPagination after fetching page 1 so the sentinel knows
+  // how to ask for page 2.
+  if (options && options.pagination) {
+    _feedPagination = Object.assign(
+      { fetching: false, exhausted: false },
+      options.pagination
+    );
+  } else {
+    _feedPagination = { fetching: false, exhausted: true };
   }
 
   const groups = groupArticlesByTime(articles);
@@ -3392,20 +3414,59 @@ function renderFeed(articles, options) {
     renderNextBatch();
 
     // Sentinel + observer for lazy-loading more cards as the user
-    // scrolls. The sentinel sits after the cards grid; when it
-    // enters the viewport, render the next batch.
-    if (groupArticles.length > rendered) {
-      const sentinel = document.createElement('div');
-      sentinel.className = 'feed-scroll-sentinel';
-      sentinel.setAttribute('aria-hidden', 'true');
-      section.appendChild(sentinel);
-      sentinelObserver = new IntersectionObserver(entries => {
-        for (const e of entries) {
-          if (e.isIntersecting) renderNextBatch();
+    // scrolls. Two modes:
+    //   - Local: there are still articles in the array we haven't
+    //     rendered yet. Just paint the next batch.
+    //   - Remote: we've drawn everything we have locally AND the
+    //     server told us there's a next page. Fetch it, append, keep
+    //     watching.
+    const sentinel = document.createElement('div');
+    sentinel.className = 'feed-scroll-sentinel';
+    sentinel.setAttribute('aria-hidden', 'true');
+    section.appendChild(sentinel);
+
+    const maybeFetchMore = async () => {
+      if (!_feedPagination
+          || _feedPagination.fetching
+          || _feedPagination.exhausted
+          || !_feedPagination.hasMore) return;
+      _feedPagination.fetching = true;
+      try {
+        const params = new URLSearchParams(_feedPagination.params);
+        params.set('offset', String(_feedPagination.nextOffset));
+        const res = await fetch('/api/news?' + params.toString());
+        if (!res.ok) throw new Error('http ' + res.status);
+        const data = await res.json();
+        const more = Array.isArray(data.articles) ? data.articles : [];
+        if (more.length === 0) {
+          _feedPagination.exhausted = true;
+          return;
         }
-      }, { rootMargin: '600px 0px' });
-      sentinelObserver.observe(sentinel);
-    }
+        currentArticles = currentArticles.concat(more);
+        groupArticles.push(...more);
+        renderNextBatch();
+        _feedPagination.nextOffset = data.nextOffset;
+        _feedPagination.hasMore = !!data.hasMore;
+        if (!data.hasMore) _feedPagination.exhausted = true;
+      } catch (err) {
+        console.warn('Pagination fetch failed:', err.message);
+        _feedPagination.exhausted = true;
+      } finally {
+        _feedPagination.fetching = false;
+      }
+    };
+
+    sentinelObserver = new IntersectionObserver(entries => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        if (rendered < groupArticles.length) {
+          renderNextBatch();
+        } else {
+          maybeFetchMore();
+        }
+      }
+    }, { rootMargin: '800px 0px' });
+    sentinelObserver.observe(sentinel);
   });
 }
 
