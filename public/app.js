@@ -1314,8 +1314,14 @@ function restoreFilters() {
       locationsInput.value = state.locations;
     }
     if (state && state.dateRange && dateRangePills) {
+      // Migrate legacy stored values (72 = "3 days", 720 = "month")
+      // to the new simplified set. Anything other than the current
+      // 4 options falls back to "all" so we don't strand the user
+      // with no active pill.
+      const CURRENT_VALUES = new Set(['all', '24', '168', '336']);
+      const want = CURRENT_VALUES.has(state.dateRange) ? state.dateRange : 'all';
       dateRangePills.querySelectorAll('.pill').forEach(p => {
-        p.classList.toggle('active', p.dataset.value === state.dateRange);
+        p.classList.toggle('active', p.dataset.value === want);
       });
     }
     if (state && Array.isArray(state.customSectors)) {
@@ -1353,9 +1359,11 @@ if (dateRangePills) {
 }
 
 function getActiveDateRange() {
-  if (!dateRangePills) return '24';
+  // Default: "all" — show everything, let recency sort. User picks
+  // an explicit window only when they want to narrow to fresh news.
+  if (!dateRangePills) return 'all';
   const active = dateRangePills.querySelector('.pill.active');
-  return active ? active.dataset.value : '24';
+  return active ? active.dataset.value : 'all';
 }
 
 function getActivePills(container) {

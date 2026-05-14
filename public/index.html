@@ -137,15 +137,17 @@
       <div class="sidebar-keyword-chips" id="sidebar-sector-other-chips"></div>
     </details>
 
-    <!-- 7. Date range — collapsible -->
+    <!-- 7. Date range — soft filter. Default is "All time" so older
+         high-relevance articles can surface; user picks an explicit
+         window only when they want to narrow to fresh news. The feed
+         always sorts by recency regardless of this setting. -->
     <details class="sidebar-section sidebar-details">
       <summary class="sidebar-section-label">Date range</summary>
       <div class="sidebar-pills" id="sidebar-date-range">
-        <button class="sidebar-pill active" data-value="24">24h</button>
-        <button class="sidebar-pill" data-value="72">3 days</button>
-        <button class="sidebar-pill" data-value="168">7 days</button>
-        <button class="sidebar-pill" data-value="336">2 weeks</button>
-        <button class="sidebar-pill" data-value="720">Month</button>
+        <button class="sidebar-pill active" data-value="all">All time</button>
+        <button class="sidebar-pill" data-value="24">Past 24h</button>
+        <button class="sidebar-pill" data-value="168">Past week</button>
+        <button class="sidebar-pill" data-value="336">Past 2 weeks</button>
       </div>
     </details>
 
@@ -345,13 +347,12 @@
       </div>
 
       <div class="filter-group">
-        <label>Date range</label>
+        <label>Date range <span class="filter-hint">(default: all time, sorted by recency)</span></label>
         <div class="pill-group" id="date-range-pills">
-          <button class="pill active" data-value="24" title="Articles published in the last 24 hours.">Last 24 hours</button>
-          <button class="pill" data-value="72" title="Articles from the last 3 days.">Last 3 days</button>
-          <button class="pill" data-value="168" title="Articles from the last 7 days.">Last 7 days</button>
-          <button class="pill" data-value="336" title="Articles from the last 2 weeks.">Last 2 weeks</button>
-          <button class="pill" data-value="720" title="Articles from the last 30 days — the maximum range.">Last month</button>
+          <button class="pill active" data-value="all" title="Show all available articles, sorted with the newest first.">All time</button>
+          <button class="pill" data-value="24" title="Restrict to articles published in the last 24 hours.">Past 24h</button>
+          <button class="pill" data-value="168" title="Restrict to articles published in the last 7 days.">Past week</button>
+          <button class="pill" data-value="336" title="Restrict to articles published in the last 14 days.">Past 2 weeks</button>
         </div>
       </div>
 

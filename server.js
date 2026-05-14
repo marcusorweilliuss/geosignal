@@ -984,12 +984,20 @@ app.get('/api/news', async (req, res) => {
       ? new Set(excludeSources.split(',').map(s => s.trim()).filter(Boolean))
       : null;
 
-    // ── Hard 30-day cap ── never return anything older regardless of
-    // other filter settings. Also accept an optional dateRange param
-    // (in hours) for tighter ranges from the client-side date filter.
-    const dateRangeHours = parseInt(req.query.dateRange, 10);
-    const maxAgeMs = (dateRangeHours > 0 ? Math.min(dateRangeHours, 720) : 720) * 60 * 60 * 1000;
-    const cutoff = Date.now() - maxAgeMs;
+    // ── Date range ──
+    // Default behaviour: "all time" with NO upper bound on age.
+    // The feed sorts by recency so newer content wins by default,
+    // but older high-relevance articles can still surface — the user
+    // explicitly asked for this so they don't end up with an empty
+    // feed when a topic isn't actively trending right now.
+    //
+    // The client sends "all" for no cutoff, or a numeric string (hours)
+    // when the user picks a Past 24h / Past week / Past 2 weeks pill.
+    const rawDateRange = String(req.query.dateRange || 'all');
+    const dateRangeHours = rawDateRange === 'all' ? 0 : parseInt(rawDateRange, 10) || 0;
+    const cutoff = dateRangeHours > 0
+      ? Date.now() - (dateRangeHours * 60 * 60 * 1000)
+      : 0; // 0 = no cutoff; queryArticles treats this as "no since filter"
 
     // Parse profile early so we can use its keywords for the SQL pull.
     let parsedProfile = null;
@@ -1418,15 +1426,31 @@ app.get('/api/news', async (req, res) => {
     // TECHNOLOGY-AND-AI), boost any article whose source appears in
     // that topic's curated list. The boost is proportional to the
     // source's topic weight (10 = top-tier source for this topic).
-    // Lifts authoritative coverage to the top for topical queries.
+    //
+    // When the user has narrowed regions, only apply the boost to
+    // topic-index sources whose region matches (or is 'global').
+    // Otherwise we end up boosting Carbon Brief / Inside Climate News
+    // (US/UK) when the user has SE Asia selected.
     if (typeof topicForQuery === 'function' && search) {
       const matchedTopic = topicForQuery(search);
       if (matchedTopic) {
         const topicSources = getSourcesForTopic(matchedTopic);
         if (topicSources && topicSources.length > 0) {
+          const userRegionsLower = narrowedRegions.length > 0
+            ? new Set(narrowedRegions.map(r => r.toLowerCase()))
+            : null;
           const weightByName = new Map();
           for (const ts of topicSources) {
-            weightByName.set(String(ts.name || '').toLowerCase(), ts.weight || 5);
+            const tsRegion = String(ts.region || '').toLowerCase();
+            // Allow if no narrowing OR the topic source is global OR
+            // its region matches the user's pick.
+            const regionOk = !userRegionsLower
+              || tsRegion === 'global'
+              || tsRegion === ''
+              || userRegionsLower.has(tsRegion);
+            if (regionOk) {
+              weightByName.set(String(ts.name || '').toLowerCase(), ts.weight || 5);
+            }
           }
           unique.forEach(a => {
             const w = weightByName.get(String(a.source || '').toLowerCase());
@@ -1450,6 +1474,18 @@ app.get('/api/news', async (req, res) => {
       const mult = 0.7 + (Math.max(1, Math.min(10, w)) - 1) * (0.6 / 9); // maps 1..10 -> 0.7..1.3
       a.score = Math.max(0, a.score) * mult;
       a.sourceWeight = w;
+    });
+
+    // ── Perplexity-augmentation demotion ──
+    // The Perplexity ingest path pulls in web-search results when
+    // the curated RSS pool is thin. Most of those returns are
+    // landing pages (News - WHO, News - The White House, Homepage -
+    // ASEAN). Hard-demote sourceTier='perplexity' so they only
+    // surface when nothing else fits — curated RSS wins by default.
+    unique.forEach(a => {
+      if (a.sourceTier === 'perplexity' || a.ingestOrigin === 'perplexity') {
+        a.score = Math.max(0, (a.score || 0) - 40);
+      }
     });
 
     // Article-type as a soft preference. Articles outside the user's
@@ -1754,15 +1790,13 @@ app.get('/api/news', async (req, res) => {
         description: desc,
         content: body,
         url: article.url,
-        // Use the article's own region, NOT the display label the
-        // client sent (which can be e.g. "11 regions" when the user
-        // has all regions on). Fall back to the user's first picked
-        // region, then 'Global'.
+        // Publisher region only. NEVER fall back to the user's
+        // selected region — that bug was tagging CBS News, NPR,
+        // Bloomberg articles as "Southeast Asia" simply because the
+        // user picked that filter.
         region: (article.region && typeof article.region === 'string'
                  ? regionSlugToDisplay(article.region) || article.region
-                 : null)
-                || (regionList[0] && regionList[0] !== 'Global' ? regionList[0] : '')
-                || 'Global',
+                 : '') || 'Global',
         isOfficial: article.sourceTier === 'government-official',
         score: article.score,
         thumbnail: article.thumbnail || '',
@@ -1784,8 +1818,16 @@ app.get('/api/news', async (req, res) => {
     let coverageNote = null;
     if (offset === 0 && totalRanked < 5 && (narrowedRegions.length || narrowedSectors.length || locationTerms.length)) {
       try {
+        // When the user has narrowed regions, the broader pull MUST
+        // stay within those regions — otherwise we end up showing
+        // NA/EU content when they explicitly picked SE Asia. We can
+        // relax sectors and locations to widen coverage, but never
+        // cross the region selection.
+        const broaderRegionSlugs = narrowedRegions.length > 0
+          ? narrowedRegions.map(r => regionSlugMap[r]).filter(Boolean)
+          : ['__all__'];
         const broader = queryArticles({
-          regionSlugs: ['__all__'],
+          regionSlugs: broaderRegionSlugs,
           sinceMs: cutoff,
           q: strictKeywordMode ? allUserTerms.join(' ') : null,
           includeSources: includeArr,
@@ -1848,9 +1890,15 @@ app.get('/api/news', async (req, res) => {
     // tagged as "broader than your filters" than an empty feed.
     if (offset === 0 && articles.length === 0) {
       try {
+        // Respect the user's region pick. If they narrowed regions
+        // and we have nothing within them, show fewer results — never
+        // backfill from outside their selection.
+        const fallbackRegionSlugs = narrowedRegions.length > 0
+          ? narrowedRegions.map(r => regionSlugMap[r]).filter(Boolean)
+          : ['__all__'];
         const ultraBroad = queryArticles({
-          regionSlugs: ['__all__'],
-          sinceMs: Date.now() - 7 * 24 * 60 * 60 * 1000, // 7d window
+          regionSlugs: fallbackRegionSlugs,
+          sinceMs: Date.now() - 14 * 24 * 60 * 60 * 1000, // widen to 14d for fallback
           q: null, includeSources: null, excludeSources: null,
           limit: 200,
         }).filter(a => !isJunkArticle(a));
@@ -1931,7 +1979,31 @@ app.get('/api/news', async (req, res) => {
     // assembled `articles` array (which includes the main pool +
     // broadened auto-fill + zero-results fallback). Catches anything
     // any future code path might let slip through.
-    const cleanArticles = articles.filter(a => !isJunkArticle(a));
+    let cleanArticles = articles.filter(a => !isJunkArticle(a));
+    // Hard region-filter safety net: when the user has narrowed
+    // regions, drop any article that escaped through some path with
+    // a publisher region OR subject region that isn't in their pick.
+    // Articles with neither (no region info at all) are allowed
+    // through — they're often topical/think-tank/wire pieces.
+    if (narrowedRegions.length > 0) {
+      const allowedRegions = new Set(narrowedRegions.map(r => r.toLowerCase()));
+      const allowedSlugs = new Set(
+        narrowedRegions.map(r => regionSlugMap[r]).filter(Boolean).map(s => s.toLowerCase())
+      );
+      const beforeRegionFilter = cleanArticles.length;
+      cleanArticles = cleanArticles.filter(a => {
+        const candidates = [
+          (a.region || '').toLowerCase(),
+          (a.subjectRegion || '').toLowerCase(),
+        ].filter(Boolean);
+        // If we don't know the article's region at all, allow it.
+        if (candidates.length === 0) return true;
+        return candidates.some(c => allowedRegions.has(c) || allowedSlugs.has(c));
+      });
+      if (cleanArticles.length !== beforeRegionFilter) {
+        console.log(`Hard region filter dropped ${beforeRegionFilter - cleanArticles.length} off-region articles`);
+      }
+    }
     if (cleanArticles.length !== articles.length) {
       console.log(`Final junk-filter dropped ${articles.length - cleanArticles.length} articles before response`);
     }

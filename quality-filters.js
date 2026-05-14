@@ -192,6 +192,19 @@ const AGGREGATOR_TITLE_PATTERNS = [
   /^(?:this\s+week|this\s+morning|this\s+evening)\s+in\s+[A-Z]/i,  // "This Week in Tech"
   /^\s*(?:top|latest|breaking)\s+(?:news|stories|headlines?)(?:\s+(?:news|stories|headlines?))?\s+(?:from|in|across)\s+[A-Z]/i, // "Top News Headlines from..." / "Top News Headlines In Cambodia..."
   /^\s*(?:headlines?|top\s+stories?|in\s+brief)\s+(?:from|in|across)\s+[A-Z]/i,
+  // Plain "News - <Org>" / "News and Events - <Org>" landing pages.
+  // Anchored to start, capped on length so real headlines aren't hit.
+  // Allow trailing parens like "(WHO)" / "(NGO)".
+  /^\s*news\s*[-—–]\s*(?:[A-Z][\w&'’\.]+\s*){1,8}(?:\([A-Z]+\))?\s*$/i,
+  /^\s*news\s+and\s+events\s*[-—–]\s*[A-Z]/i,
+  /^\s*homepage\s*[-—–]\s*[A-Z]/i,
+  /^\s*video\.?\s+[A-Z]/i,           // "Video. Elon Musk brings son..." — video posts, not articles
+  /^\s*podcast\.?\s+[A-Z]/i,
+  /^\s*[A-Z][\w\s'’]+\s+\|\s+Shaping\s+/i,  // "AI Act | Shaping Europe's digital future"
+  /^\s*[A-Z][\w\s'’]+\s+(?:News|Today)\s*:\s*(?:Breaking|Latest|Live)\s+(?:Stories|News|Updates)\b/i, // "Singapore News Today: Breaking Stories & Live Updates"
+  /^\s*U\.?S\.?\s+Government\s+(?:&|and)\s+Politics\s*[-—–]\s*[A-Z]/i,
+  /^\s*news\s+in\s+a\s+minute\b/i,  // "News In A Minute: Tuesday, May 17"
+  /^\s*frontiers\s+in\s+[A-Z]/i,     // "Frontiers in Artificial Intelligence" — academic journal landing
 ];
 
 // Title is JUST a publisher / product/section name with no actual
