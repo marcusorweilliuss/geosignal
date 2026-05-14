@@ -32,10 +32,26 @@ const PERPLEXITY_MODEL = process.env.PERPLEXITY_MODEL || 'sonar';
 // splitter for unknown hostnames ("straitstimes" → "Straits Times",
 // "insideclimatenews" → "Inside Climate News"). Lives in
 // source_registry.js so the same logic can be reused elsewhere.
-const { prettyNameForUrl } = require('./source_registry');
+const { prettyNameForUrl, regionForUrl } = require('./source_registry');
 
 function prettySourceFromUrl(url) {
   return prettyNameForUrl(url);
+}
+
+// Derive the article's actual publisher region from its URL. Falls
+// back to the query region only when the publisher is unknown to
+// the registry. Without this, every result from a region-scoped
+// query gets tagged with the query region — so CBS California shows
+// up as "Southeast Asia" in the corpus when bulk ingest queries
+// "southeast asia news".
+function deriveRegion(url, fallbackRegionSlug) {
+  const derived = regionForUrl(url);
+  if (derived) return derived;
+  // Truly unknown publisher — fall back to query region rather than
+  // leave it empty so corpus queries still find these articles. The
+  // hard region filter at /api/news will still drop them if the user
+  // didn't pick this region.
+  return fallbackRegionSlug || '';
 }
 
 // Quality filters (isNonNewsUrl, looksLikeProductSpam, isJunkArticle)
@@ -91,7 +107,9 @@ async function perplexityNewsSearch(query, { regionSlug = '', max = 20, recency 
         source: prettySourceFromUrl(r.url) || 'Perplexity',
         sourceTier: 'perplexity',
         sourceCountry: [],
-        region: regionSlug,
+        // Use the article's ACTUAL publisher region (URL → registry).
+        // Falls back to the query region only when truly unknown.
+        region: deriveRegion(r.url, regionSlug),
         thumbnail: '',
         ingestOrigin: 'perplexity'
       }))
@@ -331,6 +349,27 @@ function parseGoogleNewsXml(xml, regionSlug) {
       cleanTitle = cleanTitle.slice(0, cleanTitle.length - ` - ${source}`.length);
     }
     if (!cleanTitle || !link) continue;
+    // Google News wraps article URLs in a news.google.com redirect.
+    // We don't have the underlying publisher URL parsed here, so the
+    // source field (from the <source> tag) becomes the lookup key —
+    // try matching it via the registry's name index. If that fails,
+    // fall back to the query region. Either way, the article does
+    // NOT inherit the query region by default — that's how CBS
+    // California ended up tagged "Southeast Asia".
+    const { getMetaByName: _getMetaByName } = require('./source_registry');
+    let publisherRegion = '';
+    if (source) {
+      const meta = _getMetaByName(source);
+      if (meta && Array.isArray(meta.regions) && meta.regions.length > 0) {
+        const r = String(meta.regions[0]).toLowerCase();
+        const slugMap = { 'south asia': 'south-asia', 'southeast asia': 'southeast-asia',
+          'east asia': 'east-asia', 'central asia & caucasus': 'central-asia-caucasus',
+          'middle east': 'middle-east', 'north america': 'north-america',
+          'latin america': 'latin-america', 'europe': 'europe',
+          'africa': 'africa', 'oceania': 'oceania', 'global': 'global' };
+        publisherRegion = slugMap[r] || r.replace(/\s+/g, '-').replace(/&/g, 'and');
+      }
+    }
     items.push({
       title: cleanTitle,
       description: description || '',
@@ -340,7 +379,7 @@ function parseGoogleNewsXml(xml, regionSlug) {
       source: source || 'Google News',
       sourceTier: 'google_news',
       sourceCountry: [],
-      region: regionSlug,
+      region: publisherRegion || regionSlug,
       thumbnail: '',
       ingestOrigin: 'google_news'
     });

@@ -340,6 +340,54 @@ function titleCase(s) {
     .join(' ');
 }
 
+// Given an article URL, return the publisher's region slug
+// ('north-america', 'southeast-asia', etc.) by looking up its
+// hostname in the source registry. Returns '' if unknown.
+// CRITICAL: this is the fix for the long-running region-tagging
+// bug — ingest paths must NOT label articles with the QUERY region
+// (e.g. all Google-News-for-"southeast asia news" results being
+// stamped 'southeast-asia' even when they're CBS California).
+const REGION_DISPLAY_TO_SLUG = {
+  'south asia': 'south-asia', 'southeast asia': 'southeast-asia',
+  'east asia': 'east-asia', 'central asia & caucasus': 'central-asia-caucasus',
+  'middle east': 'middle-east', 'north america': 'north-america',
+  'latin america': 'latin-america', 'europe': 'europe',
+  'africa': 'africa', 'oceania': 'oceania', 'global': 'global',
+};
+// Hosts where the URL is an AGGREGATOR redirect, not the publisher.
+// regionForUrl returns '' for these so we don't mistakenly retag
+// Google News articles as whatever junk entry happens to share the
+// google.com registrable domain in the registry.
+const AGGREGATOR_HOSTS = new Set([
+  'news.google.com', 'books.google.com', 'translate.google.com', 'scholar.google.com',
+  'feeds.feedburner.com', 't.co', 'flipboard.com', 'pocket.app', 'getpocket.com',
+  'archive.org', 'web.archive.org',
+]);
+
+function regionForUrl(url) {
+  if (!loaded) load();
+  if (!url) return '';
+  try {
+    const u = new URL(url);
+    const host = u.hostname.replace(/^www\./, '').toLowerCase();
+    if (AGGREGATOR_HOSTS.has(host)) return ''; // redirect / aggregator — caller falls back
+    const dom = registrableDomain(host);
+    // Treat aggregator REGISTRABLE DOMAINS as opt-out too, so
+    // books.google.com / translate.google.com don't poison the
+    // google.com domain lookup for news.google.com.
+    if (AGGREGATOR_HOSTS.has(dom)) return '';
+    const meta = META_BY_HOST.get(host) || META_BY_HOST.get(dom);
+    if (!meta) return '';
+    const regions = Array.isArray(meta.regions) ? meta.regions : [];
+    if (regions.length === 0) return '';
+    const r = String(regions[0] || '').toLowerCase();
+    if (REGION_DISPLAY_TO_SLUG[r]) return REGION_DISPLAY_TO_SLUG[r];
+    return r.replace(/\s+/g, '-').replace(/&/g, 'and');
+  } catch {
+    return '';
+  }
+}
+
 function prettyNameForUrl(url) {
   if (!loaded) load();
   if (!url) return '';
@@ -476,5 +524,5 @@ function getTopicBoost(meta, activeSectors) {
 module.exports = {
   getMetaByName, getTopicBoost, SECTOR_TO_TOPICS, normalizeName,
   getWeight, getSourcesForTopic, topicForQuery, QUERY_TO_TOPIC,
-  prettyNameForUrl,
+  prettyNameForUrl, regionForUrl,
 };

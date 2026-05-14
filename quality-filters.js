@@ -205,6 +205,18 @@ const AGGREGATOR_TITLE_PATTERNS = [
   /^\s*U\.?S\.?\s+Government\s+(?:&|and)\s+Politics\s*[-—–]\s*[A-Z]/i,
   /^\s*news\s+in\s+a\s+minute\b/i,  // "News In A Minute: Tuesday, May 17"
   /^\s*frontiers\s+in\s+[A-Z]/i,     // "Frontiers in Artificial Intelligence" — academic journal landing
+  // Encyclopedia / reference site landing pages.
+  /\|\s*Britannica\s*$/i,            // "Tijuana | Mexico, Map, History, & Facts | Britannica"
+  /^\s*[A-Z][\w\s'’]+\s*-\s*[A-Z][\w\s'’]+\s*-\s*EL\s+PAÍS\s*$/i, // "Tijuana - El Pais in English - EL PAÍS"
+  // Aggregator portal "X | Breaking News & Top Stories - <Aggregator>"
+  /\|\s*Breaking\s+News\s+(?:&|and)\s+Top\s+Stories\s*-\s*[A-Z]/i,
+  /^[\w\s\/]+news\s+\|\s+Breaking\s+News\s+(?:&|and)\s+Top\s+Stories/i,
+  // GovInfo style: "GovInfo | U.S. Government Publishing Office"
+  /^\s*GovInfo\s*\|/i,
+  // Daily news roundup with date: "Daily News on Southeast Asia – 20 Apr 2026"
+  /^\s*daily\s+news\s+(?:on|from|in|across)\s+[A-Z]/i,
+  // Index pages: "X.com news" landing
+  /\b(?:news|stories|updates?)\s+\|\s+latest\b/i,
 ];
 
 // Title is JUST a publisher / product/section name with no actual
