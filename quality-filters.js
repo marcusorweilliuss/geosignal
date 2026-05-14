@@ -94,14 +94,34 @@ const LANDING_PAGE_TITLE = /[\s—|\-–]\s*(?:The\s+)?(?:[A-Z][\w'’]*\s*){1,5
 const LANDING_PAGE_GENERIC_TITLE = /^(latest|breaking|top|today's?|world|sports?|business|politics|opinion)\s+news\b/i;
 const LANDING_PAGE_DESC = /\b(latest\s+news|breaking\s+news|news\s+and\s+(?:analysis|opinion|reviews?))\b.*\b(world|business|sports|politics|opinion|reviews?)/i;
 
+// Topic + section noun pairs. Catches things like:
+//   "Lithium Archives", "News & Events", "Tech Stories", "Markets Coverage",
+//   "Politics Hub", "Climate Updates", "Sports Live", "Business Latest"
+const LANDING_PAGE_SECTION_TITLE = /^[A-Za-z][\w\s&'’\-,.]{0,40}\s+(archives?|index|hub|category|categories|topics?|stories|coverage|live|updates?|tag|tags|section|sections|latest|all\s+news|all\s+stories|news\s+(?:&|and)\s+events?|events?)\s*[:|\-—]?\s*$/i;
+
+// Pure all-caps publisher / brand strings with no narrative content.
+// Catches "ASEAN BERNAMA", "TRAVELANDTOURWORLD", "PHILIPPINE DAILY INQUIRER".
+const LANDING_PAGE_ALLCAPS_BRAND = /^[A-Z][A-Z0-9 &.\-]{4,}$/;
+
 function looksLikeLandingPage(article) {
   if (!article) return false;
   const title = String(article.title || '').trim();
   const desc = String(article.description || '').trim();
+  const source = String(article.source || '').trim();
   if (!title) return false;
   if (title.length < 90 && LANDING_PAGE_TITLE.test(title)) return true;
   if (title.length < 60 && LANDING_PAGE_GENERIC_TITLE.test(title)) return true;
   if (LANDING_PAGE_DESC.test(desc)) return true;
+  // Title is a section / archive page
+  if (title.length < 60 && LANDING_PAGE_SECTION_TITLE.test(title)) return true;
+  // Title is just the publisher name (case-insensitive, ignoring whitespace).
+  // RSS feeds sometimes emit the outlet's homepage as an item.
+  if (source && title.replace(/\s+/g, ' ').toLowerCase() === source.replace(/\s+/g, ' ').toLowerCase()) return true;
+  // Title is an all-caps brand-string with no spaces or sentence structure.
+  // Filters TRAVELANDTOURWORLD, ASEAN BERNAMA, etc. — but skip if the title
+  // is a real all-caps news headline (≥6 words, contains a verb).
+  const wordCount = title.split(/\s+/).length;
+  if (wordCount <= 3 && LANDING_PAGE_ALLCAPS_BRAND.test(title)) return true;
   return false;
 }
 

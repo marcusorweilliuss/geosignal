@@ -641,75 +641,84 @@ html {
   .app-shell { padding: 70px 16px 60px; }
 }
 
-/* Header — editorial masthead with centered title + utility bar */
-header {
-  position: relative;
-  margin-bottom: 44px;
-  padding-bottom: 0;
-  border-bottom: none;
+/* Header — single-row banner matching the static pages.
+   Brand on left, About/Navigate/Privacy nav in the middle, icon
+   buttons (text size, saved, profile, sign-in) on the right.  */
+header.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 0 0 24px 0;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
 }
+
+.app-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.app-header-logo {
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+}
+
+.app-header-wordmark {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.app-header-tagline {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  letter-spacing: 0.1px;
+  white-space: nowrap;
+  padding-left: 10px;
+  margin-left: 4px;
+  border-left: 1px solid var(--border-strong);
+}
+
+.app-header-nav {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  font-family: var(--sans);
+  font-size: 13.5px;
+}
+
+.app-header-nav a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+
+.app-header-nav a:hover { color: var(--accent); }
 
 .header-utility {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
-  padding-bottom: 24px;
-  margin-bottom: 28px;
-  border-bottom: 1px solid var(--border);
 }
 
-.masthead {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 14px;
+@media (max-width: 900px) {
+  header.app-header { flex-wrap: wrap; gap: 10px; }
+  .app-header-tagline { display: none; }
+  .app-header-nav { gap: 14px; font-size: 13px; order: 3; flex-basis: 100%; justify-content: flex-start; padding-top: 6px; border-top: 1px solid var(--border); }
 }
-
-.masthead-logo {
-  color: var(--accent);
-  opacity: 0.92;
-}
-
-.masthead-logo svg {
-  width: 44px;
-  height: 44px;
-}
-
-h1 {
-  font-family: var(--serif);
-  font-size: 48px;
-  font-weight: 700;
-  letter-spacing: -1px;
-  color: var(--text-primary);
-  background: none;
-  -webkit-text-fill-color: currentColor;
-  line-height: 0.95;
-}
-
-.masthead-tagline {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  width: 100%;
-  max-width: 420px;
-}
-
-.masthead-rule {
-  flex: 1;
-  height: 1px;
-  background: var(--border-strong);
-}
-
-.masthead-tagline-text {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 13px;
-  color: var(--text-secondary);
-  letter-spacing: 0.3px;
-  white-space: nowrap;
+@media (max-width: 540px) {
+  .app-header-nav { display: none; }
 }
 
 .live-dot {
@@ -726,39 +735,6 @@ h1 {
   50% { opacity: 0.65; box-shadow: 0 0 0 5px rgba(15, 110, 86, 0); }
 }
 
-/* Intro hero — explains what GeoSignal is on arrival */
-.intro-hero {
-  max-width: 740px;
-  margin: -4px auto 44px;
-  padding: 0 8px;
-  text-align: center;
-}
-
-.intro-hero-headline {
-  font-family: var(--serif);
-  font-size: 30px;
-  font-weight: 500;
-  color: var(--text-primary);
-  line-height: 1.2;
-  letter-spacing: -0.4px;
-  margin: 0 0 12px;
-}
-
-.intro-hero-subline {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 16.5px;
-  color: var(--text-secondary);
-  line-height: 1.55;
-  margin: 0 auto;
-  max-width: 640px;
-}
-
-@media (max-width: 720px) {
-  .intro-hero { margin-bottom: 28px; }
-  .intro-hero-headline { font-size: 24px; }
-  .intro-hero-subline { font-size: 15px; }
-}
 
 /* Other-sector text input that sits under the sector pill group */
 .sector-other-row {
@@ -2913,12 +2889,18 @@ select:focus {
   margin-top: 10px;
 }
 
-/* 3-column responsive grid of cards within a section */
+/* Responsive card grid — 3 columns on desktop (not 4). Cards need
+   room for the title to wrap without truncating. */
 .feed-section-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 20px;
   margin-top: 18px;
+}
+@media (min-width: 1100px) {
+  .feed-section-cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 /* Within a grid, each card is a vertical tile */
@@ -2955,8 +2937,29 @@ select:focus {
   gap: 8px;
 }
 
-.feed-section-cards .card:not(.has-thumb) .card-body {
+.feed-section-cards .card:not(.has-thumb) .card-body,
+.feed-section-cards .card.no-thumb .card-body {
   padding: 22px 20px 18px;
+}
+
+/* No-thumb cards: no awkward colored placeholder, just a clean card.
+   Drop any leftover .card-thumb child the renderer might have left. */
+.feed-section-cards .card.no-thumb .card-thumb { display: none; }
+
+/* Inline 1-line preview shown directly under the title — removes
+   the old "Show summary" disclosure click. Single-line ellipsis so
+   cards stay the same height. */
+.card-summary-inline {
+  font-family: var(--serif);
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  margin: 6px 0 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .feed-section-cards .card .card-header {
@@ -4700,16 +4703,26 @@ select:focus {
 /* ── Toast stack (success + nudge) ── */
 .toast-container {
   position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 16px;
+  right: 16px;
   z-index: 1200;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-end;
   gap: 10px;
   pointer-events: none;
-  width: min(520px, calc(100vw - 32px));
+  width: min(420px, calc(100vw - 32px));
+}
+
+@media (max-width: 640px) {
+  .toast-container {
+    top: auto;
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    align-items: stretch;
+    width: auto;
+  }
 }
 
 .toast {
@@ -4728,11 +4741,11 @@ select:focus {
   gap: 12px;
   max-width: 100%;
   opacity: 0;
-  transform: translateY(16px);
+  transform: translateX(16px);
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-.toast.visible { opacity: 1; transform: translateY(0); }
+.toast.visible { opacity: 1; transform: translateX(0); }
 
 .toast-success { background: var(--accent); color: #fff; }
 .toast-success::before {
@@ -4769,6 +4782,98 @@ select:focus {
 }
 
 .toast-close:hover { opacity: 1; }
+
+/* ── Briefing overlay ──
+   The briefing (full structured analysis + recs rail + follow-up
+   chat) opens in a focused full-viewport overlay instead of expanding
+   inline inside the 3-col card grid (which broke the layout and let
+   multiple briefings be open at once). Backdrop click + Esc close. */
+.briefing-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(28, 25, 23, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 32px 24px;
+  overflow-y: auto;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.briefing-overlay.visible { opacity: 1; }
+
+body.briefing-overlay-open { overflow: hidden; }
+
+.briefing-overlay-panel {
+  position: relative;
+  width: min(1100px, 100%);
+  background: var(--bg-card);
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+  padding: 24px 28px 28px;
+  transform: translateY(8px);
+  transition: transform 0.25s ease;
+}
+.briefing-overlay.visible .briefing-overlay-panel { transform: translateY(0); }
+
+.briefing-overlay-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, transform 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.briefing-overlay-close:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  transform: rotate(90deg);
+}
+
+.briefing-overlay-titlebar {
+  padding: 4px 56px 16px 0;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.briefing-overlay-source {
+  font-family: var(--sans);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 6px;
+}
+
+.briefing-overlay-title {
+  font-family: var(--serif);
+  font-size: 24px;
+  line-height: 1.25;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+
+@media (max-width: 720px) {
+  .briefing-overlay { padding: 12px; }
+  .briefing-overlay-panel { padding: 18px 18px 22px; border-radius: 10px; }
+  .briefing-overlay-title { font-size: 19px; }
+}
 
 /* Legacy modal-overlay (kept for any remaining overlays) */
 .modal-overlay {
@@ -5027,22 +5132,8 @@ footer span {
     padding: 20px 16px 60px;
   }
 
-  header {
-    margin-bottom: 28px;
-  }
-
-  h1 {
-    font-size: 34px;
-  }
-
-  .masthead-logo svg {
-    width: 34px;
-    height: 34px;
-  }
-
-  .masthead-tagline-text {
-    font-size: 11px;
-  }
+  header.app-header { margin-bottom: 16px; padding: 8px 0; }
+  .app-header-wordmark { font-size: 19px; }
 
   .header-utility {
     flex-wrap: wrap;
@@ -5170,104 +5261,69 @@ footer span {
    user scrolls. Bright orange to draw attention. Bigger text so
    it can't be missed. Closeable via the × button (dismissal
    persists in localStorage). */
-.annotate-feature-banner {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  margin: 0 0 24px 0;
-  padding: 18px 24px;
-  background: linear-gradient(135deg, #FFF1E5, #FFD9B8);
-  border: 2px solid #E8763A;
-  border-left: 6px solid #E8763A;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(232, 118, 58, 0.18);
-  color: #5A2A0E;
-  font-family: var(--sans);
-  /* Stick to the top of the viewport once the user scrolls past. */
-  position: sticky;
-  top: 8px;
-  z-index: 80;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+/* ── Annotate first-briefing nudge ──
+   Replaces the loud orange feed-level banner. Slim tooltip-style
+   card that lives INSIDE the first briefing the user opens, dismissed
+   forever on first text selection or close click. */
+.annotate-nudge {
+  margin: 0 0 16px 0;
+  animation: annotate-nudge-in 0.35s ease both;
 }
 
-.annotate-feature-banner-icon {
+.annotate-nudge-bubble {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #F4EDDF;
+  border: 1px solid rgba(15, 110, 86, 0.22);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  font-family: var(--sans);
+  font-size: 13.5px;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.annotate-nudge-icon {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: #E8763A;
+  background: var(--accent);
   color: #fff;
-  box-shadow: 0 2px 6px rgba(232, 118, 58, 0.4);
 }
-.annotate-feature-banner-icon svg {
+
+.annotate-nudge-body { flex: 1; }
+.annotate-nudge-body strong { font-weight: 700; color: var(--accent); margin-right: 2px; }
+
+.annotate-nudge-close {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
   width: 24px;
   height: 24px;
-}
-
-.annotate-feature-banner-body {
-  flex: 1;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 10px;
-  line-height: 1.5;
-  font-size: 16px;
-  color: #5A2A0E;
-}
-
-.annotate-feature-banner-body strong {
-  font-weight: 800;
   font-size: 18px;
-  color: #B84F1A;
-  letter-spacing: 0.2px;
-  text-transform: uppercase;
-}
-
-.annotate-feature-banner-body em {
-  color: #B84F1A;
-  font-style: normal;
-  font-weight: 700;
-  border-bottom: 2px dashed #E8763A;
-  padding: 0 2px;
-}
-
-.annotate-feature-banner-close {
-  flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  border: 1.5px solid #E8763A;
-  background: transparent;
-  font-size: 22px;
   line-height: 1;
-  color: #B84F1A;
+  color: var(--text-tertiary);
   cursor: pointer;
   border-radius: 50%;
-  transition: all 0.15s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+.annotate-nudge-close:hover { background: rgba(0,0,0,0.05); color: var(--text-primary); }
+
+.annotate-nudge.annotate-nudge-leaving {
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.25s, transform 0.25s;
 }
 
-.annotate-feature-banner-close:hover {
-  background: #E8763A;
-  color: #fff;
-  border-color: #B84F1A;
-}
-
-@media (max-width: 720px) {
-  .annotate-feature-banner {
-    flex-wrap: wrap;
-    padding: 14px 16px;
-    gap: 12px;
-    top: 4px;
-  }
-  .annotate-feature-banner-icon { width: 36px; height: 36px; }
-  .annotate-feature-banner-body { font-size: 14.5px; }
-  .annotate-feature-banner-body strong { font-size: 15.5px; }
+@keyframes annotate-nudge-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ── Sidebar collapsible sections ───────────────────────────────

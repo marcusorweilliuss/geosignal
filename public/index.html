@@ -175,7 +175,25 @@
       <button class="profile-banner-dismiss" id="profile-banner-dismiss" type="button" title="Dismiss" aria-label="Dismiss">&times;</button>
     </div>
 
-    <header>
+    <header class="app-header">
+      <div class="app-header-brand">
+        <div class="app-header-logo" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="22" cy="22" r="18" />
+            <ellipse cx="22" cy="22" rx="18" ry="7.5" />
+            <path d="M22 4c5 5 5 31 0 36" />
+            <path d="M22 4c-5 5-5 31 0 36" />
+            <line x1="4" y1="22" x2="40" y2="22" />
+          </svg>
+        </div>
+        <span class="app-header-wordmark">GeoSignal</span>
+        <span class="app-header-tagline">A Global Intelligence Dispatch</span>
+      </div>
+      <nav class="app-header-nav" aria-label="Site">
+        <a href="/about.html">About</a>
+        <a href="/navigate.html">How to navigate</a>
+        <a href="/privacy.html">Privacy</a>
+      </nav>
       <div class="header-utility">
         <button id="text-size-btn" class="icon-btn" title="Change text size">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -222,30 +240,7 @@
         <input type="checkbox" id="annotate-toggle" checked style="display:none">
       </div>
 
-      <div class="masthead">
-        <div class="masthead-logo">
-          <svg width="44" height="44" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="22" cy="22" r="18" />
-            <ellipse cx="22" cy="22" rx="18" ry="7.5" />
-            <path d="M22 4c5 5 5 31 0 36" />
-            <path d="M22 4c-5 5-5 31 0 36" />
-            <line x1="4" y1="22" x2="40" y2="22" />
-          </svg>
-        </div>
-        <h1>GeoSignal</h1>
-        <div class="masthead-tagline">
-          <span class="masthead-rule"></span>
-          <span class="live-dot" title="Live feed"></span>
-          <span class="masthead-tagline-text">A Global Intelligence Dispatch</span>
-          <span class="masthead-rule"></span>
-        </div>
-      </div>
     </header>
-
-    <section class="intro-hero" aria-label="What GeoSignal does">
-      <h2 class="intro-hero-headline">Make sense of the world, on your terms.</h2>
-      <p class="intro-hero-subline">GeoSignal distils every story into a structured intelligence briefing &mdash; the facts, the context, and what it actually means for your role.</p>
-    </section>
 
     <div class="control-bar">
       <div class="search-bar">
@@ -392,20 +387,6 @@
     <!-- Always-visible "how to use Annotate" banner. Closeable; stays
          dismissed via localStorage. Designed to draw attention to the
          feature so users discover the green-term explanations. -->
-    <div class="annotate-feature-banner" id="annotate-feature-banner" role="note">
-      <div class="annotate-feature-banner-icon">
-        <svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M2 14l4-1 7-7a1.4 1.4 0 0 0-2-2L4 11z"/>
-          <path d="M9 5l2 2"/>
-        </svg>
-      </div>
-      <div class="annotate-feature-banner-body">
-        <strong>Annotate is on.</strong>
-        <span>Inside any briefing, tap a <em>green-underlined term</em> for a plain-English explanation, or highlight any phrase to look it up. No toggle — it&rsquo;s always available.</span>
-      </div>
-      <button class="annotate-feature-banner-close" id="annotate-feature-banner-close" type="button" title="Hide this banner" aria-label="Hide this banner">&times;</button>
-    </div>
-
     <main id="feed">
       <div class="loading-feed">
         <div class="loading-pulse"></div>

@@ -611,7 +611,23 @@ function initWizard() {
     ).join('');
     regionsEl.addEventListener('click', (e) => {
       const card = e.target.closest('.wizard-card');
-      if (card) card.classList.toggle('selected');
+      if (!card) return;
+      const isGlobal = card.dataset.value === 'Global';
+      card.classList.toggle('selected');
+      // "Global" is mutually exclusive with specific regions.
+      // Picking Global deselects everything else; picking anything
+      // else deselects Global. Avoids the contradictory "Global +
+      // Europe + Middle East" state.
+      if (card.classList.contains('selected')) {
+        if (isGlobal) {
+          regionsEl.querySelectorAll('.wizard-card.selected').forEach(c => {
+            if (c !== card) c.classList.remove('selected');
+          });
+        } else {
+          const globalCard = regionsEl.querySelector('.wizard-card[data-value="Global"]');
+          if (globalCard) globalCard.classList.remove('selected');
+        }
+      }
     });
   }
 
@@ -741,6 +757,10 @@ function initWizard() {
       }
       hideWelcomeModal();
       handleProfileSaved('welcome');
+      // Onboarding's whole point is to apply the user's selections.
+      // Snapshot the filter state now so the pending-changes sticky
+      // bar doesn't fire while the first fetch is in flight.
+      if (typeof markFiltersApplied === 'function') markFiltersApplied();
       fetchStories();
     });
   }
@@ -1354,6 +1374,27 @@ function renderKeywordChips() {
     .join('');
   if (keywordClearAll) {
     keywordClearAll.classList.toggle('visible', filterKeywords.length > 0);
+  }
+  // Mirror keyword chips into the top search bar so the user can see
+  // what's filtering the feed at a glance — and so adding a country
+  // in the sidebar visibly drives the search. Sidebar chips are
+  // canonical; the search input reflects them.
+  syncKeywordChipsToSearch();
+}
+
+function syncKeywordChipsToSearch() {
+  if (!searchInput) return;
+  // Only overwrite the search box when the current text either
+  // matches what we last wrote OR is empty. If the user has typed an
+  // ad-hoc query, don't clobber it.
+  const lastSynced = searchInput.dataset.kwSynced || '';
+  const current = searchInput.value;
+  if (current && current !== lastSynced) return;
+  const joined = filterKeywords.join(', ');
+  searchInput.value = joined;
+  searchInput.dataset.kwSynced = joined;
+  if (typeof searchClear !== 'undefined' && searchClear) {
+    searchClear.style.display = joined.length > 0 ? 'block' : 'none';
   }
 }
 
@@ -2279,41 +2320,75 @@ handleFiltersChanged();
   }
 })();
 
-// ── Annotate awareness card ─────────────────────────────────────
-// Wire up the persistent annotate-feature banner that sits above the
-// feed. User can dismiss it via the close button; once dismissed, it
-// stays hidden via localStorage. No auto-hide on engagement —
-// some users want the reminder permanently visible.
-(function wireAnnotateBanner() {
-  const banner = document.getElementById('annotate-feature-banner');
-  const closeBtn = document.getElementById('annotate-feature-banner-close');
-  if (!banner) return;
-  const STORAGE_KEY = 'geosignal_annotate_banner_dismissed';
-  if (localStorage.getItem(STORAGE_KEY) === 'true') {
-    banner.style.display = 'none';
-    return;
-  }
-  if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-      localStorage.setItem(STORAGE_KEY, 'true');
-      banner.style.transition = 'opacity 0.25s';
-      banner.style.opacity = '0';
-      setTimeout(() => banner.remove(), 250);
-    });
-  }
-})();
+// ── Annotate first-briefing nudge ───────────────────────────────
+// Replaces the old persistent orange banner above the feed. Now we
+// render a one-time tooltip inside the FIRST briefing the user opens,
+// pointing at the briefing body with a friendly "highlight any text"
+// hint. Dismissed forever once the user clicks anywhere or × it.
+const ANNOTATE_NUDGE_KEY = 'geosignal_annotate_nudge_seen';
+
+function shouldShowAnnotateNudge() {
+  try { return localStorage.getItem(ANNOTATE_NUDGE_KEY) !== 'true'; }
+  catch { return false; }
+}
+
+function markAnnotateNudgeSeen() {
+  try { localStorage.setItem(ANNOTATE_NUDGE_KEY, 'true'); } catch {}
+}
+
+// Inject the nudge into a freshly-rendered briefing container.
+// Caller passes the .briefing-main element so the tooltip can anchor
+// to the briefing body and auto-dismiss after engagement.
+function injectAnnotateNudge(briefingMain) {
+  if (!briefingMain || !shouldShowAnnotateNudge()) return;
+  const nudge = document.createElement('div');
+  nudge.className = 'annotate-nudge';
+  nudge.innerHTML =
+    '<div class="annotate-nudge-bubble">' +
+      '<div class="annotate-nudge-icon">' +
+        '<svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+          '<path d="M2 14l4-1 7-7a1.4 1.4 0 0 0-2-2L4 11z"/>' +
+          '<path d="M9 5l2 2"/>' +
+        '</svg>' +
+      '</div>' +
+      '<div class="annotate-nudge-body">' +
+        '<strong>Try this →</strong> Highlight any word or phrase below for a plain-English explanation.' +
+      '</div>' +
+      '<button class="annotate-nudge-close" type="button" aria-label="Dismiss tip">&times;</button>' +
+    '</div>';
+  briefingMain.prepend(nudge);
+  const dismiss = () => {
+    if (!nudge.isConnected) return;
+    markAnnotateNudgeSeen();
+    nudge.classList.add('annotate-nudge-leaving');
+    setTimeout(() => nudge.remove(), 250);
+  };
+  nudge.querySelector('.annotate-nudge-close').addEventListener('click', (e) => {
+    e.stopPropagation();
+    dismiss();
+  });
+  // Dismiss on first text selection (the moment the user engages with annotate)
+  const onSelect = () => {
+    const sel = window.getSelection();
+    if (sel && String(sel).trim().length > 0) {
+      dismiss();
+      document.removeEventListener('mouseup', onSelect);
+    }
+  };
+  document.addEventListener('mouseup', onSelect);
+}
 
 // ── Utilities ───────────────────────────────────────────────────
 
 function timeAgo(dateStr) {
-  if (!dateStr) return 'Date unavailable';
+  if (!dateStr) return 'Recent';
   const now = new Date();
   const then = new Date(dateStr);
-  if (isNaN(then.getTime())) return 'Date unavailable';
+  if (isNaN(then.getTime())) return 'Recent';
   const diffMs = now - then;
 
   // Negative diff = future date or bogus timestamp
-  if (diffMs < 0) return 'Date unavailable';
+  if (diffMs < 0) return 'Recent';
 
   const mins = Math.floor(diffMs / 60000);
   // Only show "Just now" if genuinely under 5 minutes
@@ -2612,11 +2687,26 @@ function updateDispatchHeader(articles) {
   });
 
   const sourceSet = new Set();
+  articles.forEach(a => { if (a.source) sourceSet.add(a.source); });
+
+  // "Must read" = the top quartile of articles by score in this batch.
+  // Using a relative threshold (not score >= 50) keeps the count
+  // meaningful — otherwise registry-driven credibility lifts almost
+  // every article over the old absolute cutoff, and the stat reads
+  // "must-read: 50 of 50" which differentiates nothing.
+  const scoredArticles = articles.filter(a => typeof a.score === 'number');
   let highCount = 0;
-  articles.forEach(a => {
-    if (a.source) sourceSet.add(a.source);
-    if (a.score !== undefined && scoreToRelevance(a.score) === 'HIGH') highCount++;
-  });
+  if (scoredArticles.length >= 4) {
+    const sorted = scoredArticles.map(a => a.score).sort((x, y) => y - x);
+    const cutoff = sorted[Math.floor(sorted.length * 0.25)];
+    highCount = scoredArticles.filter(a => a.score >= cutoff && a.score > 0).length;
+    // Mark the corresponding cards so the click-to-jump still works.
+    articles.forEach(a => {
+      a._mustRead = (typeof a.score === 'number' && a.score >= cutoff && a.score > 0);
+    });
+  } else {
+    articles.forEach(a => { a._mustRead = false; });
+  }
 
   const stats = [
     {
@@ -2649,7 +2739,7 @@ function updateDispatchHeader(articles) {
   const mustReadBtn = stripEl.querySelector('[data-action="must-read"]');
   if (mustReadBtn) {
     mustReadBtn.addEventListener('click', () => {
-      const firstHigh = document.querySelector('.card.relevance-high');
+      const firstHigh = document.querySelector('.card.card-must-read') || document.querySelector('.card.relevance-high');
       if (firstHigh) {
         firstHigh.scrollIntoView({ behavior: 'smooth', block: 'start' });
         firstHigh.focus({ preventScroll: true });
@@ -3303,13 +3393,47 @@ function renderFeed(articles, options) {
     ensureBucket(fallbackLabel).push(a);
   }
 
+  // Within each bucket, interleave so no single publisher dominates.
+  // Bucket comes in score-sorted; if the top 5 are all "Philippine
+  // Daily Inquirer", we round-robin them with other publishers so the
+  // first card from each source surfaces before we start showing
+  // seconds. Falls back to the original score order once every source
+  // has had one slot.
+  function diversifyBySource(articles) {
+    if (!Array.isArray(articles) || articles.length < 3) return articles;
+    const queues = new Map(); // source -> [articles]
+    const sourceOrder = [];   // insertion order, preserves score priority
+    for (const a of articles) {
+      const src = (a.source || 'Unknown').toLowerCase();
+      if (!queues.has(src)) {
+        queues.set(src, []);
+        sourceOrder.push(src);
+      }
+      queues.get(src).push(a);
+    }
+    if (queues.size === 1) return articles; // nothing to diversify
+    const out = [];
+    while (out.length < articles.length) {
+      let drewSomething = false;
+      for (const src of sourceOrder) {
+        const q = queues.get(src);
+        if (q && q.length > 0) {
+          out.push(q.shift());
+          drewSomething = true;
+        }
+      }
+      if (!drewSomething) break;
+    }
+    return out;
+  }
+
   // Build the final ordered list of groups. Pre-existing buckets
   // are already in insertion order; broadened group always last.
   const renderGroups = orderedLabels
-    .map(label => ({ label, articles: groupBuckets.get(label) }))
+    .map(label => ({ label, articles: diversifyBySource(groupBuckets.get(label)) }))
     .filter(g => g.articles.length > 0);
   if (broadenedBucket.length > 0) {
-    renderGroups.push({ label: 'More you might like', articles: broadenedBucket, broadened: true });
+    renderGroups.push({ label: 'More you might like', articles: diversifyBySource(broadenedBucket), broadened: true });
   }
   // If we somehow ended up with one giant group, drop the header
   // (avoid showing a single "Other" header above the entire feed).
@@ -3373,26 +3497,39 @@ function renderFeed(articles, options) {
       const isFeatured = article === featuredArticle;
       card.className = 'card' + relevanceClass +
         (article.isOfficial ? ' card-is-official' : '') +
+        (article._mustRead ? ' card-must-read' : '') +
         (isFeatured ? ' card-featured' : '');
       card.setAttribute('tabindex', '0');
       card.dataset.cardIndex = index;
 
-      // Card preview = the article's own description, trimmed to ~1-2
-      // short sentences. No LLM autogeneration; this is collapsible
-      // behind a "Show summary" disclosure so the feed stays scannable.
+      // Card preview = a single short sentence from the article's own
+      // description. Shown inline (no disclosure click) so the card is
+      // useful at a glance. Clicking anywhere on the card opens the
+      // full briefing — no separate "Show summary" link needed.
       const summaryRaw = article.description ? cleanFallback(article.description) : '';
-      const summaryShort = truncateToSentences(summaryRaw, 2, 220);
+      const summaryShort = truncateToSentences(summaryRaw, 1, 160);
       const summaryHtml = summaryShort
-        ? '<details class="card-summary">' +
-            '<summary>Show summary</summary>' +
-            '<p class="card-summary-text">' + escapeHtml(summaryShort) + '</p>' +
-          '</details>'
+        ? '<p class="card-summary-inline">' + escapeHtml(summaryShort) + '</p>'
         : '';
       const officialBadge = article.isOfficial ? '<span class="card-official-badge">Official</span>' : '';
-      const regionPill = article.region ? '<span class="card-region">' + escapeHtml(article.region) + '</span>' : '';
-      const countryPill = (article.country && article.country !== article.region)
-        ? '<span class="card-country" title="Primary country covered in this story">' + escapeHtml(article.country) + '</span>'
+      // The region tag should describe what the story is ABOUT, not
+      // where the publisher is based. Prefer the extracted subject
+      // country; fall back to source region only when we couldn't
+      // identify a subject. This stops "Boeing 737 MAX" being tagged
+      // SOUTHEAST ASIA just because Straits Times published it.
+      const subjectCountry = article.country && article.country.trim();
+      const subjectRegion = article.subjectRegion && article.subjectRegion.trim();
+      const subjectLabel = subjectCountry || subjectRegion;
+      const subjectPill = subjectLabel
+        ? '<span class="card-region" title="Primary subject of this story">' + escapeHtml(subjectLabel) + '</span>'
+        : (article.region ? '<span class="card-region card-region-source" title="Publisher region (no subject extracted)">' + escapeHtml(article.region) + '</span>' : '');
+      // Keep the second pill (separate region/country) only when both
+      // exist AND they differ from each other AND from what we already
+      // showed — avoids two identical pills.
+      const countryPill = (subjectRegion && subjectCountry && subjectCountry !== subjectRegion)
+        ? '<span class="card-country" title="Region">' + escapeHtml(subjectRegion) + '</span>'
         : '';
+      const regionPill = subjectPill;
       const tierLabel = article.sourceTier
         ? article.sourceTier.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
         : '';
@@ -3455,22 +3592,35 @@ function renderFeed(articles, options) {
 
       const eyebrow = isFeatured ? '<div class="card-eyebrow">Lead Story</div>' : '';
 
-      // Every card MUST show a thumbnail. If the article has one,
-      // use it; otherwise render a deterministic colored placeholder
-      // tile labelled with the publication name. The placeholder is
-      // pure CSS — no broken-img icon, no empty space.
-      const placeholderLabel = escapeHtml(article.source || 'News');
-      const placeholderClass = 'thumb-placeholder thumb-tone-' + (
-        // 8 buckets, hashed off the source name so the same outlet
-        // always picks the same color.
-        Math.abs(hashStringCheap(article.source || article.title || '')) % 8
-      );
-      const thumbnailHtml = article.thumbnail
-        ? '<div class="card-thumb"><img src="' + escapeHtml(article.thumbnail) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentElement.outerHTML = \'<div class=&quot;card-thumb ' + placeholderClass + '&quot;><span>' + placeholderLabel + '</span></div>\'" /></div>'
-        : '<div class="card-thumb ' + placeholderClass + '"><span>' + placeholderLabel + '</span></div>';
+      // Thumbnails are now strictly optional. If the article has one
+      // that survives the trust check below, we render it. If not, the
+      // card shows no image at all (the title carries the card).
+      // Trust check: drop thumbnails whose host doesn't match the
+      // article URL's host — that's how we caught the soccer image
+      // attached to a Vietnam IP story (wrong og:image at the source).
+      let trustedThumb = '';
+      if (article.thumbnail && typeof article.thumbnail === 'string') {
+        try {
+          const imgHost = new URL(article.thumbnail).hostname.replace(/^www\./, '');
+          const artHost = article.url ? new URL(article.url).hostname.replace(/^www\./, '') : '';
+          // Allow if hosts share a top-level domain (covers CDN subdomains
+          // like img.publisher.com vs publisher.com).
+          const sameRoot = artHost && (
+            imgHost === artHost ||
+            imgHost.endsWith('.' + artHost) ||
+            artHost.endsWith('.' + imgHost) ||
+            // Common shared registrable domain (foo.com vs cdn.foo.com)
+            imgHost.split('.').slice(-2).join('.') === artHost.split('.').slice(-2).join('.')
+          );
+          if (sameRoot) trustedThumb = article.thumbnail;
+        } catch {}
+      }
+      const thumbnailHtml = trustedThumb
+        ? '<div class="card-thumb"><img src="' + escapeHtml(trustedThumb) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentElement.remove()" /></div>'
+        : '';
 
-      // Always treat as has-thumb so card layout is consistent.
-      card.classList.add('has-thumb');
+      if (trustedThumb) card.classList.add('has-thumb');
+      else card.classList.add('no-thumb');
 
 
       const matchReasonHtml = article.matchReason
@@ -3522,16 +3672,29 @@ function renderFeed(articles, options) {
 
       let expanded = false;
       let briefingEl = null;
+      let overlayEl = null;
+      let expandedAtTs = null;
+
+      const closeOverlay = () => {
+        if (!overlayEl) return;
+        overlayEl.classList.remove('visible');
+        const toRemove = overlayEl;
+        setTimeout(() => { if (toRemove.parentNode) toRemove.parentNode.removeChild(toRemove); }, 200);
+        overlayEl = null;
+        briefingEl = null;
+        document.body.classList.remove('briefing-overlay-open');
+        card.classList.remove('card-expanded');
+        if (typeof expandedAtTs === 'number') {
+          gsTracker.articleTimeSpent(articleId, (Date.now() - expandedAtTs) / 1000);
+        }
+        expanded = false;
+        document.removeEventListener('keydown', onOverlayKey);
+      };
+
+      const onOverlayKey = (e) => { if (e.key === 'Escape') closeOverlay(); };
 
       const toggleExpand = async () => {
-        if (expanded) {
-          if (briefingEl) { briefingEl.remove(); briefingEl = null; }
-          if (typeof expandedAt === 'number') {
-            gsTracker.articleTimeSpent(articleId, (Date.now() - expandedAt) / 1000);
-          }
-          expanded = false;
-          return;
-        }
+        if (expanded) { closeOverlay(); return; }
 
         expanded = true;
         const wasUnread = !readCards.has(articleId);
@@ -3540,7 +3703,37 @@ function renderFeed(articles, options) {
         recordSessionRead(article);
         if (wasUnread) recordBriefingOpened();
         gsTracker.articleOpened(article);
-        const expandedAt = Date.now();
+        expandedAtTs = Date.now();
+
+        // Build the focused overlay: backdrop + centered panel that
+        // holds the briefing. This replaces the old inline-expand
+        // inside the grid card (which broke the 3-col layout and made
+        // multiple briefings simultaneously visible).
+        overlayEl = document.createElement('div');
+        overlayEl.className = 'briefing-overlay';
+        overlayEl.addEventListener('click', (e) => {
+          if (e.target === overlayEl) closeOverlay();
+        });
+
+        const panel = document.createElement('div');
+        panel.className = 'briefing-overlay-panel';
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'briefing-overlay-close';
+        closeBtn.type = 'button';
+        closeBtn.setAttribute('aria-label', 'Close briefing');
+        closeBtn.innerHTML = '&times;';
+        closeBtn.addEventListener('click', closeOverlay);
+        panel.appendChild(closeBtn);
+
+        // Title strip at the top of the overlay — gives the user the
+        // story title without forcing them to scroll back through
+        // the dim feed underneath.
+        const titleStrip = document.createElement('div');
+        titleStrip.className = 'briefing-overlay-titlebar';
+        titleStrip.innerHTML =
+          '<div class="briefing-overlay-source">' + escapeHtml(article.source || '') + '</div>' +
+          '<div class="briefing-overlay-title">' + escapeHtml(article.title || '') + '</div>';
+        panel.appendChild(titleStrip);
 
         briefingEl = document.createElement('div');
         briefingEl.className = 'briefing briefing-with-recs';
@@ -3591,7 +3784,17 @@ function renderFeed(articles, options) {
         briefingMain.appendChild(chatBox);
         briefingEl.appendChild(recsRail);
         briefingEl.appendChild(briefingMain);
-        card.appendChild(briefingEl);
+        panel.appendChild(briefingEl);
+        overlayEl.appendChild(panel);
+        document.body.appendChild(overlayEl);
+        document.body.classList.add('briefing-overlay-open');
+        // Trigger CSS transition
+        requestAnimationFrame(() => overlayEl.classList.add('visible'));
+        document.addEventListener('keydown', onOverlayKey);
+
+        // First-time annotate nudge — only fires inside the user's
+        // very first briefing, then never again.
+        injectAnnotateNudge(briefingMain);
 
         // Fire recommendation fetch in parallel with the briefing.
         fetchRecommendationsFor(article, recsRail).catch(() => {});
@@ -3626,12 +3829,9 @@ function renderFeed(articles, options) {
           });
         });
 
-        // Smooth scroll the card into view
-        setTimeout(() => {
-          card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
-
-        // Only fetch the briefing immediately — Impact and Discourse lazy-load on click
+        // The overlay manages its own scroll — no need to scroll the
+        // grid card into view.
+        // Only fetch the briefing immediately — Impact lazy-loads on click
         await fetchBriefing(article, briefingContent);
       };
 
@@ -4376,10 +4576,17 @@ searchInput.addEventListener('input', () => {
   searchClear.style.display = searchInput.value.length > 0 ? 'block' : 'none';
 });
 
-// Clear search
+// Clear search — also clears synced keyword chips so the user
+// doesn't have to clear them in two places.
 searchClear.addEventListener('click', () => {
   searchInput.value = '';
+  searchInput.dataset.kwSynced = '';
   searchClear.style.display = 'none';
+  if (Array.isArray(filterKeywords) && filterKeywords.length > 0) {
+    filterKeywords = [];
+    if (typeof renderKeywordChips === 'function') renderKeywordChips();
+    if (typeof handleFiltersChanged === 'function') handleFiltersChanged();
+  }
   fetchStories();
 });
 
