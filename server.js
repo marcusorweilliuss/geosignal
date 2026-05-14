@@ -5,7 +5,7 @@ const Groq = require('groq-sdk');
 const Parser = require('rss-parser');
 
 const { SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT, classifyArticleType, extractPrimaryCountry, regionForCountry, extractPrimarySector, getSourceDescription, SECTOR_KEYWORDS, getAllSourcesForBrowser, getSourceBias, getTierCategory } = require('./sources');
-const { getWeight: getSourceWeight, getSourcesForTopic, topicForQuery } = require('./source_registry');
+const { getWeight: getSourceWeight, getSourcesForTopic, topicForQuery, prettyNameForUrl } = require('./source_registry');
 
 const { queryArticles, upsertManyArticles, updateThumbnail, getUserProfile, saveUserProfile } = require('./db');
 const { runFullIngest, googleNewsLiveSearch, liveFetchManyQueries } = require('./ingest');
@@ -1809,7 +1809,7 @@ app.get('/api/news', async (req, res) => {
           sinceMs: Date.now() - 7 * 24 * 60 * 60 * 1000, // 7d window
           q: null, includeSources: null, excludeSources: null,
           limit: 200,
-        });
+        }).filter(a => !isJunkArticle(a));
         const top = ultraBroad
           .map(a => {
             a.score = scoreArticle(a, regionList[0] || 'global', userProfile, []);
@@ -1883,11 +1883,19 @@ app.get('/api/news', async (req, res) => {
       });
     }
 
-    const nextOffset = (offset + articles.length) < totalRanked
-      ? offset + articles.length
+    // Final belt-and-suspenders junk filter — runs against the
+    // assembled `articles` array (which includes the main pool +
+    // broadened auto-fill + zero-results fallback). Catches anything
+    // any future code path might let slip through.
+    const cleanArticles = articles.filter(a => !isJunkArticle(a));
+    if (cleanArticles.length !== articles.length) {
+      console.log(`Final junk-filter dropped ${articles.length - cleanArticles.length} articles before response`);
+    }
+    const nextOffset = (offset + cleanArticles.length) < totalRanked
+      ? offset + cleanArticles.length
       : null;
     res.json({
-      articles,
+      articles: cleanArticles,
       governmentCaveat: GOVERNMENT_CAVEAT,
       coverageNote,
       total: totalRanked,
@@ -3421,10 +3429,16 @@ If you cannot find any credible articles, return {"articles": []}.`;
     const found = Array.isArray(parsed.articles) ? parsed.articles : [];
     const articles = found
       .filter(a => a && a.title && a.url)
+      // Run the same junk filter the main feed uses, so Perplexity's
+      // web search can't surface Facebook posts, libguides, scraper
+      // tools, podcast indexes, etc.
+      .filter(a => !isJunkArticle({ title: a.title, description: a.description || '', url: a.url, source: a.source || '' }))
       .slice(0, 8)
       .map(a => {
-        const source = (a.source || '').trim() || 'Web';
         const description = (a.description || '').trim();
+        // Use registry-driven pretty name from URL — drops "facebook.com"
+        // shaped tokens and replaces with real outlet names where known.
+        const source = prettyNameForUrl(a.url) || (a.source || '').trim() || 'Web';
         return {
           title: a.title.trim(),
           source,
