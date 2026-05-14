@@ -1,0 +1,1354 @@
+
+=== SOUTH-ASIA (143 sources) ===
+
+  [business] 10 source(s)
+    - Business Standard (India)
+      https://business-standard.com/rss/home_page_top_stories.rss
+    - Mint (India)
+      https://livemint.com/rss/rss.xml
+    - Economic Times (India)
+      https://economictimes.indiatimes.com/rss.cms
+    - Financial Express India (India)
+      https://financialexpress.com/feed
+    - Business Recorder (Pakistan)
+      https://brecorder.com/feeds/latest-news
+    - The News Business (Pakistan)
+      https://thenews.com.pk/rss/3/6
+    - Bonik Barta English (Bangladesh)
+      https://bonikbarta.net/feed
+    - Daily FT Sri Lanka (Sri Lanka)
+      https://ft.lk/feed
+    - New Business Age Nepal (Nepal)
+      https://newbusinessage.com/feed
+    - Nepal Economic Forum (Nepal)
+      https://nepaleconomicforum.org/feed
+
+  [government-official] 18 source(s)
+    - Press Information Bureau (India)
+      https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3
+    - Ministry of External Affairs (India)
+      https://mea.gov.in/press-releases.htm
+    - Ministry of Defence India (India)
+      https://mod.gov.in/en/press-releases
+    - Ministry of Foreign Affairs Pakistan (Pakistan)
+      https://mofa.gov.pk/press-releases
+    - Ministry of Finance Pakistan (Pakistan)
+      https://finance.gov.pk/feed
+    - ISPR (Pakistan)
+      https://ispr.gov.pk/press-release-home
+    - Bangladesh Sangbad Sangstha BSS (Bangladesh)
+      https://bssnews.net/feed
+    - Ministry of Foreign Affairs Bangladesh (Bangladesh)
+      https://mofa.gov.bd
+    - Ministry of Commerce Bangladesh (Bangladesh)
+      https://mincom.gov.bd
+    - Department of Government Information (Sri Lanka)
+      https://dgi.gov.lk/feed
+    - Ministry of Foreign Affairs Sri Lanka (Sri Lanka)
+      https://mfa.gov.lk
+    - Ministry of Finance Sri Lanka (Sri Lanka)
+      https://treasury.gov.lk
+    - Ministry of Foreign Affairs Nepal (Nepal)
+      https://mofa.gov.np
+    - Ministry of Finance Nepal (Nepal)
+      https://mof.gov.np
+    - Royal Government of Bhutan (Bhutan)
+      https://bhutan.gov.bt
+    - Ministry of Foreign Affairs Bhutan (Bhutan)
+      https://mfa.gov.bt
+    - President's Office Maldives (Maldives)
+      https://presidency.gov.mv/feed
+    - Ministry of Foreign Affairs Maldives (Maldives)
+      https://foreign.gov.mv
+
+  [independent-critical] 14 source(s)
+    - Netra News (Bangladesh)
+      https://netra.news/feed
+    - Alal O Dulal (Bangladesh)
+      https://alalodulal.org/feed
+    - Groundviews (Sri Lanka)
+      https://groundviews.org/feed
+    - Lanka Business Online (Sri Lanka)
+      https://lankabusinessonline.com/feed
+    - The Bhutanese (Bhutan)
+      https://thebhutanese.bt/feed
+    - Bhutan Observer (Bhutan)
+      https://bhutanobserver.bt/feed
+    - Bhutan Times (Bhutan)
+      https://bhutantimes.bt/feed
+    - Afghanistan Analysts Network (Afghanistan)
+      https://afghanistan-analysts.org/feed
+    - The Afghanistan Independent (Afghanistan)
+      https://theafghanistanindependent.com/feed
+    - The Irrawaddy English (Myanmar)
+      https://irrawaddy.com/feed
+    - Myanmar Now (Myanmar)
+      https://myanmar-now.org/en/feed
+    - Frontier Myanmar (Myanmar)
+      https://frontiermyanmar.net/feed
+    - Mizzima English (Myanmar)
+      https://mizzima.com/feed
+    - The Myanmar Times (Myanmar)
+      https://mmtimes.com/feed
+
+  [independent-left] 17 source(s)
+    - The Wire (India)
+      https://thewire.in/feed
+    - Scroll.in (India)
+      https://scroll.in/feed
+    - The Caravan (India)
+      https://caravanmagazine.in/feed
+    - Newslaundry (India)
+      https://newslaundry.com/feed
+    - The Print (India)
+      https://theprint.in/feed
+    - The Quint (India)
+      https://thequint.com/feed
+    - Article 14 (India)
+      https://article-14.com/feed
+    - The Friday Times (Pakistan)
+      https://thefridaytimes.com/feed
+    - Daily Times Pakistan (Pakistan)
+      https://dailytimes.com.pk/feed
+    - Dawn Opinion (Pakistan)
+      https://dawn.com/feeds/opinion
+    - Prothom Alo English (Bangladesh)
+      https://en.prothomalo.com/feed
+    - The Business Standard Bangladesh (Bangladesh)
+      https://tbsnews.net/feed
+    - Dhaka Courier (Bangladesh)
+      https://dhakacourier.com.bd/feed
+    - Nepali Times (Nepal)
+      https://nepalitimes.com/feed
+    - OnlineKhabar English (Nepal)
+      https://english.onlinekhabar.com/feed
+    - Setopati English (Nepal)
+      https://setopati.com/feed
+    - Nepal Live Today (Nepal)
+      https://nepallivetoday.com/feed
+
+  [independent-right] 6 source(s)
+    - Swarajya Magazine (India)
+      https://swarajyamag.com/feed
+    - OpIndia (India)
+      https://opindia.com/feed
+    - Republic World (India)
+      https://republicworld.com/feed
+    - Organiser (India)
+      https://organiser.org/feed
+    - Pakistan Observer (Pakistan)
+      https://pakobserver.net/feed
+    - Nawa-i-Waqt English (Pakistan)
+      https://nawaiwaqt.com.pk/feed
+
+  [mainstream] 49 source(s)
+    - Times of India (India)
+      https://timesofindia.indiatimes.com/rss/rssfeedstopstories.cms
+    - The Hindu (India)
+      https://thehindu.com/news/feeder/default.rss
+    - NDTV (India)
+      https://feeds.feedburner.com/ndtvnews-top-stories
+    - Hindustan Times (India)
+      https://hindustantimes.com/rss/topnews/rssfeed.xml
+    - Indian Express (India)
+      https://indianexpress.com/feed
+    - WION (India)
+      https://wionews.com/feed
+    - ANI News (India)
+      https://aninews.in/rss/
+    - India Today (India)
+      https://indiatoday.in/rss/home
+    - News18 (India)
+      https://news18.com/rss/india.xml
+    - Dawn (Pakistan)
+      https://dawn.com/feeds/home
+    - The News International (Pakistan)
+      https://thenews.com.pk/rss/1/1
+    - Express Tribune (Pakistan)
+      https://tribune.com.pk/feed
+    - Geo News (Pakistan)
+      https://geo.tv/rss
+    - ARY News (Pakistan)
+      https://arynews.tv/feed
+    - The Nation Pakistan (Pakistan)
+      https://nation.com.pk/feed
+    - Pakistan Today (Pakistan)
+      https://pakistantoday.com.pk/feed
+    - Daily Star Bangladesh (Bangladesh)
+      https://thedailystar.net/feed/news
+    - Dhaka Tribune (Bangladesh)
+      https://dhakatribune.com/feed
+    - bdnews24 English (Bangladesh)
+      https://bdnews24.com/feed
+    - New Age Bangladesh (Bangladesh)
+      https://newagebd.net/feed
+    - Daily Sun Bangladesh (Bangladesh)
+      https://daily-sun.com/feed
+    - Independent Bangladesh (Bangladesh)
+      https://theindependentbd.com/feed
+    - Financial Express Bangladesh (Bangladesh)
+      https://thefinancialexpress.com.bd/feed
+    - Daily Mirror Sri Lanka (Sri Lanka)
+      https://dailymirror.lk/feed
+    - The Island (Sri Lanka)
+      https://island.lk/feed
+    - Ada Derana English (Sri Lanka)
+      https://adaderana.lk/feed
+    - Colombo Gazette (Sri Lanka)
+      https://colombogazette.com/feed
+    - Colombo Page (Sri Lanka)
+      https://colombopage.com/feed
+    - Ceylon Today (Sri Lanka)
+      https://ceylontoday.lk/feed
+    - Daily News Sri Lanka (Sri Lanka)
+      https://dailynews.lk/feed
+    - Kathmandu Post (Nepal)
+      https://kathmandupost.com/feed
+    - The Himalayan Times (Nepal)
+      https://thehimalayantimes.com/feed
+    - Republica Nepal (Nepal)
+      https://myrepublica.nagariknetwork.com/feed
+    - Gorkhapatra English (Nepal)
+      https://gorkhapatraonline.com/feed
+    - Ratopati English (Nepal)
+      https://english.ratopati.com/feed
+    - Khabarhub (Nepal)
+      https://khabarhub.com/feed
+    - Kuensel Online (Bhutan)
+      https://kuenselonline.com/feed
+    - Business Bhutan (Bhutan)
+      https://businessbhutan.bt/feed
+    - Bhutan Broadcasting Service (Bhutan)
+      https://bbs.bt/feed
+    - TOLOnews English (Afghanistan)
+      https://tolonews.com/rss.xml
+    - Khaama Press (Afghanistan)
+      https://khaama.com/feed
+    - Ariana News English (Afghanistan)
+      https://ariananews.af/feed
+    - Pajhwok Afghan News (Afghanistan)
+      https://pajhwok.com/en/feed
+    - Amu TV English (Afghanistan)
+      https://amu.tv/feed
+    - Maldives Independent (Maldives)
+      https://maldivesindependent.com/feed
+    - The Edition Maldives (Maldives)
+      https://edition.mv/feed
+    - Sun Online Maldives (Maldives)
+      https://sun.mv/feed
+    - Mihaaru English (Maldives)
+      https://en.mihaaru.com/feed
+    - Avas English (Maldives)
+      https://en.avas.mv/feed
+
+  [regional] 13 source(s)
+    - Deccan Herald (India)
+      https://deccanherald.com/feed
+    - Deccan Chronicle (India)
+      https://deccanchronicle.com/feed
+    - The New Indian Express (India)
+      https://newindianexpress.com/feed
+    - Tribune India (India)
+      https://tribuneindia.com/feed
+    - Telegraph India (India)
+      https://telegraphindia.com/feed
+    - The Statesman (India)
+      https://thestatesman.com/feed
+    - The Sentinel Assam (India)
+      https://sentinelassam.com/feed
+    - East Mojo (India)
+      https://eastmojo.com/feed
+    - South Asia Journal (India/Pakistan/Bangladesh/Sri Lanka/Nepal/Bhutan/Afghanistan/Maldives/Myanmar)
+      https://southasiajournal.net/feed
+    - Himal Southasian (India/Pakistan/Bangladesh/Sri Lanka/Nepal/Bhutan/Afghanistan/Maldives/Myanmar)
+      https://himalmag.com/feed
+    - The Diplomat South Asia (India/Pakistan/Bangladesh/Sri Lanka/Nepal/Bhutan/Afghanistan/Maldives/Myanmar)
+      https://thediplomat.com/regions/south-asia/feed
+    - Global Voices South Asia (India/Pakistan/Bangladesh/Sri Lanka/Nepal/Bhutan/Afghanistan/Maldives/Myanmar)
+      https://globalvoices.org/feed
+    - Asia Society Policy Institute (India/Pakistan/Bangladesh/Sri Lanka/Nepal/Bhutan/Afghanistan/Maldives/Myanmar)
+      https://asiasociety.org/feed
+
+  [think-tank-academic] 16 source(s)
+    - Observer Research Foundation (India)
+      https://orfonline.org/feed
+    - Manohar Parrikar IDSA (India)
+      https://idsa.in/feed
+    - Vivekananda International Foundation (India)
+      https://vifindia.org/feed
+    - Carnegie India (India)
+      https://carnegieendowment.org/india/feed
+    - Centre for Policy Research India (India)
+      https://cprindia.org/feed
+    - Gateway House (India)
+      https://gatewayhouse.in/feed
+    - Chatham House South Asia (India/Pakistan/Bangladesh/Sri Lanka/Nepal/Afghanistan)
+      https://chathamhouse.org/rss/regions/south-asia
+    - Carnegie Endowment South Asia (India/Pakistan/Bangladesh/Sri Lanka/Nepal/Afghanistan)
+      https://carnegieendowment.org/programs/south-asia/feed
+    - International Crisis Group South Asia (India/Pakistan/Bangladesh/Sri Lanka/Nepal/Afghanistan/Myanmar)
+      https://crisisgroup.org/rss/asia
+    - LSE South Asia Centre (India/Pakistan/Bangladesh/Sri Lanka/Nepal/Afghanistan)
+      https://feeds.feedburner.com/SouthAsia-LSE
+    - Brookings South Asia (India/Pakistan/Bangladesh/Sri Lanka/Nepal/Afghanistan)
+      https://brookings.edu/feed/?topic=south-asia
+    - RSIS Singapore (India/Pakistan/Bangladesh/Sri Lanka/Nepal/Afghanistan/Myanmar)
+      https://rsis.edu.sg/feed
+    - East Asia Forum (India/Pakistan/Bangladesh/Sri Lanka/Nepal/Afghanistan/Myanmar)
+      https://eastasiaforum.org/feed
+    - Wilson Center South Asia (India/Pakistan/Bangladesh/Sri Lanka/Nepal/Afghanistan)
+      https://wilsoncenter.org/feed
+    - Stimson Center (India/Pakistan/Bangladesh/Sri Lanka/Nepal/Afghanistan)
+      https://stimson.org/feed
+    - USIP South Asia (India/Pakistan/Bangladesh/Sri Lanka/Nepal/Afghanistan)
+      https://usip.org/feed
+
+=== NORTH-AMERICA (54 sources) ===
+
+  [business] 5 source(s)
+    - Bloomberg (United States)
+      https://feeds.bloomberg.com/markets/news.rss
+    - Financial Times (United States)
+      https://www.ft.com/rss/home
+    - CNBC (United States)
+      https://www.cnbc.com/id/100003114/device/rss/rss.html
+    - Forbes (United States)
+      https://www.forbes.com/real-time/feed2/
+    - The Economist (United States)
+      https://www.economist.com/latest/rss.xml
+
+  [government-official] 7 source(s)
+    - White House Press Releases (United States)
+      https://www.whitehouse.gov/feed/
+    - US State Department (United States)
+      https://www.state.gov/rss-feeds/
+    - US Department of Defense (United States)
+      https://www.defense.gov/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=945&max=10
+    - US Trade Representative (United States)
+      https://ustr.gov/rss.xml
+    - Government of Canada News (Canada)
+      https://www.canada.ca/en/news.atom
+    - Global Affairs Canada (Canada)
+      https://www.canada.ca/en/global-affairs.atom
+    - Mexican Foreign Ministry (Mexico)
+      https://www.gob.mx/sre/rss
+
+  [independent-critical] 2 source(s)
+    - Animal Político (Mexico)
+      https://www.animalpolitico.com/feed/
+    - Proceso (Mexico)
+      https://www.proceso.com.mx/rss/
+
+  [independent-left] 10 source(s)
+    - The Atlantic (United States)
+      https://feeds.feedburner.com/TheAtlantic
+    - Mother Jones (United States)
+      https://feeds.feedburner.com/motherjones/main
+    - The Nation (United States)
+      https://www.thenation.com/feed/
+    - ProPublica (United States)
+      https://feeds.propublica.org/propublica/main
+    - The Intercept (United States)
+      https://theintercept.com/feed/?rss
+    - Democracy Now (United States)
+      https://www.democracynow.org/democracynow.rss
+    - Jacobin (United States)
+      https://jacobin.com/feed/
+    - Maclean's (Canada)
+      https://www.macleans.ca/feed/
+    - The Walrus (Canada)
+      https://thewalrus.ca/feed/
+    - iPolitics (Canada)
+      https://ipolitics.ca/feed/
+
+  [independent-right] 5 source(s)
+    - National Review (United States)
+      https://feeds.feedburner.com/nationalreview/TEB7
+    - The Federalist (United States)
+      https://thefederalist.com/feed/
+    - Washington Examiner (United States)
+      https://www.washingtonexaminer.com/rss
+    - The Daily Wire (United States)
+      https://www.dailywire.com/feeds/rss.xml
+    - Reason Magazine (United States)
+      https://reason.com/feed/
+
+  [mainstream] 15 source(s)
+    - New York Times (United States)
+      https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml
+    - Washington Post (United States)
+      https://feeds.washingtonpost.com/rss/world
+    - Wall Street Journal (United States)
+      https://feeds.a.dj.com/rss/RSSWorldNews.xml
+    - NPR News (United States)
+      https://feeds.npr.org/1001/rss.xml
+    - PBS NewsHour (United States)
+      https://www.pbs.org/newshour/feeds/rss/headlines
+    - CBS News (United States)
+      https://www.cbsnews.com/latest/rss/main
+    - NBC News (United States)
+      https://feeds.nbcnews.com/nbcnews/public/news
+    - USA Today (United States)
+      https://rssfeeds.usatoday.com/usatoday-NewsTopStories
+    - Globe and Mail (Canada)
+      https://www.theglobeandmail.com/arc/outboundfeeds/rss/category/canada/
+    - CBC News (Canada)
+      https://rss.cbc.ca/lineup/topstories.xml
+    - Toronto Star (Canada)
+      https://www.thestar.com/content/thestar/feed.RSSManagerServlet.topstories.rss
+    - National Post (Canada)
+      https://nationalpost.com/feed/
+    - CTV News (Canada)
+      https://www.ctvnews.ca/rss/ctvnews-ca-top-stories-public-rss-1.822009
+    - Mexico News Daily (Mexico)
+      https://mexiconewsdaily.com/feed/
+    - El Universal English (Mexico)
+      https://www.eluniversal.com.mx/rss.xml
+
+  [think-tank-academic] 10 source(s)
+    - Council on Foreign Relations (United States)
+      https://www.cfr.org/rss.xml
+    - Brookings Institution (United States)
+      https://www.brookings.edu/feed/
+    - CATO Institute (United States)
+      https://feeds.cato.org/CatoRecentOpeds
+    - Center for American Progress (United States)
+      https://www.americanprogress.org/feed/
+    - RAND Corporation (United States)
+      https://www.rand.org/feeds/rand-all.xml
+    - Wilson Center (United States)
+      https://www.wilsoncenter.org/feed
+    - Atlantic Council (United States)
+      https://www.atlanticcouncil.org/feed/
+    - CSIS (United States)
+      https://www.csis.org/feed
+    - Carnegie Endowment (United States)
+      https://carnegieendowment.org/feed/
+    - Heritage Foundation (United States)
+      https://feeds.feedburner.com/TheFoundry
+
+=== LATIN-AMERICA (37 sources) ===
+
+  [business] 3 source(s)
+    - Americas Quarterly (Brazil/Mexico/Argentina/Colombia/Chile/Peru/Venezuela)
+      https://www.americasquarterly.org/feed/
+    - BNamericas (Brazil/Mexico/Argentina/Colombia/Chile/Peru)
+      https://www.bnamericas.com/rss
+    - Latin Finance (Brazil/Mexico/Argentina/Colombia/Chile/Peru)
+      https://www.latinfinance.com/feed
+
+  [government-official] 4 source(s)
+    - Brazilian Government News (Brazil)
+      https://www.gov.br/en/latest-news/rss
+    - Brazilian Ministry of Foreign Affairs (Brazil)
+      https://www.gov.br/mre/en/rss
+    - Argentine Foreign Ministry (Argentina)
+      https://www.cancilleria.gob.ar/en/rss
+    - Colombian Foreign Ministry (Colombia)
+      https://www.cancilleria.gov.co/rss
+
+  [independent-critical] 6 source(s)
+    - The Intercept Brasil (Brazil)
+      https://theintercept.com/brasil/feed/?rss
+    - Agência Pública (Brazil)
+      https://apublica.org/feed/
+    - La Silla Vacía (Colombia)
+      https://lasillavacia.com/feed
+    - Caracas Chronicles (Venezuela)
+      https://www.caracaschronicles.com/feed/
+    - El Faro English (El Salvador)
+      https://elfaro.net/feed
+    - Confidencial Nicaragua (Nicaragua)
+      https://confidencial.digital/feed/
+
+  [mainstream] 17 source(s)
+    - Reuters Latin America (Brazil/Mexico/Argentina/Colombia/Chile/Peru/Venezuela)
+      https://feeds.reuters.com/reuters/latinamericaNews
+    - BBC Latin America (Brazil/Mexico/Argentina/Colombia/Chile/Peru/Venezuela)
+      https://feeds.bbci.co.uk/news/world/latin_america/rss.xml
+    - Agencia EFE English (Brazil/Mexico/Argentina/Colombia/Chile/Peru/Venezuela)
+      https://www.efe.com/efe/english/rss
+    - El Pais America (Spain/Mexico/Argentina/Colombia/Chile)
+      https://feeds.elpais.com/mrss-s/pages/ep/site/english.elpais.com/portada
+    - Folha de S.Paulo International (Brazil)
+      https://www1.folha.uol.com.br/internacional/en/rss091.xml
+    - Infobae English (Argentina/Mexico/Colombia)
+      https://www.infobae.com/feeds/rss/
+    - Merco Press (Argentina/Brazil/Uruguay/Paraguay/Chile)
+      https://en.mercopress.com/rss
+    - Agência Brasil English (Brazil)
+      https://agenciabrasil.ebc.com.br/en/rss
+    - The Brazilian Report (Brazil)
+      https://brazilian.report/feed/
+    - Buenos Aires Herald (Argentina)
+      https://www.buenosairesherald.com/feed/
+    - Infobae English (Argentina)
+      https://www.infobae.com/feeds/rss/
+    - MercoPress Argentina (Argentina)
+      https://en.mercopress.com/rss
+    - Colombia Reports (Colombia)
+      https://colombiareports.com/feed/
+    - Santiago Times (Chile)
+      https://santiagotimes.cl/feed/
+    - Caribbean Journal (Jamaica/Trinidad and Tobago/Dominican Republic/Haiti/Cuba)
+      https://caribjournal.com/feed/
+    - Jamaica Observer (Jamaica)
+      https://www.jamaicaobserver.com/rss
+    - Trinidad Express (Trinidad and Tobago)
+      https://www.trinidadexpress.com/feed/
+
+  [think-tank-academic] 7 source(s)
+    - Americas Quarterly (Brazil/Mexico/Argentina/Colombia/Chile/Peru/Venezuela)
+      https://www.americasquarterly.org/feed/
+    - Inter-American Dialogue (Brazil/Mexico/Argentina/Colombia/Chile/Peru/Venezuela)
+      https://www.thedialogue.org/feed/
+    - WOLA (Brazil/Mexico/Argentina/Colombia/Chile/Peru/Venezuela)
+      https://www.wola.org/feed/
+    - NACLA Report (Brazil/Mexico/Argentina/Colombia/Chile/Peru/Venezuela)
+      https://nacla.org/feed
+    - Council on Hemispheric Affairs (Brazil/Mexico/Argentina/Colombia/Chile/Peru/Venezuela)
+      https://www.coha.org/feed/
+    - International Crisis Group Latin America (Brazil/Mexico/Argentina/Colombia/Chile/Peru/Venezuela)
+      https://www.crisisgroup.org/rss/latin-america
+    - IISS Latin America (Brazil/Mexico/Argentina/Colombia/Chile/Peru/Venezuela)
+      https://www.iiss.org/rss/latin-america
+
+=== CENTRAL-ASIA-CAUCASUS (43 sources) ===
+
+  [government-official] 5 source(s)
+    - Kazakhstan MFA (Kazakhstan)
+      https://www.gov.kz/en/news
+    - Uzbekistan MFA (Uzbekistan)
+      https://mfa.uz/en/press/news/rss
+    - Azerbaijan MFA (Azerbaijan)
+      https://mfa.gov.az/en/news/rss
+    - Armenia MFA (Armenia)
+      https://www.mfa.am/en/press-releases/rss
+    - Georgia MFA (Georgia)
+      https://mfa.gov.ge/en/news/rss
+
+  [independent-critical] 8 source(s)
+    - Turkmen News (Turkmenistan)
+      https://en.turkmen.news/rss
+    - Chronicles of Turkmenistan (Turkmenistan)
+      https://en.hronikatm.com/feed/
+    - Civil.ge (Georgia)
+      https://civil.ge/feed
+    - OC Media (Georgia/Armenia/Azerbaijan)
+      https://oc-media.org/feed/
+    - RFE/RL Georgia (Georgia)
+      https://www.radiotavisupleba.ge/api/zocjqmveiy
+    - CABAR.asia (Kazakhstan/Uzbekistan/Kyrgyzstan/Tajikistan/Turkmenistan)
+      https://cabar.asia/en/feed/
+    - Fergana News (Kazakhstan/Uzbekistan/Kyrgyzstan/Tajikistan/Turkmenistan)
+      https://fergana.agency/en/feed/
+    - The Oxus Society (Kazakhstan/Uzbekistan/Kyrgyzstan/Tajikistan/Turkmenistan)
+      https://oxussociety.org/feed
+
+  [independent-left] 2 source(s)
+    - EVN Report (Armenia)
+      https://evnreport.com/feed/
+    - RFE/RL Armenia (Armenia)
+      https://www.azatutyun.am/api/zmcjqmveiy
+
+  [mainstream] 23 source(s)
+    - Eurasianet (Kazakhstan/Uzbekistan/Kyrgyzstan/Tajikistan/Turkmenistan/Azerbaijan/Armenia/Georgia)
+      https://eurasianet.org/feed
+    - RFE/RL Central Asia (Kazakhstan/Uzbekistan/Kyrgyzstan/Tajikistan/Turkmenistan)
+      https://www.rferl.org/api/zncjqmveiy
+    - The Diplomat Central Asia (Kazakhstan/Uzbekistan/Kyrgyzstan/Tajikistan/Turkmenistan)
+      https://thediplomat.com/regions/central-asia/feed
+    - Times of Central Asia (Kazakhstan/Uzbekistan/Kyrgyzstan/Tajikistan/Turkmenistan)
+      https://timesca.com/feed/
+    - Central Asia-Caucasus Analyst (Kazakhstan/Uzbekistan/Kyrgyzstan/Tajikistan/Turkmenistan/Azerbaijan/Armenia/Georgia)
+      https://cacianalyst.org/feed/
+    - News Central Asia (Kazakhstan/Uzbekistan/Kyrgyzstan/Tajikistan/Turkmenistan)
+      https://www.newscentralasia.net/feed/
+    - Silk Road Briefing (Kazakhstan/Uzbekistan/Kyrgyzstan/Tajikistan/Turkmenistan)
+      https://www.silkroadbriefing.com/news/feed
+    - Kazinform English (Kazakhstan)
+      https://www.inform.kz/en/rss
+    - Tengrinews English (Kazakhstan)
+      https://en.tengrinews.kz/rss
+    - Astana Times (Kazakhstan)
+      https://astanatimes.com/feed/
+    - Kun.uz English (Uzbekistan)
+      https://kun.uz/en/rss.xml
+    - UzDaily (Uzbekistan)
+      https://www.uzdaily.uz/en/rss
+    - 24.kg English (Kyrgyzstan)
+      https://24.kg/english/rss
+    - Kabar English (Kyrgyzstan)
+      https://kabar.kg/rss
+    - Asia-Plus (Tajikistan)
+      https://asiaplus.tj/en/rss
+    - Radio Ozodi (Tajikistan)
+      https://www.ozodi.org/api/zpcjqmveiy
+    - AzVision (Azerbaijan)
+      https://azvision.az/rss.xml
+    - Trend News Agency (Azerbaijan)
+      https://en.trend.az/rss
+    - Baku Tribune (Azerbaijan)
+      https://bakutribune.com/feed
+    - JAM News (Azerbaijan/Armenia/Georgia)
+      https://jam-news.net/feed/
+    - Armenpress (Armenia)
+      https://armenpress.am/eng/rss
+    - ArmInfo (Armenia)
+      https://arminfo.info/en/rss
+    - Georgia Today (Georgia)
+      https://georgiatoday.ge/rss
+
+  [think-tank-academic] 5 source(s)
+    - PONARS Eurasia (Kazakhstan/Uzbekistan/Kyrgyzstan/Tajikistan/Turkmenistan/Azerbaijan/Armenia/Georgia)
+      https://www.ponarseurasia.org/feed/
+    - Carnegie Europe (Kazakhstan/Uzbekistan/Kyrgyzstan/Tajikistan/Turkmenistan/Azerbaijan/Armenia/Georgia)
+      https://carnegieeurope.eu/feed/
+    - German Marshall Fund (Kazakhstan/Uzbekistan/Kyrgyzstan/Tajikistan/Turkmenistan/Azerbaijan/Armenia/Georgia)
+      https://www.gmfus.org/feed
+    - IISS Eurasia (Kazakhstan/Uzbekistan/Kyrgyzstan/Tajikistan/Turkmenistan/Azerbaijan/Armenia/Georgia)
+      https://www.iiss.org/rss/eurasia
+    - International Crisis Group Central Asia (Kazakhstan/Uzbekistan/Kyrgyzstan/Tajikistan/Turkmenistan/Azerbaijan/Armenia/Georgia)
+      https://www.crisisgroup.org/rss/asia
+
+=== MIDDLE-EAST (56 sources) ===
+
+  [business] 3 source(s)
+    - Gulf Business (UAE/Saudi Arabia/Qatar/Kuwait/Bahrain/Oman)
+      https://gulfbusiness.com/feed/
+    - Zawya (UAE/Saudi Arabia/Qatar/Kuwait/Bahrain/Oman)
+      https://www.zawya.com/rss
+    - MEED (UAE/Saudi Arabia/Qatar/Kuwait/Bahrain/Oman)
+      https://www.meed.com/rss
+
+  [government-official] 8 source(s)
+    - IRNA State Agency (Iran)
+      https://en.irna.ir/rss
+    - Tehran Times (Iran)
+      https://www.tehrantimes.com/rss
+    - Saudi Press Agency (Saudi Arabia)
+      https://www.spa.gov.sa/rss.php
+    - Qatar News Agency (Qatar)
+      https://www.qna.org.qa/en/rss
+    - Turkish Foreign Ministry (Turkey)
+      https://www.mfa.gov.tr/rss.en.mfa
+    - UAE Government News (UAE)
+      https://www.uaecabinet.ae/en/rss
+    - Israeli Government Press (Israel)
+      https://www.gov.il/en/departments/news/rss
+    - Egyptian MENA State Agency (Egypt)
+      https://www.mena.org.eg/en/rss
+
+  [independent-critical] 11 source(s)
+    - +972 Magazine (Israel/Palestine)
+      https://972mag.com/feed/
+    - Mondoweiss (Israel/Palestine)
+      https://mondoweiss.net/feed/
+    - Jadaliyya (Saudi Arabia/UAE/Iran/Iraq/Turkey/Israel/Palestine/Lebanon/Syria/Egypt)
+      https://www.jadaliyya.com/feed/
+    - MEE Opinion (Saudi Arabia/UAE/Iran/Iraq/Turkey/Israel/Palestine/Lebanon/Syria/Yemen/Egypt)
+      https://www.middleeasteye.net/rss/opinion
+    - Bianet English (Turkey)
+      https://bianet.org/english/rss
+    - Cumhuriyet English (Turkey)
+      https://www.cumhuriyet.com.tr/rss/en
+    - Iran International (Iran)
+      https://www.iranintl.com/en/rss
+    - Radio Farda (Iran)
+      https://www.radiofarda.com/api/zqcjqmveiy
+    - IranWire (Iran)
+      https://iranwire.com/feed/
+    - Mada Masr (Egypt)
+      https://madamasr.com/en/feed/
+    - Yemen Monitor (Yemen)
+      https://yemenmonitor.com/feed
+
+  [mainstream] 25 source(s)
+    - Al Jazeera English (Saudi Arabia/UAE/Iran/Iraq/Turkey/Israel/Palestine/Jordan/Lebanon/Syria/Yemen/Qatar/Egypt)
+      https://www.aljazeera.com/xml/rss/all.xml
+    - Middle East Eye (Saudi Arabia/UAE/Iran/Iraq/Turkey/Israel/Palestine/Jordan/Lebanon/Syria/Yemen/Qatar/Egypt)
+      https://www.middleeasteye.net/rss
+    - The National UAE (UAE/Saudi Arabia/Qatar/Kuwait/Bahrain/Oman)
+      https://www.thenationalnews.com/rss
+    - Arab News (Saudi Arabia/UAE/Qatar/Kuwait/Bahrain/Oman)
+      https://www.arabnews.com/rss.xml
+    - Al Monitor (Saudi Arabia/UAE/Iran/Iraq/Turkey/Israel/Palestine/Lebanon/Syria/Egypt)
+      https://feeds.feedburner.com/al-monitor/frontpage
+    - Reuters Middle East (Saudi Arabia/UAE/Iran/Iraq/Turkey/Israel/Palestine/Lebanon/Syria/Yemen/Egypt)
+      https://feeds.reuters.com/reuters/middleeastNews
+    - BBC Middle East (Saudi Arabia/UAE/Iran/Iraq/Turkey/Israel/Palestine/Lebanon/Syria/Yemen/Egypt)
+      https://feeds.bbci.co.uk/news/world/middle_east/rss.xml
+    - Haaretz English (Israel/Palestine)
+      https://www.haaretz.com/cmlink/1.628765
+    - The New Arab (Saudi Arabia/UAE/Iran/Iraq/Turkey/Israel/Palestine/Lebanon/Syria/Yemen/Egypt)
+      https://www.newarab.com/feed
+    - Hurriyet Daily News (Turkey)
+      https://www.hurriyetdailynews.com/rss
+    - Daily Sabah (Turkey)
+      https://www.dailysabah.com/rss
+    - Ahram Online (Egypt)
+      https://english.ahram.org.eg/RSS.aspx
+    - Egypt Independent (Egypt)
+      https://www.egyptindependent.com/feed/
+    - Rudaw English (Iraq)
+      https://www.rudaw.net/rss/english
+    - Iraq Oil Report (Iraq)
+      https://www.iraqoilreport.com/feed/
+    - L'Orient Today (Lebanon)
+      https://lorientlejour.com/en/feed
+    - Naharnet (Lebanon)
+      https://www.naharnet.com/stories/en/rss
+    - Times of Israel (Israel/Palestine)
+      https://www.timesofisrael.com/feed/
+    - Jerusalem Post (Israel/Palestine)
+      https://www.jpost.com/Rss/RssFeedsHeadlines.aspx
+    - Gulf News (UAE/Saudi Arabia/Qatar/Kuwait/Bahrain/Oman)
+      https://gulfnews.com/rss
+    - Saudi Gazette (Saudi Arabia)
+      https://saudigazette.com.sa/feed
+    - Khaleej Times (UAE/Saudi Arabia/Qatar/Kuwait/Bahrain/Oman)
+      https://www.khaleejtimes.com/rss
+    - Morocco World News (Morocco)
+      https://www.moroccoworldnews.com/feed/
+    - Libya Observer (Libya)
+      https://libyaobserver.ly/feed
+    - Algeria Press Service (Algeria)
+      https://www.aps.dz/en/rss
+
+  [think-tank-academic] 9 source(s)
+    - Middle East Institute (Saudi Arabia/UAE/Iran/Iraq/Turkey/Israel/Palestine/Lebanon/Syria/Yemen/Egypt)
+      https://www.mei.edu/feed/
+    - Chatham House MENA (Saudi Arabia/UAE/Iran/Iraq/Turkey/Israel/Palestine/Lebanon/Syria/Yemen/Egypt)
+      https://www.chathamhouse.org/rss/regions/middle-east-north-africa
+    - Carnegie Middle East (Saudi Arabia/UAE/Iran/Iraq/Turkey/Israel/Palestine/Lebanon/Syria/Yemen/Egypt)
+      https://carnegieendowment.org/middle-east/feed/
+    - Washington Institute for Near East Policy (Saudi Arabia/UAE/Iran/Iraq/Turkey/Israel/Palestine/Lebanon/Syria/Egypt)
+      https://www.washingtoninstitute.org/rss
+    - International Crisis Group MENA (Saudi Arabia/UAE/Iran/Iraq/Turkey/Israel/Palestine/Lebanon/Syria/Yemen/Egypt/Libya/Tunisia/Morocco/Algeria)
+      https://www.crisisgroup.org/rss/middle-east-north-africa
+    - Brookings Doha (Saudi Arabia/UAE/Iran/Iraq/Turkey/Israel/Palestine/Lebanon/Syria/Yemen/Qatar/Egypt)
+      https://www.brookings.edu/feed/?region=middle-east
+    - IISS MENA (Saudi Arabia/UAE/Iran/Iraq/Turkey/Israel/Palestine/Lebanon/Syria/Yemen/Egypt)
+      https://www.iiss.org/rss/middle-east-north-africa
+    - Arab Reform Initiative (Saudi Arabia/UAE/Iran/Iraq/Turkey/Israel/Palestine/Lebanon/Syria/Yemen/Egypt/Tunisia/Morocco/Algeria)
+      https://www.arab-reform.net/feed/
+    - Stimson Center MENA (Saudi Arabia/UAE/Iran/Iraq/Turkey/Israel/Palestine/Lebanon/Syria/Yemen/Egypt)
+      https://www.stimson.org/feed
+
+=== EUROPE (47 sources) ===
+
+  [business] 3 source(s)
+    - Financial Times (UK/Germany/France/Italy/Spain/Netherlands)
+      https://www.ft.com/rss/home
+    - Bloomberg Europe (UK/Germany/France/Italy/Spain/Netherlands)
+      https://feeds.bloomberg.com/europe/news.rss
+    - Euractiv (Belgium/Germany/France/Italy/Spain/Netherlands/Poland)
+      https://www.euractiv.com/feed/
+
+  [government-official] 7 source(s)
+    - European Commission Press Releases (Belgium/Germany/France/Italy/Spain/Netherlands/Poland)
+      https://ec.europa.eu/commission/presscorner/rss/en
+    - European Council (Belgium/Germany/France/Italy/Spain/Netherlands/Poland)
+      https://www.consilium.europa.eu/en/press/press-releases/rss
+    - European Parliament (Belgium/Germany/France/Italy/Spain/Netherlands/Poland)
+      https://www.europarl.europa.eu/rss/doc/press-releases-full.xml
+    - UK Government Press Releases (UK)
+      https://www.gov.uk/search/news-and-communications.atom
+    - UK Foreign Office (UK)
+      https://www.gov.uk/search/news-and-communications.atom?organisations%5B%5D=foreign-commonwealth-development-office
+    - German Federal Government (Germany)
+      https://www.bundesregierung.de/breg-en/feed
+    - NATO (Belgium/UK/Germany/France/Italy/Spain/Netherlands/Poland/Norway/Denmark)
+      https://www.nato.int/cps/en/natolive/rss.htm
+
+  [independent-critical] 1 source(s)
+    - Meduza (Russia)
+      https://meduza.io/rss/en/all
+
+  [independent-left] 2 source(s)
+    - openDemocracy (UK)
+      https://www.opendemocracy.net/en/rss.xml
+    - Le Monde Diplomatique English (France)
+      https://mondediplo.com/spip.php?page=backend
+
+  [independent-right] 1 source(s)
+    - The Spectator (UK)
+      https://www.spectator.co.uk/feed/
+
+  [mainstream] 23 source(s)
+    - BBC World (UK/Germany/France/Italy/Spain/Netherlands/Poland/Ukraine/Russia)
+      https://feeds.bbci.co.uk/news/world/rss.xml
+    - Reuters Europe (UK/Germany/France/Italy/Spain/Netherlands/Poland/Ukraine/Russia)
+      https://feeds.reuters.com/reuters/europeNews
+    - Euronews (UK/Germany/France/Italy/Spain/Netherlands/Poland/Ukraine)
+      https://www.euronews.com/rss
+    - Politico Europe (UK/Germany/France/Italy/Spain/Netherlands/Belgium/Poland)
+      https://www.politico.eu/feed/
+    - EUobserver (Belgium/Germany/France/Italy/Spain/Netherlands/Poland)
+      https://euobserver.com/rss
+    - Deutsche Welle (Germany/UK/France/Italy/Spain/Poland/Ukraine/Russia)
+      https://rss.dw.com/xml/rss-en-all
+    - France 24 English (France/UK/Germany/Italy/Spain/Poland/Ukraine)
+      https://www.france24.com/en/rss
+    - RFI English (France/UK/Germany/Italy/Spain/Poland/Ukraine)
+      https://www.rfi.fr/en/rss
+    - The Guardian (UK)
+      https://www.theguardian.com/world/rss
+    - Financial Times UK (UK)
+      https://www.ft.com/rss/home/uk
+    - The Times UK (UK)
+      https://www.thetimes.co.uk/rss/
+    - The Independent (UK)
+      https://www.independent.co.uk/rss
+    - Der Spiegel International (Germany)
+      https://www.spiegel.de/international/index.rss
+    - Handelsblatt Global (Germany)
+      https://www.handelsblatt.com/rss
+    - ANSA English (Italy)
+      https://www.ansa.it/english/news/rss.xml
+    - El País English (Spain)
+      https://feeds.elpais.com/mrss-s/list/feed/section/inenglish
+    - Yle Finland English (Finland)
+      https://feeds.yle.fi/uutiset/5/8/uutiset-5-8.rss
+    - The Local Europe (Sweden/Norway/Denmark/Germany/France/Italy/Spain/Austria/Switzerland)
+      https://www.thelocal.com/feed/
+    - Kyiv Independent (Ukraine)
+      https://kyivindependent.com/feed/
+    - Moscow Times (Russia)
+      https://www.themoscowtimes.com/rss/news
+    - RFE/RL (Ukraine/Russia/Poland/Hungary/Romania/Czech Republic)
+      https://www.rferl.org/api/zqcjqmveiy
+    - Balkan Insight (Romania/Hungary/Greece/Czech Republic)
+      https://balkaninsight.com/feed/
+    - Notes From Poland (Poland)
+      https://notesfrompoland.com/feed/
+
+  [think-tank-academic] 10 source(s)
+    - European Council on Foreign Relations (UK/Germany/France/Italy/Spain/Netherlands/Poland)
+      https://ecfr.eu/feed/
+    - Chatham House (UK/Germany/France/Italy/Spain/Netherlands/Poland/Ukraine/Russia)
+      https://www.chathamhouse.org/rss
+    - IISS (UK/Germany/France/Italy/Spain/Netherlands/Poland/Ukraine/Russia)
+      https://www.iiss.org/rss
+    - Carnegie Europe (UK/Germany/France/Italy/Spain/Netherlands/Poland/Ukraine/Russia)
+      https://carnegieeurope.eu/feed/
+    - German Marshall Fund (Germany/UK/France/Italy/Poland)
+      https://www.gmfus.org/feed
+    - Bruegel (Belgium/Germany/France/Italy/Spain/Netherlands)
+      https://www.bruegel.org/feed/
+    - SWP Berlin (Germany/UK/France/Italy/Poland/Ukraine/Russia)
+      https://www.swp-berlin.org/en/feed
+    - War on the Rocks (UK/Germany/France/Ukraine/Russia/Poland)
+      https://warontherocks.com/feed/
+    - Visegrad Insight (Poland/Hungary/Czech Republic/Romania)
+      https://visegradinsight.eu/feed/
+    - European Policy Centre (Belgium/Germany/France/Italy/Spain/Netherlands/Poland)
+      https://www.epc.eu/rss
+
+=== AFRICA (58 sources) ===
+
+  [business] 3 source(s)
+    - Business Daily Africa (Kenya)
+      https://www.businessdailyafrica.com/rss
+    - African Business (Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania)
+      https://african.business/feed/
+    - How We Made It In Africa (Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania)
+      https://www.howwemadeitinafrica.com/feed/
+
+  [government-official] 4 source(s)
+    - African Union Press Releases (Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania/Uganda/Rwanda/Egypt/Morocco)
+      https://www.au.int/en/rss
+    - South Africa Presidency (South Africa)
+      https://www.thepresidency.gov.za/rss
+    - Nigerian Presidency (Nigeria)
+      https://statehouse.gov.ng/feed/
+    - Kenyan Government (Kenya)
+      https://www.president.go.ke/rss
+
+  [independent-critical] 12 source(s)
+    - African Arguments (Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania/Uganda/Rwanda/DRC/Sudan)
+      https://africanarguments.org/feed/
+    - Africa Is A Country (Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania/Uganda)
+      https://africasacountry.com/feed/
+    - The Conversation Africa (South Africa/Nigeria/Kenya/Ethiopia/Ghana/Tanzania)
+      https://theconversation.com/africa/articles.atom
+    - Quartz Africa (Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania/Uganda/Rwanda)
+      https://qz.com/africa/feed/
+    - Africa Confidential (Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania/Uganda/Rwanda/DRC/Sudan)
+      https://www.africa-confidential.com/rss
+    - Daily Maverick (South Africa)
+      https://www.dailymaverick.co.za/feed/
+    - amaBhungane (South Africa)
+      https://amabhungane.co.za/feed/
+    - Premium Times Nigeria (Nigeria)
+      https://premiumtimesng.com/feed/
+    - Sahara Reporters (Nigeria)
+      https://saharareporters.com/rss.xml
+    - Addis Standard (Ethiopia)
+      https://addisstandard.com/feed/
+    - Somalia Garowe Online (Somalia)
+      https://www.garoweonline.com/en/rss
+    - Sudan Tribune (Sudan)
+      https://www.sudantribune.com/spip.php?page=backend
+
+  [mainstream] 32 source(s)
+    - AllAfrica (Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania/Uganda/Rwanda/Egypt/Morocco)
+      https://allafrica.com/tools/headlines/rdf.html
+    - The Africa Report (Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania/Uganda/Rwanda/Egypt/Morocco)
+      https://www.theafricareport.com/feed/
+    - Africanews (Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania/Uganda/Rwanda/Egypt/Morocco)
+      https://www.africanews.com/feed/
+    - The East African (Kenya/Tanzania/Uganda/Rwanda/Burundi)
+      https://www.theeastafrican.co.ke/rss
+    - Daily Nation (Kenya)
+      https://nation.africa/kenya/news/rss.xml
+    - BBC Africa (Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania/Uganda/Rwanda/Egypt/Morocco)
+      https://feeds.bbci.co.uk/news/world/africa/rss.xml
+    - Reuters Africa (Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania/Uganda/Rwanda/Egypt/Morocco)
+      https://feeds.reuters.com/reuters/AfricaNews
+    - Al Jazeera Africa (Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania/Uganda/Rwanda/Egypt/Morocco)
+      https://www.aljazeera.com/xml/rss/africa.xml
+    - RFI Africa (Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania/Uganda/Rwanda/Senegal/DRC)
+      https://www.rfi.fr/en/rss/africa-rss
+    - VOA Africa (Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania/Uganda/Rwanda/Somalia/Sudan)
+      https://www.voanews.com/api/zmkqmveiy
+    - News24 (South Africa)
+      https://feeds.news24.com/articles/news24/TopStories/rss
+    - Mail and Guardian (South Africa)
+      https://mg.co.za/feed/
+    - Business Day (South Africa)
+      https://businesslive.co.za/bd/rss
+    - Sunday Times SA (South Africa)
+      https://www.timeslive.co.za/rss
+    - The Punch Nigeria (Nigeria)
+      https://punchng.com/feed/
+    - Vanguard Nigeria (Nigeria)
+      https://www.vanguardngr.com/feed/
+    - ThisDay Nigeria (Nigeria)
+      https://www.thisdaylive.com/index.php/feed/
+    - The Cable Nigeria (Nigeria)
+      https://www.thecable.ng/feed
+    - Daily Nation (Kenya)
+      https://nation.africa/rss
+    - The Standard Kenya (Kenya)
+      https://www.standardmedia.co.ke/rss
+    - The Star Kenya (Kenya)
+      https://www.the-star.co.ke/rss
+    - Ethiopian Reporter (Ethiopia)
+      https://www.ethiopianreporter.com/feed
+    - Ghana Web (Ghana)
+      https://www.ghanaweb.com/rss
+    - Citifmonline (Ghana)
+      https://citifmonline.com/feed/
+    - The East African (Kenya/Tanzania/Uganda/Rwanda)
+      https://www.theeastafrican.co.ke/rss
+    - Rwanda New Times (Rwanda)
+      https://www.newtimes.co.rw/rss
+    - Uganda Monitor (Uganda)
+      https://www.monitor.co.ug/rss
+    - Egypt Independent (Egypt)
+      https://www.egyptindependent.com/feed/
+    - Morocco World News (Morocco)
+      https://www.moroccoworldnews.com/feed/
+    - Libya Observer (Libya)
+      https://libyaobserver.ly/feed
+    - Algeria Press Service (Algeria)
+      https://www.aps.dz/en/rss
+    - Radio Okapi English (DRC)
+      https://www.radiookapi.net/en/feed
+
+  [think-tank-academic] 7 source(s)
+    - Institute for Security Studies Africa (South Africa/Nigeria/Kenya/Ethiopia/Ghana/Tanzania/Uganda/Rwanda/DRC/Sudan)
+      https://issafrica.org/feed
+    - South African Institute of International Affairs (South Africa)
+      https://saiia.org.za/feed/
+    - African Development Bank (Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania/Uganda/Rwanda/Egypt/Morocco)
+      https://www.afdb.org/en/rss
+    - Brookings Africa (Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania)
+      https://www.brookings.edu/feed/?region=africa
+    - International Crisis Group Africa (Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania/Uganda/Rwanda/DRC/Sudan/Somalia)
+      https://www.crisisgroup.org/rss/africa
+    - Chatham House Africa (Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania/Uganda/Rwanda/DRC/Sudan)
+      https://www.chathamhouse.org/rss/regions/africa
+    - Africa Policy Research Institute (Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania)
+      https://afripoli.org/feed
+
+=== SOUTHEAST-ASIA (56 sources) ===
+
+  [business] 3 source(s)
+    - Deal Street Asia (Singapore/Thailand/Vietnam/Indonesia/Philippines/Malaysia)
+      https://www.dealstreetasia.com/feed
+    - ASEAN Briefing (Thailand/Vietnam/Indonesia/Philippines/Malaysia/Singapore/Cambodia)
+      https://www.aseanbriefing.com/news/feed/
+    - Eco-Business (Singapore/Thailand/Vietnam/Indonesia/Philippines/Malaysia)
+      https://www.eco-business.com/feed/
+
+  [government-official] 6 source(s)
+    - ASEAN Official Statements (Thailand/Vietnam/Indonesia/Philippines/Malaysia/Singapore/Cambodia/Laos/Brunei)
+      https://asean.org/news/rss
+    - Singapore MFA (Singapore)
+      https://www.mfa.gov.sg/Newsroom/Press-Statements-Transcripts-and-Photos/rss
+    - Philippines DFA (Philippines)
+      https://dfa.gov.ph/feed/
+    - Indonesian MFA (Indonesia)
+      https://kemlu.go.id/en/berita/siaran-pers/rss
+    - Malaysian MFA (Malaysia)
+      https://kln.gov.my/rss
+    - Thai MFA (Thailand)
+      https://www.mfa.go.th/en/rss
+
+  [independent-critical] 6 source(s)
+    - The Independent Singapore (Singapore)
+      https://theindependent.sg/feed/
+    - Coconuts Media (Singapore/Thailand/Indonesia/Philippines)
+      https://coconuts.co/feed/
+    - Prachatai English (Thailand)
+      https://prachatai.com/english/feed
+    - Rappler (Philippines)
+      https://www.rappler.com/rss
+    - Malaysiakini (Malaysia)
+      https://www.malaysiakini.com/rss
+    - VOD English (Cambodia)
+      https://vodenglish.news/feed
+
+  [independent-left] 3 source(s)
+    - New Mandala (Thailand/Vietnam/Indonesia/Philippines/Malaysia/Singapore/Cambodia/Laos)
+      https://www.newmandala.org/feed/
+    - East Asia Forum (Thailand/Vietnam/Indonesia/Philippines/Malaysia/Singapore/Cambodia)
+      https://www.eastasiaforum.org/feed/
+    - The Interpreter Lowy (Thailand/Vietnam/Indonesia/Philippines/Malaysia/Singapore/Cambodia)
+      https://www.lowyinstitute.org/the-interpreter/rss
+
+  [mainstream] 32 source(s)
+    - Nikkei Asia (Thailand/Vietnam/Indonesia/Philippines/Malaysia/Singapore/Cambodia/Laos)
+      https://asia.nikkei.com/rss/feed/nar
+    - Channel News Asia (Singapore/Thailand/Vietnam/Indonesia/Philippines/Malaysia/Cambodia)
+      https://www.channelnewsasia.com/api/v1/rss-outbound-feed?_format=xml
+    - South China Morning Post Asia (Thailand/Vietnam/Indonesia/Philippines/Malaysia/Singapore/Cambodia)
+      https://www.scmp.com/rss/91/feed
+    - The Straits Times (Singapore)
+      https://www.straitstimes.com/news/world/rss.xml
+    - The Business Times Singapore (Singapore)
+      https://www.businesstimes.com.sg/rss/international
+    - Today Online (Singapore)
+      https://www.todayonline.com/rss.xml
+    - The Diplomat Southeast Asia (Thailand/Vietnam/Indonesia/Philippines/Malaysia/Singapore/Cambodia/Laos)
+      https://thediplomat.com/regions/southeast-asia/feed
+    - Southeast Asia Globe (Thailand/Vietnam/Indonesia/Philippines/Malaysia/Singapore/Cambodia/Laos)
+      https://southeastasiaglobe.com/feed
+    - Asia Sentinel (Thailand/Vietnam/Indonesia/Philippines/Malaysia/Singapore/Cambodia)
+      https://asiasentinel.com/feed
+    - Benar News (Thailand/Vietnam/Indonesia/Philippines/Malaysia/Cambodia)
+      https://www.benarnews.org/rss/english
+    - Straits Times (Singapore)
+      https://www.straitstimes.com/RSS/STITopStories.xml
+    - Today Singapore (Singapore)
+      https://www.todayonline.com/feed
+    - Business Times Singapore (Singapore)
+      https://www.businesstimes.com.sg/rss/top-stories
+    - Bangkok Post (Thailand)
+      https://www.bangkokpost.com/rss/data/topstories.xml
+    - The Nation Thailand (Thailand)
+      https://www.nationthailand.com/rss
+    - Jakarta Post (Indonesia)
+      https://www.thejakartapost.com/rss/id/all
+    - Jakarta Globe (Indonesia)
+      https://jakartaglobe.id/feed
+    - Tempo English (Indonesia)
+      https://en.tempo.co/rss/20
+    - Philippine Daily Inquirer (Philippines)
+      https://newsinfo.inquirer.net/feed
+    - ABS-CBN News (Philippines)
+      https://news.abs-cbn.com/rss/headlines
+    - Philstar Global (Philippines)
+      https://www.philstar.com/rss/headlines
+    - Manila Times (Philippines)
+      https://www.manilatimes.net/feed
+    - Malay Mail (Malaysia)
+      https://www.malaymail.com/feed/
+    - Free Malaysia Today (Malaysia)
+      https://www.freemalaysiatoday.com/feed/
+    - New Straits Times (Malaysia)
+      https://www.nst.com.my/rss
+    - VnExpress International (Vietnam)
+      https://e.vnexpress.net/rss/news.rss
+    - Vietnam News (Vietnam)
+      https://vietnamnews.vn/rss
+    - Tuoi Tre News (Vietnam)
+      https://tuoitrenews.vn/rss
+    - Phnom Penh Post (Cambodia)
+      https://www.phnompenhpost.com/rss
+    - Khmer Times (Cambodia)
+      https://www.khmertimeskh.com/feed
+    - Vientiane Times (Laos)
+      https://www.vientianetimes.org.la/feed
+    - Laotian Times (Laos)
+      https://laotiantimes.com/feed
+
+  [think-tank-academic] 6 source(s)
+    - ISEAS-Yusof Ishak Institute (Singapore/Thailand/Vietnam/Indonesia/Philippines/Malaysia/Cambodia/Laos)
+      https://www.iseas.edu.sg/feed/
+    - Lowy Institute (Thailand/Vietnam/Indonesia/Philippines/Malaysia/Singapore/Cambodia)
+      https://www.lowyinstitute.org/feed
+    - Australian Strategic Policy Institute (Thailand/Vietnam/Indonesia/Philippines/Malaysia/Singapore/Cambodia)
+      https://www.aspi.org.au/rss
+    - Pacific Forum CSIS (Thailand/Vietnam/Indonesia/Philippines/Malaysia/Singapore)
+      https://pacforum.org/feed
+    - CSIS Southeast Asia (Thailand/Vietnam/Indonesia/Philippines/Malaysia/Singapore/Cambodia)
+      https://www.csis.org/programs/southeast-asia-program/feed
+    - Stimson Southeast Asia (Thailand/Vietnam/Indonesia/Philippines/Malaysia/Singapore/Cambodia)
+      https://www.stimson.org/feed
+
+=== EAST-ASIA (50 sources) ===
+
+  [business] 2 source(s)
+    - Caixin Global Business (China)
+      https://www.caixinglobal.com/rss
+    - Korea Economic Daily (South Korea)
+      https://www.kedglobal.com/feed
+
+  [government-official] 6 source(s)
+    - Chinese Foreign Ministry MFA (China)
+      https://www.mfa.gov.cn/eng/rss.xml
+    - China Daily (China)
+      https://www.chinadaily.com.cn/rss/china_rss.xml
+    - Xinhua English (China)
+      https://www.xinhuanet.com/english/rss/worldrss.xml
+    - Japanese MOFA (Japan)
+      https://www.mofa.go.jp/rss/news.xml
+    - South Korean MOFA (South Korea)
+      https://www.mofa.go.kr/eng/rss
+    - Taiwanese MOFA (Taiwan)
+      https://www.mofa.gov.tw/rss/en
+
+  [independent-critical] 13 source(s)
+    - China Media Project (China)
+      https://chinamediaproject.org/feed/
+    - Initium Media (China/Hong Kong)
+      https://theinitium.com/feed
+    - Radio Free Asia China (China)
+      https://www.rfa.org/english/rss2.0/china.xml
+    - SupChina (China)
+      https://supchina.com/feed/
+    - The Wire China (China)
+      https://www.thewirechina.com/feed/
+    - China Story ANU (China)
+      https://www.thechinastory.org/feed/
+    - Hong Kong Free Press (Hong Kong)
+      https://hongkongfp.com/feed/
+    - RTHK English (Hong Kong)
+      https://rthk.hk/rss/news/index.xml
+    - NK News (North Korea)
+      https://www.nknews.org/feed/
+    - Daily NK (North Korea)
+      https://www.dailynk.com/english/rss
+    - 38 North (North Korea)
+      https://www.38north.org/feed/
+    - Radio Free Asia Korea (North Korea/South Korea)
+      https://www.rfa.org/english/rss2.0/korea.xml
+    - KCNA Watch (North Korea)
+      https://kcnawatch.org/feed/
+
+  [mainstream] 20 source(s)
+    - Nikkei Asia (China/Japan/South Korea/Taiwan/North Korea/Mongolia/Hong Kong)
+      https://asia.nikkei.com/rss/feed/nar
+    - South China Morning Post (China/Japan/South Korea/Taiwan/North Korea/Hong Kong)
+      https://www.scmp.com/rss/91/feed
+    - Asia Times (China/Japan/South Korea/Taiwan/North Korea/Hong Kong)
+      https://asiatimes.com/feed/
+    - The Diplomat East Asia (China/Japan/South Korea/Taiwan/North Korea/Mongolia)
+      https://thediplomat.com/regions/east-asia/feed
+    - East Asia Forum (China/Japan/South Korea/Taiwan/North Korea/Mongolia)
+      https://www.eastasiaforum.org/feed/
+    - SCMP China (China)
+      https://www.scmp.com/rss/91/feed
+    - Caixin Global (China)
+      https://www.caixinglobal.com/rss
+    - Japan Times (Japan)
+      https://www.japantimes.co.jp/feed/
+    - NHK World (Japan)
+      https://www3.nhk.or.jp/nhkworld/en/news/feeds/
+    - Asahi Shimbun English (Japan)
+      https://www.asahi.com/ajw/rss/ajw_rss.rdf
+    - The Mainichi English (Japan)
+      https://mainichi.jp/rss/etc/english.rss
+    - Korea Herald (South Korea)
+      https://www.koreaherald.com/rss/
+    - Korea JoongAng Daily (South Korea)
+      https://koreajoongangdaily.joins.com/rss
+    - Hankyoreh English (South Korea)
+      https://english.hani.co.kr/rss
+    - Yonhap News Agency (South Korea)
+      https://en.yna.co.kr/RSS/headline.xml
+    - Taipei Times (Taiwan)
+      https://www.taipeitimes.com/rss
+    - Taiwan News (Taiwan)
+      https://www.taiwannews.com.tw/en/rss
+    - Focus Taiwan (Taiwan)
+      https://focustaiwan.tw/rss
+    - UB Post (Mongolia)
+      https://theubpost.mn/feed
+    - Montsame (Mongolia)
+      https://montsame.mn/en/rss
+
+  [think-tank-academic] 9 source(s)
+    - MERICS (China/Hong Kong)
+      https://merics.org/en/feed
+    - 38 North Think Tank (North Korea)
+      https://www.38north.org/feed/
+    - CSIS Asia (China/Japan/South Korea/Taiwan/North Korea)
+      https://www.csis.org/regions/asia/feed
+    - Council on Foreign Relations Asia (China/Japan/South Korea/Taiwan/North Korea)
+      https://www.cfr.org/region/asia/feed
+    - Lowy Institute East Asia (China/Japan/South Korea/Taiwan/North Korea)
+      https://www.lowyinstitute.org/feed
+    - IISS Asia (China/Japan/South Korea/Taiwan/North Korea)
+      https://www.iiss.org/rss/asia
+    - Korea Economic Institute (South Korea/North Korea)
+      https://keia.org/feed
+    - China Policy Institute (China)
+      https://chinapolicyinstitute.org/feed
+    - Stimson East Asia (China/Japan/South Korea/Taiwan/North Korea)
+      https://www.stimson.org/feed
+
+=== OCEANIA (30 sources) ===
+
+  [business] 1 source(s)
+    - Australian Financial Review (Australia)
+      https://www.afr.com/rss
+
+  [government-official] 4 source(s)
+    - Australian DFAT (Australia)
+      https://www.dfat.gov.au/news/rss/news.xml
+    - New Zealand MFAT (New Zealand)
+      https://www.mfat.govt.nz/rss/
+    - Pacific Islands Forum (Australia/New Zealand/Fiji/Solomon Islands/Vanuatu/Samoa/Tonga/Papua New Guinea)
+      https://www.forumsec.org/rss
+    - Pacific Community SPC (Fiji/Solomon Islands/Vanuatu/Samoa/Tonga/Papua New Guinea)
+      https://www.spc.int/rss
+
+  [independent-left] 5 source(s)
+    - The Saturday Paper (Australia)
+      https://www.thesaturdaypaper.com.au/feed
+    - Crikey (Australia)
+      https://www.crikey.com.au/feed/
+    - The Conversation Australia (Australia)
+      https://theconversation.com/au/articles.atom
+    - Michael West Media (Australia)
+      https://www.michaelwest.com.au/feed/
+    - Devpolicy Blog ANU (Australia/Papua New Guinea/Fiji/Solomon Islands/Vanuatu/Samoa/Tonga)
+      https://devpolicy.org/feed/
+
+  [mainstream] 16 source(s)
+    - ABC News Australia (Australia)
+      https://www.abc.net.au/news/feed/51120/rss.xml
+    - The Australian (Australia)
+      https://www.theaustralian.com.au/rss
+    - Sydney Morning Herald (Australia)
+      https://www.smh.com.au/rss/feed.xml
+    - The Age (Australia)
+      https://www.theage.com.au/rss/feed.xml
+    - Guardian Australia (Australia)
+      https://www.theguardian.com/australia-news/rss
+    - SBS News (Australia)
+      https://www.sbs.com.au/news/feed
+    - RNZ News (New Zealand)
+      https://www.rnz.co.nz/rss/news.xml
+    - NZ Herald (New Zealand)
+      https://www.nzherald.co.nz/rss/feeds/nzhf-topstories.xml
+    - Stuff.co.nz (New Zealand)
+      https://www.stuff.co.nz/rss
+    - The Spinoff (New Zealand)
+      https://thespinoff.co.nz/feed
+    - RNZ Pacific (Fiji/Solomon Islands/Vanuatu/Samoa/Tonga/Papua New Guinea)
+      https://www.rnz.co.nz/rss/pacific.xml
+    - Islands Business (Fiji/Solomon Islands/Vanuatu/Samoa/Tonga)
+      https://islandsbusiness.com/feed/
+    - Pacific Beat ABC (Fiji/Solomon Islands/Vanuatu/Samoa/Tonga/Papua New Guinea)
+      https://www.abc.net.au/pacific/feed/51132/rss.xml
+    - Fiji Times (Fiji)
+      https://www.fijitimes.com/feed/
+    - Fiji Sun (Fiji)
+      https://fijisun.com.fj/feed/
+    - Post-Courier PNG (Papua New Guinea)
+      https://www.postcourier.com.pg/feed
+
+  [think-tank-academic] 4 source(s)
+    - Lowy Institute (Australia/New Zealand/Fiji/Solomon Islands/Vanuatu/Samoa/Tonga/Papua New Guinea)
+      https://www.lowyinstitute.org/feed
+    - Australian Strategic Policy Institute (Australia/New Zealand/Papua New Guinea/Fiji)
+      https://www.aspi.org.au/rss
+    - East-West Center (Australia/New Zealand/Fiji/Solomon Islands/Vanuatu/Samoa/Tonga/Papua New Guinea)
+      https://www.eastwestcenter.org/feed
+    - Pacific Institute for Public Policy (Fiji/Solomon Islands/Vanuatu/Samoa/Tonga/Papua New Guinea)
+      https://www.pacificpolicy.org/feed
+
+=== GLOBAL (29 sources) ===
+
+  [business] 3 source(s)
+    - Financial Times
+      https://www.ft.com/rss/home
+    - The Economist
+      https://www.economist.com/latest/rss.xml
+    - Bloomberg
+      https://feeds.bloomberg.com/markets/news.rss
+
+  [independent-critical] 6 source(s)
+    - Climate Home News (UK)
+      https://www.climatechangenews.com/feed/
+    - DeSmog (UK/US)
+      https://www.desmog.com/feed/
+    - Grist (US)
+      https://grist.org/feed/
+    - Inside Climate News (US)
+      https://insideclimatenews.org/feed/
+    - Global Voices
+      https://globalvoices.org/feed/
+    - The Intercept
+      https://theintercept.com/feed/?rss
+
+  [independent-left] 2 source(s)
+    - The Guardian Global
+      https://www.theguardian.com/world/rss
+    - Foreign Policy
+      https://feeds.foreignpolicy.com/rss/Foreign-Policy-Main-RSS-Feed
+
+  [mainstream] 7 source(s)
+    - Reuters Top News
+      https://feeds.reuters.com/reuters/topNews
+    - BBC World
+      https://feeds.bbci.co.uk/news/world/rss.xml
+    - Al Jazeera
+      https://www.aljazeera.com/xml/rss/all.xml
+    - France 24
+      https://www.france24.com/en/rss
+    - Deutsche Welle
+      https://rss.dw.com/xml/rss-en-all
+    - Voice of America
+      https://www.voanews.com/api/zmkqmveiy
+    - AFP
+      https://www.afp.com/en/agency/press-releases-newsfeed
+
+  [think-tank-academic] 11 source(s)
+    - Carbon Brief (UK)
+      https://www.carbonbrief.org/feed/
+    - Foreign Affairs
+      https://www.foreignaffairs.com/rss.xml
+    - World Politics Review
+      https://www.worldpoliticsreview.com/feed
+    - The Diplomat
+      https://thediplomat.com/feed
+    - International Crisis Group
+      https://www.crisisgroup.org/rss
+    - ICRC
+      https://www.icrc.org/en/rss
+    - UN News
+      https://news.un.org/feed/subscribe/en/news/all/rss.xml
+    - RAND Corporation
+      https://www.rand.org/feeds/rand-all.xml
+    - Carnegie Endowment Global
+      https://carnegieendowment.org/feed/
+    - Chatham House Global
+      https://www.chathamhouse.org/rss
+    - IISS Global
+      https://www.iiss.org/rss

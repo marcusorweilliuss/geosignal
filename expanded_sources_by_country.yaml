@@ -1,0 +1,5989 @@
+(unknown):
+  independent:
+  - feed_url: https://globalvoices.org/feed/
+    ideology: unknown
+    independence: independent
+    name: Global Voices
+    tier: 2
+  - feed_url: https://www.theguardian.com/world/rss
+    ideology: left
+    independence: independent
+    name: The Guardian Global
+    tier: 2
+  - feed_url: https://feeds.foreignpolicy.com/rss/Foreign-Policy-Main-RSS-Feed
+    ideology: left
+    independence: independent
+    name: Foreign Policy
+    tier: 2
+  mainstream:
+  - feed_url: https://feeds.reuters.com/reuters/topNews
+    ideology: center
+    independence: mixed
+    name: Reuters Top News
+    tier: 1
+  - feed_url: https://www.aljazeera.com/xml/rss/all.xml
+    ideology: center
+    independence: mixed
+    name: Al Jazeera
+    tier: 1
+  - feed_url: https://www.france24.com/en/rss
+    ideology: center
+    independence: mixed
+    name: France 24
+    tier: 1
+  - feed_url: https://www.voanews.com/api/zmkqmveiy
+    ideology: center
+    independence: mixed
+    name: Voice of America
+    tier: 1
+  - feed_url: https://www.afp.com/en/agency/press-releases-newsfeed
+    ideology: center
+    independence: mixed
+    name: AFP
+    tier: 1
+  think_tank:
+  - feed_url: https://www.foreignaffairs.com/rss.xml
+    ideology: center
+    independence: independent
+    name: Foreign Affairs
+    tier: 2
+  - feed_url: https://www.worldpoliticsreview.com/feed
+    ideology: center
+    independence: independent
+    name: World Politics Review
+    tier: 2
+  - feed_url: https://thediplomat.com/feed
+    ideology: center
+    independence: independent
+    name: The Diplomat
+    tier: 2
+  - feed_url: https://www.crisisgroup.org/rss
+    ideology: center
+    independence: independent
+    name: International Crisis Group
+    tier: 2
+  - feed_url: https://www.icrc.org/en/rss
+    ideology: center
+    independence: independent
+    name: ICRC
+    tier: 2
+  - feed_url: https://news.un.org/feed/subscribe/en/news/all/rss.xml
+    ideology: center
+    independence: independent
+    name: UN News
+    tier: 2
+  - feed_url: https://carnegieendowment.org/feed/
+    ideology: center
+    independence: independent
+    name: Carnegie Endowment Global
+    tier: 2
+  - feed_url: https://www.chathamhouse.org/rss
+    ideology: center
+    independence: independent
+    name: Chatham House Global
+    tier: 2
+  - feed_url: https://www.iiss.org/rss
+    ideology: center
+    independence: independent
+    name: IISS Global
+    tier: 2
+Afghanistan:
+  independent:
+  - feed_url: https://afghanistan-analysts.org/feed
+    ideology: unknown
+    independence: independent
+    name: Afghanistan Analysts Network
+    tier: 2
+  - feed_url: https://theafghanistanindependent.com/feed
+    ideology: unknown
+    independence: independent
+    name: The Afghanistan Independent
+    tier: 2
+  mainstream:
+  - feed_url: https://tolonews.com/rss.xml
+    ideology: center
+    independence: mixed
+    name: TOLOnews English
+    tier: 1
+  - feed_url: https://khaama.com/feed
+    ideology: center
+    independence: mixed
+    name: Khaama Press
+    tier: 1
+  - feed_url: https://ariananews.af/feed
+    ideology: center
+    independence: mixed
+    name: Ariana News English
+    tier: 1
+  - feed_url: https://pajhwok.com/en/feed
+    ideology: center
+    independence: mixed
+    name: Pajhwok Afghan News
+    tier: 1
+  - feed_url: https://amu.tv/feed
+    ideology: center
+    independence: mixed
+    name: Amu TV English
+    tier: 1
+Albania:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Agon
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Albania
+    tier: 2
+Algeria:
+  mainstream:
+  - feed_url: https://www.aps.dz/en/rss
+    ideology: center
+    independence: mixed
+    name: Algeria Press Service
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Ech-Chaab الشعب
+    tier: 2
+American Samoa:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Samoa News
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Samoa Observer
+    tier: 1
+Andorra:
+  mainstream:
+  - feed_url: https://deepl.com
+    ideology: center
+    independence: mixed
+    name: DeepL
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: copyright attribution
+    tier: 2
+Angola:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Media of Angola
+    tier: 2
+  - feed_url: http://www.redalyc.org/html/698/69831021005/
+    ideology: center
+    independence: mixed
+    name: Antônio Hohlfeldt
+    tier: 2
+Anguilla:
+  gov:
+  - feed_url: ''
+    ideology: pro-government
+    independence: state
+    name: Anguilla Official Gazette
+    tier: 1
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The Anguillian
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Government of Anguilla Document Library
+    tier: 2
+Antarctica:
+  mainstream:
+  - feed_url: http://peaklist.org/WWlists/ultras/antarctica.html
+    ideology: center
+    independence: mixed
+    name: '"Antarctica Ultra-Prominences"'
+    tier: 2
+  - feed_url: http://peaklist.org/WWlists/ultras/OceaniaP1500m.html
+    ideology: center
+    independence: mixed
+    name: '"Australia, New Zealand, Oceania Ultra-Prominence Page"'
+    tier: 2
+Antigua and Barbuda:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Benjamin Franklin
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: '[2]'
+    tier: 2
+Argentina:
+  gov:
+  - feed_url: https://www.cancilleria.gob.ar/en/rss
+    ideology: pro-government
+    independence: state
+    name: Argentine Foreign Ministry
+    tier: 1
+  mainstream:
+  - feed_url: https://www.infobae.com/feeds/rss/
+    ideology: center
+    independence: mixed
+    name: Infobae English
+    tier: 1
+  - feed_url: https://www.buenosairesherald.com/feed/
+    ideology: center
+    independence: mixed
+    name: Buenos Aires Herald
+    tier: 1
+  - feed_url: https://en.mercopress.com/rss
+    ideology: center
+    independence: mixed
+    name: MercoPress Argentina
+    tier: 1
+  think_tank:
+  - feed_url: http://www.digitalnewsreport.org/survey/2020/argentina-2020/
+    ideology: center
+    independence: independent
+    name: Reuters Institute for the Study of Journalism
+    tier: 2
+Argentina/Brazil/Uruguay/Paraguay/Chile:
+  mainstream:
+  - feed_url: https://en.mercopress.com/rss
+    ideology: center
+    independence: mixed
+    name: Merco Press
+    tier: 1
+Argentina/Mexico/Colombia:
+  mainstream:
+  - feed_url: https://www.infobae.com/feeds/rss/
+    ideology: center
+    independence: mixed
+    name: Infobae English
+    tier: 1
+Armenia:
+  gov:
+  - feed_url: https://www.mfa.am/en/press-releases/rss
+    ideology: pro-government
+    independence: state
+    name: Armenia MFA
+    tier: 1
+  independent:
+  - feed_url: https://evnreport.com/feed/
+    ideology: left
+    independence: independent
+    name: EVN Report
+    tier: 2
+  - feed_url: https://www.azatutyun.am/api/zmcjqmveiy
+    ideology: left
+    independence: independent
+    name: RFE/RL Armenia
+    tier: 2
+  mainstream:
+  - feed_url: https://armenpress.am/eng/rss
+    ideology: center
+    independence: mixed
+    name: Armenpress
+    tier: 1
+  - feed_url: https://arminfo.info/en/rss
+    ideology: center
+    independence: mixed
+    name: ArmInfo
+    tier: 1
+Aruba:
+  gov:
+  - feed_url: https://www.government.aw/news/news_47033/
+    ideology: pro-government
+    independence: state
+    name: English
+    tier: 1
+  mainstream:
+  - feed_url: https://www.awemainta.com/
+    ideology: center
+    independence: mixed
+    name: Awe Mainta
+    tier: 2
+  - feed_url: https://24ora.com/
+    ideology: center
+    independence: mixed
+    name: 24ora
+    tier: 2
+Australia:
+  business:
+  - feed_url: https://www.afr.com/rss
+    ideology: center
+    independence: mixed
+    name: Australian Financial Review
+    tier: 2
+  gov:
+  - feed_url: https://www.dfat.gov.au/news/rss/news.xml
+    ideology: pro-government
+    independence: state
+    name: Australian DFAT
+    tier: 1
+  independent:
+  - feed_url: https://www.thesaturdaypaper.com.au/feed
+    ideology: left
+    independence: independent
+    name: The Saturday Paper
+    tier: 2
+  - feed_url: https://www.crikey.com.au/feed/
+    ideology: left
+    independence: independent
+    name: Crikey
+    tier: 2
+  - feed_url: https://theconversation.com/au/articles.atom
+    ideology: left
+    independence: independent
+    name: The Conversation Australia
+    tier: 2
+  - feed_url: https://www.michaelwest.com.au/feed/
+    ideology: left
+    independence: independent
+    name: Michael West Media
+    tier: 2
+  mainstream:
+  - feed_url: https://www.abc.net.au/news/feed/51120/rss.xml
+    ideology: center
+    independence: mixed
+    name: ABC News Australia
+    tier: 1
+  - feed_url: https://www.theaustralian.com.au/rss
+    ideology: center
+    independence: mixed
+    name: The Australian
+    tier: 1
+  - feed_url: https://www.smh.com.au/rss/feed.xml
+    ideology: center
+    independence: mixed
+    name: Sydney Morning Herald
+    tier: 1
+  - feed_url: https://www.theage.com.au/rss/feed.xml
+    ideology: center
+    independence: mixed
+    name: The Age
+    tier: 1
+  - feed_url: https://www.theguardian.com/australia-news/rss
+    ideology: center
+    independence: mixed
+    name: Guardian Australia
+    tier: 1
+  - feed_url: https://www.sbs.com.au/news/feed
+    ideology: center
+    independence: mixed
+    name: SBS News
+    tier: 1
+Australia/New Zealand/Fiji/Solomon Islands/Vanuatu/Samoa/Tonga/Papua New Guinea:
+  gov:
+  - feed_url: https://www.forumsec.org/rss
+    ideology: pro-government
+    independence: state
+    name: Pacific Islands Forum
+    tier: 1
+  think_tank:
+  - feed_url: https://www.lowyinstitute.org/feed
+    ideology: center
+    independence: independent
+    name: Lowy Institute
+    tier: 2
+  - feed_url: https://www.eastwestcenter.org/feed
+    ideology: center
+    independence: independent
+    name: East-West Center
+    tier: 2
+Australia/New Zealand/Papua New Guinea/Fiji:
+  think_tank:
+  - feed_url: https://www.aspi.org.au/rss
+    ideology: center
+    independence: independent
+    name: Australian Strategic Policy Institute
+    tier: 2
+Australia/Papua New Guinea/Fiji/Solomon Islands/Vanuatu/Samoa/Tonga:
+  independent:
+  - feed_url: https://devpolicy.org/feed/
+    ideology: left
+    independence: independent
+    name: Devpolicy Blog ANU
+    tier: 2
+Austria:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: adding a topic
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: talk page
+    tier: 2
+Azerbaijan:
+  gov:
+  - feed_url: https://mfa.gov.az/en/news/rss
+    ideology: pro-government
+    independence: state
+    name: Azerbaijan MFA
+    tier: 1
+  mainstream:
+  - feed_url: https://azvision.az/rss.xml
+    ideology: center
+    independence: mixed
+    name: AzVision
+    tier: 1
+  - feed_url: https://en.trend.az/rss
+    ideology: center
+    independence: mixed
+    name: Trend News Agency
+    tier: 1
+  - feed_url: https://bakutribune.com/feed
+    ideology: center
+    independence: mixed
+    name: Baku Tribune
+    tier: 1
+Azerbaijan/Armenia/Georgia:
+  mainstream:
+  - feed_url: https://jam-news.net/feed/
+    ideology: center
+    independence: mixed
+    name: JAM News
+    tier: 1
+Bahamas:
+  gov:
+  - feed_url: ''
+    ideology: pro-government
+    independence: state
+    name: Official Gazette The Bahamas
+    tier: 1
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Abaco
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: '[1]'
+    tier: 2
+Bahrain:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Journalism portal
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Lists portal
+    tier: 2
+Bangladesh:
+  business:
+  - feed_url: https://bonikbarta.net/feed
+    ideology: center
+    independence: mixed
+    name: Bonik Barta English
+    tier: 2
+  gov:
+  - feed_url: https://bssnews.net/feed
+    ideology: pro-government
+    independence: state
+    name: Bangladesh Sangbad Sangstha BSS
+    tier: 1
+  - feed_url: https://mofa.gov.bd
+    ideology: pro-government
+    independence: state
+    name: Ministry of Foreign Affairs Bangladesh
+    tier: 1
+  - feed_url: https://mincom.gov.bd
+    ideology: pro-government
+    independence: state
+    name: Ministry of Commerce Bangladesh
+    tier: 1
+  independent:
+  - feed_url: https://netra.news/feed
+    ideology: unknown
+    independence: independent
+    name: Netra News
+    tier: 2
+  - feed_url: https://alalodulal.org/feed
+    ideology: unknown
+    independence: independent
+    name: Alal O Dulal
+    tier: 2
+  - feed_url: https://en.prothomalo.com/feed
+    ideology: left
+    independence: independent
+    name: Prothom Alo English
+    tier: 2
+  - feed_url: https://tbsnews.net/feed
+    ideology: left
+    independence: independent
+    name: The Business Standard Bangladesh
+    tier: 2
+  - feed_url: https://dhakacourier.com.bd/feed
+    ideology: left
+    independence: independent
+    name: Dhaka Courier
+    tier: 2
+  mainstream:
+  - feed_url: https://thedailystar.net/feed/news
+    ideology: center
+    independence: mixed
+    name: Daily Star Bangladesh
+    tier: 1
+  - feed_url: https://dhakatribune.com/feed
+    ideology: center
+    independence: mixed
+    name: Dhaka Tribune
+    tier: 1
+  - feed_url: https://bdnews24.com/feed
+    ideology: center
+    independence: mixed
+    name: bdnews24 English
+    tier: 1
+  - feed_url: https://newagebd.net/feed
+    ideology: center
+    independence: mixed
+    name: New Age Bangladesh
+    tier: 1
+  - feed_url: https://daily-sun.com/feed
+    ideology: center
+    independence: mixed
+    name: Daily Sun Bangladesh
+    tier: 1
+  - feed_url: https://theindependentbd.com/feed
+    ideology: center
+    independence: mixed
+    name: Independent Bangladesh
+    tier: 1
+  - feed_url: https://thefinancialexpress.com.bd/feed
+    ideology: center
+    independence: mixed
+    name: Financial Express Bangladesh
+    tier: 1
+Barbados:
+  gov:
+  - feed_url: ''
+    ideology: pro-government
+    independence: state
+    name: The Official Gazette of Barbados
+    tier: 1
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: '[3]'
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The Barbados Advocate
+    tier: 2
+Belarus:
+  mainstream:
+  - feed_url: http://www.zvyazda.minsk.by/
+    ideology: center
+    independence: mixed
+    name: Zviazda
+    tier: 2
+  - feed_url: http://www.novychas.org/
+    ideology: center
+    independence: mixed
+    name: Novy Chas
+    tier: 2
+Belgium:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Brugsch Handelsblad
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Kortrijks Handelsblad
+    tier: 2
+Belgium/Germany/France/Italy/Spain/Netherlands:
+  think_tank:
+  - feed_url: https://www.bruegel.org/feed/
+    ideology: center
+    independence: independent
+    name: Bruegel
+    tier: 2
+Belgium/Germany/France/Italy/Spain/Netherlands/Poland:
+  business:
+  - feed_url: https://www.euractiv.com/feed/
+    ideology: center
+    independence: mixed
+    name: Euractiv
+    tier: 2
+  gov:
+  - feed_url: https://ec.europa.eu/commission/presscorner/rss/en
+    ideology: pro-government
+    independence: state
+    name: European Commission Press Releases
+    tier: 1
+  - feed_url: https://www.consilium.europa.eu/en/press/press-releases/rss
+    ideology: pro-government
+    independence: state
+    name: European Council
+    tier: 1
+  - feed_url: https://www.europarl.europa.eu/rss/doc/press-releases-full.xml
+    ideology: pro-government
+    independence: state
+    name: European Parliament
+    tier: 1
+  mainstream:
+  - feed_url: https://euobserver.com/rss
+    ideology: center
+    independence: mixed
+    name: EUobserver
+    tier: 1
+  think_tank:
+  - feed_url: https://www.epc.eu/rss
+    ideology: center
+    independence: independent
+    name: European Policy Centre
+    tier: 2
+Belgium/UK/Germany/France/Italy/Spain/Netherlands/Poland/Norway/Denmark:
+  gov:
+  - feed_url: https://www.nato.int/cps/en/natolive/rss.htm
+    ideology: pro-government
+    independence: state
+    name: NATO
+    tier: 1
+Belize:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Amandala
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The Belize Times
+    tier: 1
+Benin:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Recadaire de Behanzin
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Le Guide du Dahomey
+    tier: 2
+Bermuda:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Bernews
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The Royal Gazette
+    tier: 2
+Bhutan:
+  gov:
+  - feed_url: https://bhutan.gov.bt
+    ideology: pro-government
+    independence: state
+    name: Royal Government of Bhutan
+    tier: 1
+  - feed_url: https://mfa.gov.bt
+    ideology: pro-government
+    independence: state
+    name: Ministry of Foreign Affairs Bhutan
+    tier: 1
+  independent:
+  - feed_url: https://thebhutanese.bt/feed
+    ideology: unknown
+    independence: independent
+    name: The Bhutanese
+    tier: 2
+  - feed_url: https://bhutanobserver.bt/feed
+    ideology: unknown
+    independence: independent
+    name: Bhutan Observer
+    tier: 2
+  - feed_url: https://bhutantimes.bt/feed
+    ideology: unknown
+    independence: independent
+    name: Bhutan Times
+    tier: 2
+  mainstream:
+  - feed_url: https://kuenselonline.com/feed
+    ideology: center
+    independence: mixed
+    name: Kuensel Online
+    tier: 1
+  - feed_url: https://businessbhutan.bt/feed
+    ideology: center
+    independence: mixed
+    name: Business Bhutan
+    tier: 1
+  - feed_url: https://bbs.bt/feed
+    ideology: center
+    independence: mixed
+    name: Bhutan Broadcasting Service
+    tier: 1
+Bolivia, Plurinational State of:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: PDC
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Unity
+    tier: 2
+Bonaire, Sint Eustatius and Saba:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: .nl
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: .bq
+    tier: 2
+Bosnia and Herzegovina:
+  gov:
+  - feed_url: http://english.vzs.ba/index.php?option=com_content&view=category&id=5&Itemid=8&lang=en
+    ideology: pro-government
+    independence: state
+    name: Press Council in Bosnia and Herzegovina official site
+    tier: 1
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: BH Dani
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Start BiH
+    tier: 2
+Botswana:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The Botswana Gazette
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Botswana Guardian
+    tier: 1
+Bouvet Island:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Geography portal
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Recursive islands and lakes
+    tier: 2
+Brazil:
+  gov:
+  - feed_url: https://www.gov.br/en/latest-news/rss
+    ideology: pro-government
+    independence: state
+    name: Brazilian Government News
+    tier: 1
+  - feed_url: https://www.gov.br/mre/en/rss
+    ideology: pro-government
+    independence: state
+    name: Brazilian Ministry of Foreign Affairs
+    tier: 1
+  independent:
+  - feed_url: https://theintercept.com/brasil/feed/?rss
+    ideology: unknown
+    independence: independent
+    name: The Intercept Brasil
+    tier: 2
+  - feed_url: https://apublica.org/feed/
+    ideology: unknown
+    independence: independent
+    name: Agência Pública
+    tier: 2
+  mainstream:
+  - feed_url: https://www1.folha.uol.com.br/internacional/en/rss091.xml
+    ideology: center
+    independence: mixed
+    name: Folha de S.Paulo International
+    tier: 1
+  - feed_url: https://agenciabrasil.ebc.com.br/en/rss
+    ideology: center
+    independence: mixed
+    name: Agência Brasil English
+    tier: 1
+  - feed_url: https://brazilian.report/feed/
+    ideology: center
+    independence: mixed
+    name: The Brazilian Report
+    tier: 1
+Brazil/Mexico/Argentina/Colombia/Chile/Peru:
+  business:
+  - feed_url: https://www.bnamericas.com/rss
+    ideology: center
+    independence: mixed
+    name: BNamericas
+    tier: 2
+  - feed_url: https://www.latinfinance.com/feed
+    ideology: center
+    independence: mixed
+    name: Latin Finance
+    tier: 2
+Brazil/Mexico/Argentina/Colombia/Chile/Peru/Venezuela:
+  business:
+  - feed_url: https://www.americasquarterly.org/feed/
+    ideology: center
+    independence: mixed
+    name: Americas Quarterly
+    tier: 2
+  mainstream:
+  - feed_url: https://feeds.reuters.com/reuters/latinamericaNews
+    ideology: center
+    independence: mixed
+    name: Reuters Latin America
+    tier: 1
+  - feed_url: https://feeds.bbci.co.uk/news/world/latin_america/rss.xml
+    ideology: center
+    independence: mixed
+    name: BBC Latin America
+    tier: 1
+  - feed_url: https://www.efe.com/efe/english/rss
+    ideology: center
+    independence: mixed
+    name: Agencia EFE English
+    tier: 1
+  think_tank:
+  - feed_url: https://www.thedialogue.org/feed/
+    ideology: center
+    independence: independent
+    name: Inter-American Dialogue
+    tier: 2
+  - feed_url: https://www.wola.org/feed/
+    ideology: center
+    independence: independent
+    name: WOLA
+    tier: 2
+  - feed_url: https://nacla.org/feed
+    ideology: center
+    independence: independent
+    name: NACLA Report
+    tier: 2
+  - feed_url: https://www.coha.org/feed/
+    ideology: center
+    independence: independent
+    name: Council on Hemispheric Affairs
+    tier: 2
+  - feed_url: https://www.crisisgroup.org/rss/latin-america
+    ideology: center
+    independence: independent
+    name: International Crisis Group Latin America
+    tier: 2
+  - feed_url: https://www.iiss.org/rss/latin-america
+    ideology: center
+    independence: independent
+    name: IISS Latin America
+    tier: 2
+British Indian Ocean Territory:
+  gov:
+  - feed_url: ''
+    ideology: pro-government
+    independence: state
+    name: Democratic Republic of the Congo
+    tier: 1
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Algeria
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Angola
+    tier: 2
+Brunei Darussalam:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Arabic
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: God
+    tier: 2
+Bulgaria:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: 0–9
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: 168 Chasa
+    tier: 2
+Burkina Faso:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: '[16]'
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: '[17]'
+    tier: 2
+Burundi:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Arc-en-Ciel
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Burundi Chrétien
+    tier: 2
+Cabo Verde:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Portuguese Cape Verde
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Portuguese Empire
+    tier: 2
+Cambodia:
+  independent:
+  - feed_url: https://vodenglish.news/feed
+    ideology: unknown
+    independence: independent
+    name: VOD English
+    tier: 2
+  mainstream:
+  - feed_url: https://www.phnompenhpost.com/rss
+    ideology: center
+    independence: mixed
+    name: Phnom Penh Post
+    tier: 1
+  - feed_url: https://www.khmertimeskh.com/feed
+    ideology: center
+    independence: mixed
+    name: Khmer Times
+    tier: 1
+Cameroon:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Cameroun Express
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Cameroon Tribune
+    tier: 1
+Canada:
+  gov:
+  - feed_url: https://www.canada.ca/en/news.atom
+    ideology: pro-government
+    independence: state
+    name: Government of Canada News
+    tier: 1
+  - feed_url: https://www.canada.ca/en/global-affairs.atom
+    ideology: pro-government
+    independence: state
+    name: Global Affairs Canada
+    tier: 1
+  independent:
+  - feed_url: https://www.macleans.ca/feed/
+    ideology: left
+    independence: independent
+    name: Maclean's
+    tier: 2
+  - feed_url: https://thewalrus.ca/feed/
+    ideology: left
+    independence: independent
+    name: The Walrus
+    tier: 2
+  - feed_url: https://ipolitics.ca/feed/
+    ideology: left
+    independence: independent
+    name: iPolitics
+    tier: 2
+  mainstream:
+  - feed_url: https://www.theglobeandmail.com/arc/outboundfeeds/rss/category/canada/
+    ideology: center
+    independence: mixed
+    name: Globe and Mail
+    tier: 1
+  - feed_url: https://rss.cbc.ca/lineup/topstories.xml
+    ideology: center
+    independence: mixed
+    name: CBC News
+    tier: 1
+  - feed_url: https://www.thestar.com/content/thestar/feed.RSSManagerServlet.topstories.rss
+    ideology: center
+    independence: mixed
+    name: Toronto Star
+    tier: 1
+  - feed_url: https://nationalpost.com/feed/
+    ideology: center
+    independence: mixed
+    name: National Post
+    tier: 1
+  - feed_url: https://www.ctvnews.ca/rss/ctvnews-ca-top-stories-public-rss-1.822009
+    ideology: center
+    independence: mixed
+    name: CTV News
+    tier: 1
+Cayman Islands:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Christianity
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: No religion
+    tier: 2
+Central African Republic:
+  gov:
+  - feed_url: ''
+    ideology: pro-government
+    independence: state
+    name: Republic of the Congo
+    tier: 1
+  mainstream:
+  - feed_url: http://library.columbia.edu/locations/global/virtual-libraries/african_studies/newspapers/country.html
+    ideology: center
+    independence: mixed
+    name: '"Central African Republic"'
+    tier: 2
+  - feed_url: https://web.stanford.edu/dept/SUL/library/prod//depts/ssrg/africa/car/central-african-republic-newspapers.html
+    ideology: center
+    independence: mixed
+    name: '"Cameroon: News"'
+    tier: 2
+Chad:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Alwihda
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: N'Djamena Bi-Hebdo
+    tier: 2
+Chile:
+  mainstream:
+  - feed_url: https://santiagotimes.cl/feed/
+    ideology: center
+    independence: mixed
+    name: Santiago Times
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Publimetro
+    tier: 2
+China:
+  business:
+  - feed_url: https://www.caixinglobal.com/rss
+    ideology: center
+    independence: mixed
+    name: Caixin Global Business
+    tier: 2
+  gov:
+  - feed_url: https://www.mfa.gov.cn/eng/rss.xml
+    ideology: pro-government
+    independence: state
+    name: Chinese Foreign Ministry MFA
+    tier: 1
+  - feed_url: https://www.chinadaily.com.cn/rss/china_rss.xml
+    ideology: pro-government
+    independence: state
+    name: China Daily
+    tier: 1
+  - feed_url: https://www.xinhuanet.com/english/rss/worldrss.xml
+    ideology: pro-government
+    independence: state
+    name: Xinhua English
+    tier: 1
+  independent:
+  - feed_url: https://chinamediaproject.org/feed/
+    ideology: unknown
+    independence: independent
+    name: China Media Project
+    tier: 2
+  - feed_url: https://www.rfa.org/english/rss2.0/china.xml
+    ideology: unknown
+    independence: independent
+    name: Radio Free Asia China
+    tier: 2
+  - feed_url: https://supchina.com/feed/
+    ideology: unknown
+    independence: independent
+    name: SupChina
+    tier: 2
+  - feed_url: https://www.thewirechina.com/feed/
+    ideology: unknown
+    independence: independent
+    name: The Wire China
+    tier: 2
+  - feed_url: https://www.thechinastory.org/feed/
+    ideology: unknown
+    independence: independent
+    name: China Story ANU
+    tier: 2
+  mainstream:
+  - feed_url: https://www.scmp.com/rss/91/feed
+    ideology: center
+    independence: mixed
+    name: SCMP China
+    tier: 1
+  - feed_url: https://www.caixinglobal.com/rss
+    ideology: center
+    independence: mixed
+    name: Caixin Global
+    tier: 1
+  think_tank:
+  - feed_url: https://chinapolicyinstitute.org/feed
+    ideology: center
+    independence: independent
+    name: China Policy Institute
+    tier: 2
+China/Hong Kong:
+  independent:
+  - feed_url: https://theinitium.com/feed
+    ideology: unknown
+    independence: independent
+    name: Initium Media
+    tier: 2
+  think_tank:
+  - feed_url: https://merics.org/en/feed
+    ideology: center
+    independence: independent
+    name: MERICS
+    tier: 2
+China/Japan/South Korea/Taiwan/North Korea:
+  think_tank:
+  - feed_url: https://www.csis.org/regions/asia/feed
+    ideology: center
+    independence: independent
+    name: CSIS Asia
+    tier: 2
+  - feed_url: https://www.cfr.org/region/asia/feed
+    ideology: center
+    independence: independent
+    name: Council on Foreign Relations Asia
+    tier: 2
+  - feed_url: https://www.lowyinstitute.org/feed
+    ideology: center
+    independence: independent
+    name: Lowy Institute East Asia
+    tier: 2
+  - feed_url: https://www.iiss.org/rss/asia
+    ideology: center
+    independence: independent
+    name: IISS Asia
+    tier: 2
+  - feed_url: https://www.stimson.org/feed
+    ideology: center
+    independence: independent
+    name: Stimson East Asia
+    tier: 2
+China/Japan/South Korea/Taiwan/North Korea/Hong Kong:
+  mainstream:
+  - feed_url: https://www.scmp.com/rss/91/feed
+    ideology: center
+    independence: mixed
+    name: South China Morning Post
+    tier: 1
+  - feed_url: https://asiatimes.com/feed/
+    ideology: center
+    independence: mixed
+    name: Asia Times
+    tier: 1
+China/Japan/South Korea/Taiwan/North Korea/Mongolia:
+  mainstream:
+  - feed_url: https://thediplomat.com/regions/east-asia/feed
+    ideology: center
+    independence: mixed
+    name: The Diplomat East Asia
+    tier: 1
+  think_tank:
+  - feed_url: https://eastasiaforum.org/feed
+    ideology: center
+    independence: independent
+    name: East Asia Forum
+    tier: 2
+China/Japan/South Korea/Taiwan/North Korea/Mongolia/Hong Kong:
+  mainstream:
+  - feed_url: https://asia.nikkei.com/rss/feed/nar
+    ideology: center
+    independence: mixed
+    name: Nikkei Asia
+    tier: 1
+Christmas Island:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Malay
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Mandarin
+    tier: 2
+Cocos (Keeling) Islands:
+  gov:
+  - feed_url: http://results.aec.gov.au/20499/Website/HousePollingPlaceFirstPrefs-20499-8712.htm
+    ideology: pro-government
+    independence: state
+    name: Home Island
+    tier: 1
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Colony of Singapore
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Islam
+    tier: 2
+Colombia:
+  gov:
+  - feed_url: https://www.cancilleria.gov.co/rss
+    ideology: pro-government
+    independence: state
+    name: Colombian Foreign Ministry
+    tier: 1
+  independent:
+  - feed_url: https://lasillavacia.com/feed
+    ideology: unknown
+    independence: independent
+    name: La Silla Vacía
+    tier: 2
+  mainstream:
+  - feed_url: https://colombiareports.com/feed/
+    ideology: center
+    independence: mixed
+    name: Colombia Reports
+    tier: 1
+  - feed_url: http://www.prensaescrita.com/america/colombia.php
+    ideology: center
+    independence: mixed
+    name: prensaescrita.com - diarios de Colombia
+    tier: 2
+Comoros:
+  gov:
+  - feed_url: http://www.embassy.org/embassies/km.html
+    ideology: pro-government
+    independence: state
+    name: Embassy des Comores
+    tier: 1
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Ngazidja Comorian
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: French
+    tier: 2
+Congo:
+  gov:
+  - feed_url: ''
+    ideology: pro-government
+    independence: state
+    name: Media of the Democratic Republic of the Congo
+    tier: 1
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Union nationale de la presse congolaise
+    tier: 2
+  - feed_url: https://books.google.com/books?id=jj4J-AXGDaQC
+    ideology: center
+    independence: mixed
+    name: Africa South of the Sahara 2004
+    tier: 2
+Congo, The Democratic Republic of the:
+  gov:
+  - feed_url: ''
+    ideology: pro-government
+    independence: state
+    name: Democratic Republic of the Congo literature
+    tier: 1
+  mainstream:
+  - feed_url: https://books.google.com/books?id=bunHURgi7FcC
+    ideology: center
+    independence: mixed
+    name: Jonathon Green
+    tier: 2
+  - feed_url: https://doi.org/10.3917%2Fcris.026.0001
+    ideology: center
+    independence: mixed
+    name: '"La presse quotidienne au Congo"'
+    tier: 2
+Cook Islands:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Cook Islands Māori
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Penrhyn
+    tier: 2
+Costa Rica:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The Costa Rica News
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The Costa Rica Star
+    tier: 2
+Croatia:
+  mainstream:
+  - feed_url: http://www.24sata.hr/
+    ideology: center
+    independence: mixed
+    name: 24sata
+    tier: 2
+  - feed_url: http://www.jutarnji.hr/
+    ideology: center
+    independence: mixed
+    name: Jutarnji list
+    tier: 2
+Cuba:
+  mainstream:
+  - feed_url: http://www.granma.cu/
+    ideology: center
+    independence: mixed
+    name: Granma
+    tier: 2
+  - feed_url: http://www.juventudrebelde.cu/
+    ideology: center
+    independence: mixed
+    name: Juventud Rebelde
+    tier: 2
+Curaçao:
+  mainstream:
+  - feed_url: https://gobiernu.cw/nl/nieuws-nl/
+    ideology: center
+    independence: mixed
+    name: Dutch
+    tier: 2
+  - feed_url: https://extra.cw
+    ideology: center
+    independence: mixed
+    name: Extra
+    tier: 2
+Cyprus:
+  business:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Financial Mirror
+    tier: 2
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Alithia
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Haravgi
+    tier: 2
+Czechia:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Hovhannes Kajaznuni
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Stepan Malkhasyants
+    tier: 2
+  think_tank:
+  - feed_url: ''
+    ideology: center
+    independence: independent
+    name: Lucien Jottrand
+    tier: 2
+Côte d'Ivoire:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Media of Ivory Coast
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Press in Abidjan
+    tier: 2
+DRC:
+  mainstream:
+  - feed_url: https://www.radiookapi.net/en/feed
+    ideology: center
+    independence: mixed
+    name: Radio Okapi English
+    tier: 1
+Denmark:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Fyens Stiftstidende
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Fyns Amts Avis
+    tier: 2
+Djibouti:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Somali
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Afar
+    tier: 2
+Dominica:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The Chronicle
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Dominica News Online
+    tier: 2
+Dominican Republic:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: El Caribe
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Diario Libre
+    tier: 2
+Ecuador:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Ambato
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: El Heraldo
+    tier: 1
+Egypt:
+  gov:
+  - feed_url: https://www.mena.org.eg/en/rss
+    ideology: pro-government
+    independence: state
+    name: Egyptian MENA State Agency
+    tier: 1
+  independent:
+  - feed_url: https://madamasr.com/en/feed/
+    ideology: unknown
+    independence: independent
+    name: Mada Masr
+    tier: 2
+  mainstream:
+  - feed_url: https://english.ahram.org.eg/RSS.aspx
+    ideology: center
+    independence: mixed
+    name: Ahram Online
+    tier: 1
+  - feed_url: https://www.egyptindependent.com/feed/
+    ideology: center
+    independence: mixed
+    name: Egypt Independent
+    tier: 1
+El Salvador:
+  independent:
+  - feed_url: https://elfaro.net/feed
+    ideology: unknown
+    independence: independent
+    name: El Faro English
+    tier: 2
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Diario El Salvador
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Diario Co Latino
+    tier: 2
+Equatorial Guinea:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Diario Rombe
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Radio Bata
+    tier: 2
+  think_tank:
+  - feed_url: https://web.archive.org/web/20070926235613/http://www.freemedia.at/cms/ipi/freedom_detail.html?country=%2FKW0001%2FKW0006%2FKW0153%2F&year=2004
+    ideology: center
+    independence: independent
+    name: International Press Institute::World Press Freedom Review::Equatorial Guinea
+    tier: 2
+Eritrea:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Nay Eretra Sämunawi Gazét'a
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Dehai
+    tier: 2
+Estonia:
+  mainstream:
+  - feed_url: http://dea.nlib.ee/
+    ideology: center
+    independence: mixed
+    name: Digitised Estonian newspapers
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Timeline
+    tier: 2
+Eswatini:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Eswatini Observer
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Times of Swaziland
+    tier: 1
+Ethiopia:
+  independent:
+  - feed_url: https://addisstandard.com/feed/
+    ideology: unknown
+    independence: independent
+    name: Addis Standard
+    tier: 2
+  mainstream:
+  - feed_url: https://www.ethiopianreporter.com/feed
+    ideology: center
+    independence: mixed
+    name: Ethiopian Reporter
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: 'Mass media in Ethiopia: Newspapers'
+    tier: 2
+Falkland Islands (Malvinas):
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Index of Falkland Islands–related articles
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Outline of the Falkland Islands
+    tier: 2
+Faroe Islands:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Faroe Islands portal
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Dúgvan
+    tier: 2
+Fiji:
+  mainstream:
+  - feed_url: https://www.fijitimes.com/feed/
+    ideology: center
+    independence: mixed
+    name: Fiji Times
+    tier: 1
+  - feed_url: https://fijisun.com.fj/feed/
+    ideology: center
+    independence: mixed
+    name: Fiji Sun
+    tier: 1
+Fiji/Solomon Islands/Vanuatu/Samoa/Tonga:
+  mainstream:
+  - feed_url: https://islandsbusiness.com/feed/
+    ideology: center
+    independence: mixed
+    name: Islands Business
+    tier: 1
+Fiji/Solomon Islands/Vanuatu/Samoa/Tonga/Papua New Guinea:
+  gov:
+  - feed_url: https://www.spc.int/rss
+    ideology: pro-government
+    independence: state
+    name: Pacific Community SPC
+    tier: 1
+  mainstream:
+  - feed_url: https://www.rnz.co.nz/rss/pacific.xml
+    ideology: center
+    independence: mixed
+    name: RNZ Pacific
+    tier: 1
+  - feed_url: https://www.abc.net.au/pacific/feed/51132/rss.xml
+    ideology: center
+    independence: mixed
+    name: Pacific Beat ABC
+    tier: 1
+  think_tank:
+  - feed_url: https://www.pacificpolicy.org/feed
+    ideology: center
+    independence: independent
+    name: Pacific Institute for Public Policy
+    tier: 2
+Finland:
+  mainstream:
+  - feed_url: https://feeds.yle.fi/uutiset/5/8/uutiset-5-8.rss
+    ideology: center
+    independence: mixed
+    name: Yle Finland English
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Aamulehti
+    tier: 2
+France:
+  independent:
+  - feed_url: https://mondediplo.com/spip.php?page=backend
+    ideology: left
+    independence: independent
+    name: Le Monde Diplomatique English
+    tier: 2
+  mainstream:
+  - feed_url: https://translate.google.com/translate?&u=https%3A%2F%2Ffr.wikipedia.org%2Fwiki%2FPresse_en_France&sl=fr&tl=en&prev=_t&hl=en
+    ideology: center
+    independence: mixed
+    name: View
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Wikipedia:Translation
+    tier: 2
+France/UK/Germany/Italy/Spain/Poland/Ukraine:
+  mainstream:
+  - feed_url: https://www.france24.com/en/rss
+    ideology: center
+    independence: mixed
+    name: France 24 English
+    tier: 1
+  - feed_url: https://www.rfi.fr/en/rss
+    ideology: center
+    independence: mixed
+    name: RFI English
+    tier: 1
+French Guiana:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: France-Guyane
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Guyane la 1ère
+    tier: 2
+French Polynesia:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Mediapart
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: La Tribune
+    tier: 1
+French Southern Territories:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: UTC+04:00
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: UTC+05:00
+    tier: 2
+Gabon:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Urban FM Gabon
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Telecommunications in Gabon
+    tier: 2
+Gambia:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The Daily Observer
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The Point
+    tier: 2
+Georgia:
+  gov:
+  - feed_url: https://mfa.gov.ge/en/news/rss
+    ideology: pro-government
+    independence: state
+    name: Georgia MFA
+    tier: 1
+  independent:
+  - feed_url: https://civil.ge/feed
+    ideology: unknown
+    independence: independent
+    name: Civil.ge
+    tier: 2
+  - feed_url: https://www.radiotavisupleba.ge/api/zocjqmveiy
+    ideology: unknown
+    independence: independent
+    name: RFE/RL Georgia
+    tier: 2
+  mainstream:
+  - feed_url: https://georgiatoday.ge/rss
+    ideology: center
+    independence: mixed
+    name: Georgia Today
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Colchians
+    tier: 2
+Georgia/Armenia/Azerbaijan:
+  independent:
+  - feed_url: https://oc-media.org/feed/
+    ideology: unknown
+    independence: independent
+    name: OC Media
+    tier: 2
+Germany:
+  gov:
+  - feed_url: https://www.bundesregierung.de/breg-en/feed
+    ideology: pro-government
+    independence: state
+    name: German Federal Government
+    tier: 1
+  mainstream:
+  - feed_url: https://www.spiegel.de/international/index.rss
+    ideology: center
+    independence: mixed
+    name: Der Spiegel International
+    tier: 1
+  - feed_url: https://www.handelsblatt.com/rss
+    ideology: center
+    independence: mixed
+    name: Handelsblatt Global
+    tier: 1
+Germany/UK/France/Italy/Poland:
+  think_tank:
+  - feed_url: https://www.gmfus.org/feed
+    ideology: center
+    independence: independent
+    name: German Marshall Fund
+    tier: 2
+Germany/UK/France/Italy/Poland/Ukraine/Russia:
+  think_tank:
+  - feed_url: https://www.swp-berlin.org/en/feed
+    ideology: center
+    independence: independent
+    name: SWP Berlin
+    tier: 2
+Germany/UK/France/Italy/Spain/Poland/Ukraine/Russia:
+  mainstream:
+  - feed_url: https://rss.dw.com/xml/rss-en-all
+    ideology: center
+    independence: mixed
+    name: Deutsche Welle
+    tier: 1
+Ghana:
+  mainstream:
+  - feed_url: https://www.ghanaweb.com/rss
+    ideology: center
+    independence: mixed
+    name: Ghana Web
+    tier: 1
+  - feed_url: https://citifmonline.com/feed/
+    ideology: center
+    independence: mixed
+    name: Citifmonline
+    tier: 1
+Gibraltar:
+  gov:
+  - feed_url: https://www.gibraltar.gov.gi/press
+    ideology: pro-government
+    independence: state
+    name: Press Office
+    tier: 1
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Gibraltar Chronicle
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Panorama
+    tier: 2
+Greece:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Achagiotika Nea
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: '[27]'
+    tier: 2
+Greenland:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Atuagagdliutit/Grønlandsposten
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Sermitsiaq
+    tier: 2
+Grenada:
+  gov:
+  - feed_url: https://www.nationalarchives.gov.uk/help-with-your-research/research-guides/newspapers/
+    ideology: pro-government
+    independence: state
+    name: '"Newspapers at the National Archive"'
+    tier: 1
+  mainstream:
+  - feed_url: https://www.thebarnaclenews.com/
+    ideology: center
+    independence: mixed
+    name: The Barnacle News
+    tier: 2
+  - feed_url: https://www.thegrenadainformer.com/
+    ideology: center
+    independence: mixed
+    name: The Grenada Informer
+    tier: 2
+Guadeloupe:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The New Hampshire Gazette
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Hartford Courant
+    tier: 2
+Guam:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Pacific Daily News
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Guam Daily Post
+    tier: 1
+Guatemala:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Prensa Libre
+    tier: 2
+  - feed_url: https://aldia.com.gt/
+    ideology: center
+    independence: mixed
+    name: Al Día
+    tier: 2
+Guernsey:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Guernsey Press and Star
+    tier: 2
+  - feed_url: http://thequarry.media
+    ideology: center
+    independence: mixed
+    name: The Quarry
+    tier: 2
+Guinea:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Le Lynx
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: '[6]'
+    tier: 2
+Guinea-Bissau:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Guinea-Bissau National Radio
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Guinea-Bissau Television
+    tier: 2
+Guyana:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Essequibo
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: '[5]'
+    tier: 2
+Haiti:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Balistrad
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Le Nouvelliste
+    tier: 2
+Heard Island and McDonald Islands:
+  mainstream:
+  - feed_url: http://www.peaklist.org/ultras.html
+    ideology: center
+    independence: mixed
+    name: peaklist.org
+    tier: 2
+  - feed_url: http://www.worldatlas.com/aatlas/infopage/highlow.htm
+    ideology: center
+    independence: mixed
+    name: worldatlas.com
+    tier: 2
+Holy See (Vatican City State):
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: History of the papacy
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Duchy of Rome
+    tier: 2
+Honduras:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: La Gazzeta
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Honduras This Week
+    tier: 2
+Hong Kong:
+  independent:
+  - feed_url: https://hongkongfp.com/feed/
+    ideology: unknown
+    independence: independent
+    name: Hong Kong Free Press
+    tier: 2
+  - feed_url: https://rthk.hk/rss/news/index.xml
+    ideology: unknown
+    independence: independent
+    name: RTHK English
+    tier: 2
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Census
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Health
+    tier: 2
+Hungary:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Autó-Motor
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Hócipő
+    tier: 2
+Iceland:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Morgunblaðið
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: '[4]'
+    tier: 2
+India:
+  business:
+  - feed_url: https://business-standard.com/rss/home_page_top_stories.rss
+    ideology: center
+    independence: mixed
+    name: Business Standard
+    tier: 2
+  - feed_url: https://livemint.com/rss/rss.xml
+    ideology: center
+    independence: mixed
+    name: Mint
+    tier: 2
+  - feed_url: https://economictimes.indiatimes.com/rss.cms
+    ideology: center
+    independence: mixed
+    name: Economic Times
+    tier: 2
+  - feed_url: https://financialexpress.com/feed
+    ideology: center
+    independence: mixed
+    name: Financial Express India
+    tier: 2
+  gov:
+  - feed_url: https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3
+    ideology: pro-government
+    independence: state
+    name: Press Information Bureau
+    tier: 1
+  - feed_url: https://mea.gov.in/press-releases.htm
+    ideology: pro-government
+    independence: state
+    name: Ministry of External Affairs
+    tier: 1
+  - feed_url: https://mod.gov.in/en/press-releases
+    ideology: pro-government
+    independence: state
+    name: Ministry of Defence India
+    tier: 1
+  independent:
+  - feed_url: https://thewire.in/feed
+    ideology: left
+    independence: independent
+    name: The Wire
+    tier: 2
+  - feed_url: https://scroll.in/feed
+    ideology: left
+    independence: independent
+    name: Scroll.in
+    tier: 2
+  - feed_url: https://caravanmagazine.in/feed
+    ideology: left
+    independence: independent
+    name: The Caravan
+    tier: 2
+  - feed_url: https://newslaundry.com/feed
+    ideology: left
+    independence: independent
+    name: Newslaundry
+    tier: 2
+  - feed_url: https://theprint.in/feed
+    ideology: left
+    independence: independent
+    name: The Print
+    tier: 2
+  - feed_url: https://thequint.com/feed
+    ideology: left
+    independence: independent
+    name: The Quint
+    tier: 2
+  - feed_url: https://article-14.com/feed
+    ideology: left
+    independence: independent
+    name: Article 14
+    tier: 2
+  - feed_url: https://swarajyamag.com/feed
+    ideology: right
+    independence: independent
+    name: Swarajya Magazine
+    tier: 2
+  - feed_url: https://opindia.com/feed
+    ideology: right
+    independence: independent
+    name: OpIndia
+    tier: 2
+  - feed_url: https://republicworld.com/feed
+    ideology: right
+    independence: independent
+    name: Republic World
+    tier: 2
+  - feed_url: https://organiser.org/feed
+    ideology: right
+    independence: independent
+    name: Organiser
+    tier: 2
+  mainstream:
+  - feed_url: https://timesofindia.indiatimes.com/rss/rssfeedstopstories.cms
+    ideology: center
+    independence: mixed
+    name: Times of India
+    tier: 1
+  - feed_url: https://thehindu.com/news/feeder/default.rss
+    ideology: center
+    independence: mixed
+    name: The Hindu
+    tier: 1
+  - feed_url: https://feeds.feedburner.com/ndtvnews-top-stories
+    ideology: center
+    independence: mixed
+    name: NDTV
+    tier: 1
+  - feed_url: https://hindustantimes.com/rss/topnews/rssfeed.xml
+    ideology: center
+    independence: mixed
+    name: Hindustan Times
+    tier: 1
+  - feed_url: https://indianexpress.com/feed
+    ideology: center
+    independence: mixed
+    name: Indian Express
+    tier: 1
+  - feed_url: https://wionews.com/feed
+    ideology: center
+    independence: mixed
+    name: WION
+    tier: 1
+  - feed_url: https://aninews.in/rss/
+    ideology: center
+    independence: mixed
+    name: ANI News
+    tier: 1
+  - feed_url: https://indiatoday.in/rss/home
+    ideology: center
+    independence: mixed
+    name: India Today
+    tier: 1
+  - feed_url: https://news18.com/rss/india.xml
+    ideology: center
+    independence: mixed
+    name: News18
+    tier: 1
+  other:
+  - feed_url: https://deccanherald.com/feed
+    ideology: center
+    independence: mixed
+    name: Deccan Herald
+    tier: 2
+  - feed_url: https://deccanchronicle.com/feed
+    ideology: center
+    independence: mixed
+    name: Deccan Chronicle
+    tier: 2
+  - feed_url: https://newindianexpress.com/feed
+    ideology: center
+    independence: mixed
+    name: The New Indian Express
+    tier: 2
+  - feed_url: https://tribuneindia.com/feed
+    ideology: center
+    independence: mixed
+    name: Tribune India
+    tier: 2
+  - feed_url: https://telegraphindia.com/feed
+    ideology: center
+    independence: mixed
+    name: Telegraph India
+    tier: 2
+  - feed_url: https://thestatesman.com/feed
+    ideology: center
+    independence: mixed
+    name: The Statesman
+    tier: 2
+  - feed_url: https://sentinelassam.com/feed
+    ideology: center
+    independence: mixed
+    name: The Sentinel Assam
+    tier: 2
+  - feed_url: https://eastmojo.com/feed
+    ideology: center
+    independence: mixed
+    name: East Mojo
+    tier: 2
+  think_tank:
+  - feed_url: https://orfonline.org/feed
+    ideology: center
+    independence: independent
+    name: Observer Research Foundation
+    tier: 2
+  - feed_url: https://idsa.in/feed
+    ideology: center
+    independence: independent
+    name: Manohar Parrikar IDSA
+    tier: 2
+  - feed_url: https://vifindia.org/feed
+    ideology: center
+    independence: independent
+    name: Vivekananda International Foundation
+    tier: 2
+  - feed_url: https://carnegieendowment.org/india/feed
+    ideology: center
+    independence: independent
+    name: Carnegie India
+    tier: 2
+  - feed_url: https://cprindia.org/feed
+    ideology: center
+    independence: independent
+    name: Centre for Policy Research India
+    tier: 2
+  - feed_url: https://gatewayhouse.in/feed
+    ideology: center
+    independence: independent
+    name: Gateway House
+    tier: 2
+India/Pakistan/Bangladesh/Sri Lanka/Nepal/Afghanistan:
+  think_tank:
+  - feed_url: https://chathamhouse.org/rss/regions/south-asia
+    ideology: center
+    independence: independent
+    name: Chatham House South Asia
+    tier: 2
+  - feed_url: https://carnegieendowment.org/programs/south-asia/feed
+    ideology: center
+    independence: independent
+    name: Carnegie Endowment South Asia
+    tier: 2
+  - feed_url: https://feeds.feedburner.com/SouthAsia-LSE
+    ideology: center
+    independence: independent
+    name: LSE South Asia Centre
+    tier: 2
+  - feed_url: https://brookings.edu/feed/?topic=south-asia
+    ideology: center
+    independence: independent
+    name: Brookings South Asia
+    tier: 2
+  - feed_url: https://wilsoncenter.org/feed
+    ideology: center
+    independence: independent
+    name: Wilson Center South Asia
+    tier: 2
+  - feed_url: https://stimson.org/feed
+    ideology: center
+    independence: independent
+    name: Stimson Center
+    tier: 2
+  - feed_url: https://usip.org/feed
+    ideology: center
+    independence: independent
+    name: USIP South Asia
+    tier: 2
+India/Pakistan/Bangladesh/Sri Lanka/Nepal/Afghanistan/Myanmar:
+  think_tank:
+  - feed_url: https://crisisgroup.org/rss/asia
+    ideology: center
+    independence: independent
+    name: International Crisis Group South Asia
+    tier: 2
+  - feed_url: https://rsis.edu.sg/feed
+    ideology: center
+    independence: independent
+    name: RSIS Singapore
+    tier: 2
+  - feed_url: https://eastasiaforum.org/feed
+    ideology: center
+    independence: independent
+    name: East Asia Forum
+    tier: 2
+India/Pakistan/Bangladesh/Sri Lanka/Nepal/Bhutan/Afghanistan/Maldives/Myanmar:
+  other:
+  - feed_url: https://southasiajournal.net/feed
+    ideology: center
+    independence: mixed
+    name: South Asia Journal
+    tier: 2
+  - feed_url: https://himalmag.com/feed
+    ideology: center
+    independence: mixed
+    name: Himal Southasian
+    tier: 2
+  - feed_url: https://thediplomat.com/regions/south-asia/feed
+    ideology: center
+    independence: mixed
+    name: The Diplomat South Asia
+    tier: 2
+  - feed_url: https://globalvoices.org/feed
+    ideology: center
+    independence: mixed
+    name: Global Voices South Asia
+    tier: 2
+  - feed_url: https://asiasociety.org/feed
+    ideology: center
+    independence: mixed
+    name: Asia Society Policy Institute
+    tier: 2
+Indonesia:
+  gov:
+  - feed_url: https://kemlu.go.id/en/berita/siaran-pers/rss
+    ideology: pro-government
+    independence: state
+    name: Indonesian MFA
+    tier: 1
+  mainstream:
+  - feed_url: https://www.thejakartapost.com/rss/id/all
+    ideology: center
+    independence: mixed
+    name: Jakarta Post
+    tier: 1
+  - feed_url: https://jakartaglobe.id/feed
+    ideology: center
+    independence: mixed
+    name: Jakarta Globe
+    tier: 1
+  - feed_url: https://en.tempo.co/rss/20
+    ideology: center
+    independence: mixed
+    name: Tempo English
+    tier: 1
+Iran:
+  gov:
+  - feed_url: https://en.irna.ir/rss
+    ideology: pro-government
+    independence: state
+    name: IRNA State Agency
+    tier: 1
+  - feed_url: https://www.tehrantimes.com/rss
+    ideology: pro-government
+    independence: state
+    name: Tehran Times
+    tier: 1
+  independent:
+  - feed_url: https://www.iranintl.com/en/rss
+    ideology: unknown
+    independence: independent
+    name: Iran International
+    tier: 2
+  - feed_url: https://www.radiofarda.com/api/zqcjqmveiy
+    ideology: unknown
+    independence: independent
+    name: Radio Farda
+    tier: 2
+  - feed_url: https://iranwire.com/feed/
+    ideology: unknown
+    independence: independent
+    name: IranWire
+    tier: 2
+Iran, Islamic Republic of:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: International Rankings of Iran in Communication
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Mass media of Iran
+    tier: 2
+Iraq:
+  mainstream:
+  - feed_url: https://www.rudaw.net/rss/english
+    ideology: center
+    independence: mixed
+    name: Rudaw English
+    tier: 1
+  - feed_url: https://www.iraqoilreport.com/feed/
+    ideology: center
+    independence: mixed
+    name: Iraq Oil Report
+    tier: 1
+Ireland:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The Nationalist
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The Anglo-Celt
+    tier: 2
+Isle of Man:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Isle of Man TT Races
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: North West 200
+    tier: 2
+  think_tank:
+  - feed_url: ''
+    ideology: center
+    independence: independent
+    name: Manx Grand Prix
+    tier: 2
+Israel:
+  gov:
+  - feed_url: https://www.gov.il/en/departments/news/rss
+    ideology: pro-government
+    independence: state
+    name: Israeli Government Press
+    tier: 1
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Antiquity
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Second Temple period
+    tier: 2
+Israel/Palestine:
+  independent:
+  - feed_url: https://972mag.com/feed/
+    ideology: unknown
+    independence: independent
+    name: +972 Magazine
+    tier: 2
+  - feed_url: https://mondoweiss.net/feed/
+    ideology: unknown
+    independence: independent
+    name: Mondoweiss
+    tier: 2
+  mainstream:
+  - feed_url: https://www.haaretz.com/cmlink/1.628765
+    ideology: center
+    independence: mixed
+    name: Haaretz English
+    tier: 1
+  - feed_url: https://www.timesofisrael.com/feed/
+    ideology: center
+    independence: mixed
+    name: Times of Israel
+    tier: 1
+  - feed_url: https://www.jpost.com/Rss/RssFeedsHeadlines.aspx
+    ideology: center
+    independence: mixed
+    name: Jerusalem Post
+    tier: 1
+Italy:
+  mainstream:
+  - feed_url: https://www.ansa.it/english/news/rss.xml
+    ideology: center
+    independence: mixed
+    name: ANSA English
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: RCS MediaGroup
+    tier: 2
+Jamaica:
+  mainstream:
+  - feed_url: https://www.jamaicaobserver.com/rss
+    ideology: center
+    independence: mixed
+    name: Jamaica Observer
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The Daily Gleaner
+    tier: 1
+Jamaica/Trinidad and Tobago/Dominican Republic/Haiti/Cuba:
+  mainstream:
+  - feed_url: https://caribjournal.com/feed/
+    ideology: center
+    independence: mixed
+    name: Caribbean Journal
+    tier: 1
+Japan:
+  gov:
+  - feed_url: https://www.mofa.go.jp/rss/news.xml
+    ideology: pro-government
+    independence: state
+    name: Japanese MOFA
+    tier: 1
+  mainstream:
+  - feed_url: https://www.japantimes.co.jp/feed/
+    ideology: center
+    independence: mixed
+    name: Japan Times
+    tier: 1
+  - feed_url: https://www3.nhk.or.jp/nhkworld/en/news/feeds/
+    ideology: center
+    independence: mixed
+    name: NHK World
+    tier: 1
+  - feed_url: https://www.asahi.com/ajw/rss/ajw_rss.rdf
+    ideology: center
+    independence: mixed
+    name: Asahi Shimbun English
+    tier: 1
+  - feed_url: https://mainichi.jp/rss/etc/english.rss
+    ideology: center
+    independence: mixed
+    name: The Mainichi English
+    tier: 1
+Jersey:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Jersey Evening Post
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: English language
+    tier: 2
+Jordan:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Al Ra'ai
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Ad-Dustour
+    tier: 2
+Kazakhstan:
+  gov:
+  - feed_url: https://www.gov.kz/en/news
+    ideology: pro-government
+    independence: state
+    name: Kazakhstan MFA
+    tier: 1
+  mainstream:
+  - feed_url: https://www.inform.kz/en/rss
+    ideology: center
+    independence: mixed
+    name: Kazinform English
+    tier: 1
+  - feed_url: https://en.tengrinews.kz/rss
+    ideology: center
+    independence: mixed
+    name: Tengrinews English
+    tier: 1
+  - feed_url: https://astanatimes.com/feed/
+    ideology: center
+    independence: mixed
+    name: Astana Times
+    tier: 1
+Kazakhstan/Uzbekistan/Kyrgyzstan/Tajikistan/Turkmenistan:
+  independent:
+  - feed_url: https://cabar.asia/en/feed/
+    ideology: unknown
+    independence: independent
+    name: CABAR.asia
+    tier: 2
+  - feed_url: https://fergana.agency/en/feed/
+    ideology: unknown
+    independence: independent
+    name: Fergana News
+    tier: 2
+  - feed_url: https://oxussociety.org/feed
+    ideology: unknown
+    independence: independent
+    name: The Oxus Society
+    tier: 2
+  mainstream:
+  - feed_url: https://www.rferl.org/api/zncjqmveiy
+    ideology: center
+    independence: mixed
+    name: RFE/RL Central Asia
+    tier: 1
+  - feed_url: https://thediplomat.com/regions/central-asia/feed
+    ideology: center
+    independence: mixed
+    name: The Diplomat Central Asia
+    tier: 1
+  - feed_url: https://timesca.com/feed/
+    ideology: center
+    independence: mixed
+    name: Times of Central Asia
+    tier: 1
+  - feed_url: https://www.newscentralasia.net/feed/
+    ideology: center
+    independence: mixed
+    name: News Central Asia
+    tier: 1
+  - feed_url: https://www.silkroadbriefing.com/news/feed
+    ideology: center
+    independence: mixed
+    name: Silk Road Briefing
+    tier: 1
+Kazakhstan/Uzbekistan/Kyrgyzstan/Tajikistan/Turkmenistan/Azerbaijan/Armenia/Georgia:
+  mainstream:
+  - feed_url: https://eurasianet.org/feed
+    ideology: center
+    independence: mixed
+    name: Eurasianet
+    tier: 1
+  - feed_url: https://cacianalyst.org/feed/
+    ideology: center
+    independence: mixed
+    name: Central Asia-Caucasus Analyst
+    tier: 1
+  think_tank:
+  - feed_url: https://www.ponarseurasia.org/feed/
+    ideology: center
+    independence: independent
+    name: PONARS Eurasia
+    tier: 2
+  - feed_url: https://carnegieeurope.eu/feed/
+    ideology: center
+    independence: independent
+    name: Carnegie Europe
+    tier: 2
+  - feed_url: https://www.gmfus.org/feed
+    ideology: center
+    independence: independent
+    name: German Marshall Fund
+    tier: 2
+  - feed_url: https://www.iiss.org/rss/eurasia
+    ideology: center
+    independence: independent
+    name: IISS Eurasia
+    tier: 2
+  - feed_url: https://www.crisisgroup.org/rss/asia
+    ideology: center
+    independence: independent
+    name: International Crisis Group Central Asia
+    tier: 2
+Kenya:
+  business:
+  - feed_url: https://www.businessdailyafrica.com/rss
+    ideology: center
+    independence: mixed
+    name: Business Daily Africa
+    tier: 2
+  gov:
+  - feed_url: https://www.president.go.ke/rss
+    ideology: pro-government
+    independence: state
+    name: Kenyan Government
+    tier: 1
+  mainstream:
+  - feed_url: https://nation.africa/kenya/news/rss.xml
+    ideology: center
+    independence: mixed
+    name: Daily Nation
+    tier: 1
+  - feed_url: https://www.standardmedia.co.ke/rss
+    ideology: center
+    independence: mixed
+    name: The Standard Kenya
+    tier: 1
+  - feed_url: https://www.the-star.co.ke/rss
+    ideology: center
+    independence: mixed
+    name: The Star Kenya
+    tier: 1
+Kenya/Tanzania/Uganda/Rwanda:
+  mainstream:
+  - feed_url: https://www.theeastafrican.co.ke/rss
+    ideology: center
+    independence: mixed
+    name: The East African
+    tier: 1
+Kenya/Tanzania/Uganda/Rwanda/Burundi:
+  mainstream:
+  - feed_url: https://www.theeastafrican.co.ke/rss
+    ideology: center
+    independence: mixed
+    name: The East African
+    tier: 1
+Kiribati:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Kiribati Independent
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Kiribati Times
+    tier: 1
+Korea, Democratic People's Republic of:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Takri
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Dongye
+    tier: 2
+Korea, Republic of:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The Chosun Ilbo
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The Dong-A Ilbo
+    tier: 2
+Kosovo:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Kosova Press
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Koha Ditore
+    tier: 2
+Kuwait:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Al-Seyassah
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Al-Qabas
+    tier: 2
+Kyrgyzstan:
+  mainstream:
+  - feed_url: https://24.kg/english/rss
+    ideology: center
+    independence: mixed
+    name: 24.kg English
+    tier: 1
+  - feed_url: https://kabar.kg/rss
+    ideology: center
+    independence: mixed
+    name: Kabar English
+    tier: 1
+Lao People's Democratic Republic:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Czechoslovakia
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Hungarian People's Republic
+    tier: 2
+Laos:
+  mainstream:
+  - feed_url: https://www.vientianetimes.org.la/feed
+    ideology: center
+    independence: mixed
+    name: Vientiane Times
+    tier: 1
+  - feed_url: https://laotiantimes.com/feed
+    ideology: center
+    independence: mixed
+    name: Laotian Times
+    tier: 1
+Latvia:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Diena
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Dienas bizness
+    tier: 2
+Lebanon:
+  mainstream:
+  - feed_url: https://lorientlejour.com/en/feed
+    ideology: center
+    independence: mixed
+    name: L'Orient Today
+    tier: 1
+  - feed_url: https://www.naharnet.com/stories/en/rss
+    ideology: center
+    independence: mixed
+    name: Naharnet
+    tier: 1
+Lesotho:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Radio stations
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: citation needed
+    tier: 2
+Liberia:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The Analyst
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Daily Observer
+    tier: 1
+Libya:
+  mainstream:
+  - feed_url: https://libyaobserver.ly/feed
+    ideology: center
+    independence: mixed
+    name: Libya Observer
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Al Kalima
+    tier: 2
+Liechtenstein:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Liechtensteiner Vaterland
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Liewo Sonntagszeitung
+    tier: 2
+Lithuania:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Lietuvos rytas
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Lietuvos žinios
+    tier: 2
+Luxembourg:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Celtic Luxembourg
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: House of Luxembourg
+    tier: 2
+Macao:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Macau people
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Macanese people
+    tier: 2
+Madagascar:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Mahajanga
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: L'Echo du Sud
+    tier: 2
+Malawi:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Media of Malawi
+    tier: 2
+  - feed_url: https://web.archive.org/web/20200711185147/http://www.njas.helsinki.fi/
+    ideology: center
+    independence: mixed
+    name: '"Recurrent Themes in Chichewa Verse in Malawian Newspapers"'
+    tier: 2
+Malaysia:
+  business:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Business Times
+    tier: 2
+  gov:
+  - feed_url: https://kln.gov.my/rss
+    ideology: pro-government
+    independence: state
+    name: Malaysian MFA
+    tier: 1
+  independent:
+  - feed_url: https://www.malaysiakini.com/rss
+    ideology: unknown
+    independence: independent
+    name: Malaysiakini
+    tier: 2
+  mainstream:
+  - feed_url: https://www.malaymail.com/feed/
+    ideology: center
+    independence: mixed
+    name: Malay Mail
+    tier: 1
+  - feed_url: https://www.freemalaysiatoday.com/feed/
+    ideology: center
+    independence: mixed
+    name: Free Malaysia Today
+    tier: 1
+  - feed_url: https://www.nst.com.my/rss
+    ideology: center
+    independence: mixed
+    name: New Straits Times
+    tier: 1
+Maldives:
+  gov:
+  - feed_url: https://presidency.gov.mv/feed
+    ideology: pro-government
+    independence: state
+    name: President's Office Maldives
+    tier: 1
+  - feed_url: https://foreign.gov.mv
+    ideology: pro-government
+    independence: state
+    name: Ministry of Foreign Affairs Maldives
+    tier: 1
+  mainstream:
+  - feed_url: https://maldivesindependent.com/feed
+    ideology: center
+    independence: mixed
+    name: Maldives Independent
+    tier: 1
+  - feed_url: https://edition.mv/feed
+    ideology: center
+    independence: mixed
+    name: The Edition Maldives
+    tier: 1
+  - feed_url: https://sun.mv/feed
+    ideology: center
+    independence: mixed
+    name: Sun Online Maldives
+    tier: 1
+  - feed_url: https://en.mihaaru.com/feed
+    ideology: center
+    independence: mixed
+    name: Mihaaru English
+    tier: 1
+  - feed_url: https://en.avas.mv/feed
+    ideology: center
+    independence: mixed
+    name: Avas English
+    tier: 1
+Mali:
+  mainstream:
+  - feed_url: https://web.archive.org/web/20080410003924/http://www.essor.gov.ml/
+    ideology: center
+    independence: mixed
+    name: L'Essor
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Les Échos
+    tier: 2
+Malta:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Andorra
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Armenia
+    tier: 2
+Marshall Islands:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Marshallese
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Protestantism
+    tier: 2
+Martinique:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Hudson, New York
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Poughkeepsie Journal
+    tier: 1
+Mauritania:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Akhbar Nouakchott
+    tier: 2
+  - feed_url: https://www.worldcat.org/oclc/887897109
+    ideology: center
+    independence: mixed
+    name: Le Calame
+    tier: 2
+Mauritius:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Media of Mauritius
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Lists of newspapers
+    tier: 2
+  think_tank:
+  - feed_url: ''
+    ideology: center
+    independence: independent
+    name: Cargados Carajos(St. Brandon)
+    tier: 2
+Mayotte:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Slate
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Atlantico
+    tier: 2
+Mexico:
+  gov:
+  - feed_url: https://www.gob.mx/sre/rss
+    ideology: pro-government
+    independence: state
+    name: Mexican Foreign Ministry
+    tier: 1
+  independent:
+  - feed_url: https://www.animalpolitico.com/feed/
+    ideology: unknown
+    independence: independent
+    name: Animal Político
+    tier: 2
+  - feed_url: https://www.proceso.com.mx/rss/
+    ideology: unknown
+    independence: independent
+    name: Proceso
+    tier: 2
+  mainstream:
+  - feed_url: https://mexiconewsdaily.com/feed/
+    ideology: center
+    independence: mixed
+    name: Mexico News Daily
+    tier: 1
+  - feed_url: https://www.eluniversal.com.mx/rss.xml
+    ideology: center
+    independence: mixed
+    name: El Universal English
+    tier: 1
+Micronesia, Federated States of:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Chuukese
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Kosraean
+    tier: 2
+Moldova, Republic of:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Belarusian
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Bulgarian
+    tier: 2
+Monaco:
+  mainstream:
+  - feed_url: https://www.timesmonaco.com/
+    ideology: center
+    independence: mixed
+    name: Times Monaco
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: LivinginMonaco.com
+    tier: 2
+Mongolia:
+  mainstream:
+  - feed_url: https://theubpost.mn/feed
+    ideology: center
+    independence: mixed
+    name: UB Post
+    tier: 1
+  - feed_url: https://montsame.mn/en/rss
+    ideology: center
+    independence: mixed
+    name: Montsame
+    tier: 1
+Montenegro:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Cafe del Montenegro (CdM)
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Portal Analitika
+    tier: 2
+Montserrat:
+  gov:
+  - feed_url: http://www.gov.ms/news/
+    ideology: pro-government
+    independence: state
+    name: Government of Montserrat News
+    tier: 1
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The Montserrat Reporter
+    tier: 2
+  - feed_url: https://www.alliouaganaexpressnews.com/home/
+    ideology: center
+    independence: mixed
+    name: Alliouagana Express
+    tier: 2
+Morocco:
+  mainstream:
+  - feed_url: https://www.moroccoworldnews.com/feed/
+    ideology: center
+    independence: mixed
+    name: Morocco World News
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Media of Morocco
+    tier: 2
+Mozambique:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Media of Mozambique
+    tier: 2
+  - feed_url: https://www.crl.edu/sites/default/files/d6/attachments/pages/CAMP%20Newspaper%20list%202012.pdf
+    ideology: center
+    independence: mixed
+    name: '"Newspapers Held in Microform: Mozambique"'
+    tier: 2
+Myanmar:
+  independent:
+  - feed_url: https://irrawaddy.com/feed
+    ideology: unknown
+    independence: independent
+    name: The Irrawaddy English
+    tier: 2
+  - feed_url: https://myanmar-now.org/en/feed
+    ideology: unknown
+    independence: independent
+    name: Myanmar Now
+    tier: 2
+  - feed_url: https://frontiermyanmar.net/feed
+    ideology: unknown
+    independence: independent
+    name: Frontier Myanmar
+    tier: 2
+  - feed_url: https://mizzima.com/feed
+    ideology: unknown
+    independence: independent
+    name: Mizzima English
+    tier: 2
+  - feed_url: https://mmtimes.com/feed
+    ideology: unknown
+    independence: independent
+    name: The Myanmar Times
+    tier: 2
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Kyemon
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Myanma Alin
+    tier: 2
+Namibia:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Insight Namibia
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Namibia Economist
+    tier: 2
+Nauru:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Bulletin
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Central Star News
+    tier: 2
+Nepal:
+  business:
+  - feed_url: https://newbusinessage.com/feed
+    ideology: center
+    independence: mixed
+    name: New Business Age Nepal
+    tier: 2
+  - feed_url: https://nepaleconomicforum.org/feed
+    ideology: center
+    independence: mixed
+    name: Nepal Economic Forum
+    tier: 2
+  gov:
+  - feed_url: https://mofa.gov.np
+    ideology: pro-government
+    independence: state
+    name: Ministry of Foreign Affairs Nepal
+    tier: 1
+  - feed_url: https://mof.gov.np
+    ideology: pro-government
+    independence: state
+    name: Ministry of Finance Nepal
+    tier: 1
+  independent:
+  - feed_url: https://nepalitimes.com/feed
+    ideology: left
+    independence: independent
+    name: Nepali Times
+    tier: 2
+  - feed_url: https://english.onlinekhabar.com/feed
+    ideology: left
+    independence: independent
+    name: OnlineKhabar English
+    tier: 2
+  - feed_url: https://setopati.com/feed
+    ideology: left
+    independence: independent
+    name: Setopati English
+    tier: 2
+  - feed_url: https://nepallivetoday.com/feed
+    ideology: left
+    independence: independent
+    name: Nepal Live Today
+    tier: 2
+  mainstream:
+  - feed_url: https://kathmandupost.com/feed
+    ideology: center
+    independence: mixed
+    name: Kathmandu Post
+    tier: 1
+  - feed_url: https://thehimalayantimes.com/feed
+    ideology: center
+    independence: mixed
+    name: The Himalayan Times
+    tier: 1
+  - feed_url: https://myrepublica.nagariknetwork.com/feed
+    ideology: center
+    independence: mixed
+    name: Republica Nepal
+    tier: 1
+  - feed_url: https://gorkhapatraonline.com/feed
+    ideology: center
+    independence: mixed
+    name: Gorkhapatra English
+    tier: 1
+  - feed_url: https://english.ratopati.com/feed
+    ideology: center
+    independence: mixed
+    name: Ratopati English
+    tier: 1
+  - feed_url: https://khabarhub.com/feed
+    ideology: center
+    independence: mixed
+    name: Khabarhub
+    tier: 1
+Netherlands:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Hoornsche Courant
+    tier: 2
+  - feed_url: https://books.google.com/books?id=zkA_AQAAMAAJ&pg=PA13
+    ideology: center
+    independence: mixed
+    name: British Museum
+    tier: 2
+New Caledonia:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Drehu
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Nengone
+    tier: 2
+New Zealand:
+  gov:
+  - feed_url: https://www.mfat.govt.nz/rss/
+    ideology: pro-government
+    independence: state
+    name: New Zealand MFAT
+    tier: 1
+  mainstream:
+  - feed_url: https://www.rnz.co.nz/rss/news.xml
+    ideology: center
+    independence: mixed
+    name: RNZ News
+    tier: 1
+  - feed_url: https://www.nzherald.co.nz/rss/feeds/nzhf-topstories.xml
+    ideology: center
+    independence: mixed
+    name: NZ Herald
+    tier: 1
+  - feed_url: https://www.stuff.co.nz/rss
+    ideology: center
+    independence: mixed
+    name: Stuff.co.nz
+    tier: 1
+  - feed_url: https://thespinoff.co.nz/feed
+    ideology: center
+    independence: mixed
+    name: The Spinoff
+    tier: 1
+Nicaragua:
+  independent:
+  - feed_url: https://confidencial.digital/feed/
+    ideology: unknown
+    independence: independent
+    name: Confidencial Nicaragua
+    tier: 2
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: El 19
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: 7 Días
+    tier: 2
+Niger:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Dounia TV
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: '[7]'
+    tier: 2
+Nigeria:
+  gov:
+  - feed_url: https://statehouse.gov.ng/feed/
+    ideology: pro-government
+    independence: state
+    name: Nigerian Presidency
+    tier: 1
+  independent:
+  - feed_url: https://premiumtimesng.com/feed/
+    ideology: unknown
+    independence: independent
+    name: Premium Times Nigeria
+    tier: 2
+  - feed_url: https://saharareporters.com/rss.xml
+    ideology: unknown
+    independence: independent
+    name: Sahara Reporters
+    tier: 2
+  mainstream:
+  - feed_url: https://punchng.com/feed/
+    ideology: center
+    independence: mixed
+    name: The Punch Nigeria
+    tier: 1
+  - feed_url: https://www.vanguardngr.com/feed/
+    ideology: center
+    independence: mixed
+    name: Vanguard Nigeria
+    tier: 1
+  - feed_url: https://www.thisdaylive.com/index.php/feed/
+    ideology: center
+    independence: mixed
+    name: ThisDay Nigeria
+    tier: 1
+  - feed_url: https://www.thecable.ng/feed
+    ideology: center
+    independence: mixed
+    name: The Cable Nigeria
+    tier: 1
+Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania:
+  business:
+  - feed_url: https://african.business/feed/
+    ideology: center
+    independence: mixed
+    name: African Business
+    tier: 2
+  - feed_url: https://www.howwemadeitinafrica.com/feed/
+    ideology: center
+    independence: mixed
+    name: How We Made It In Africa
+    tier: 2
+  think_tank:
+  - feed_url: https://www.brookings.edu/feed/?region=africa
+    ideology: center
+    independence: independent
+    name: Brookings Africa
+    tier: 2
+  - feed_url: https://afripoli.org/feed
+    ideology: center
+    independence: independent
+    name: Africa Policy Research Institute
+    tier: 2
+Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania/Uganda:
+  independent:
+  - feed_url: https://africasacountry.com/feed/
+    ideology: unknown
+    independence: independent
+    name: Africa Is A Country
+    tier: 2
+Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania/Uganda/Rwanda:
+  independent:
+  - feed_url: https://qz.com/africa/feed/
+    ideology: unknown
+    independence: independent
+    name: Quartz Africa
+    tier: 2
+Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania/Uganda/Rwanda/DRC/Sudan:
+  independent:
+  - feed_url: https://africanarguments.org/feed/
+    ideology: unknown
+    independence: independent
+    name: African Arguments
+    tier: 2
+  - feed_url: https://www.africa-confidential.com/rss
+    ideology: unknown
+    independence: independent
+    name: Africa Confidential
+    tier: 2
+  think_tank:
+  - feed_url: https://www.chathamhouse.org/rss/regions/africa
+    ideology: center
+    independence: independent
+    name: Chatham House Africa
+    tier: 2
+Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania/Uganda/Rwanda/DRC/Sudan/Somalia:
+  think_tank:
+  - feed_url: https://www.crisisgroup.org/rss/africa
+    ideology: center
+    independence: independent
+    name: International Crisis Group Africa
+    tier: 2
+Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania/Uganda/Rwanda/Egypt/Morocco:
+  gov:
+  - feed_url: https://www.au.int/en/rss
+    ideology: pro-government
+    independence: state
+    name: African Union Press Releases
+    tier: 1
+  mainstream:
+  - feed_url: https://allafrica.com/tools/headlines/rdf.html
+    ideology: center
+    independence: mixed
+    name: AllAfrica
+    tier: 1
+  - feed_url: https://www.theafricareport.com/feed/
+    ideology: center
+    independence: mixed
+    name: The Africa Report
+    tier: 1
+  - feed_url: https://www.africanews.com/feed/
+    ideology: center
+    independence: mixed
+    name: Africanews
+    tier: 1
+  - feed_url: https://feeds.bbci.co.uk/news/world/africa/rss.xml
+    ideology: center
+    independence: mixed
+    name: BBC Africa
+    tier: 1
+  - feed_url: https://feeds.reuters.com/reuters/AfricaNews
+    ideology: center
+    independence: mixed
+    name: Reuters Africa
+    tier: 1
+  - feed_url: https://www.aljazeera.com/xml/rss/africa.xml
+    ideology: center
+    independence: mixed
+    name: Al Jazeera Africa
+    tier: 1
+  think_tank:
+  - feed_url: https://www.afdb.org/en/rss
+    ideology: center
+    independence: independent
+    name: African Development Bank
+    tier: 2
+Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania/Uganda/Rwanda/Senegal/DRC:
+  mainstream:
+  - feed_url: https://www.rfi.fr/en/rss/africa-rss
+    ideology: center
+    independence: mixed
+    name: RFI Africa
+    tier: 1
+Nigeria/South Africa/Kenya/Ethiopia/Ghana/Tanzania/Uganda/Rwanda/Somalia/Sudan:
+  mainstream:
+  - feed_url: https://www.voanews.com/api/zmkqmveiy
+    ideology: center
+    independence: mixed
+    name: VOA Africa
+    tier: 1
+Niue:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Niue Star
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Tohi Tala Niue
+    tier: 2
+Norfolk Island:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Norfuk
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Norfolk Islanders
+    tier: 2
+North Korea:
+  independent:
+  - feed_url: https://www.nknews.org/feed/
+    ideology: unknown
+    independence: independent
+    name: NK News
+    tier: 2
+  - feed_url: https://www.dailynk.com/english/rss
+    ideology: unknown
+    independence: independent
+    name: Daily NK
+    tier: 2
+  - feed_url: https://www.38north.org/feed/
+    ideology: unknown
+    independence: independent
+    name: 38 North
+    tier: 2
+  - feed_url: https://kcnawatch.org/feed/
+    ideology: unknown
+    independence: independent
+    name: KCNA Watch
+    tier: 2
+  think_tank:
+  - feed_url: https://www.38north.org/feed/
+    ideology: center
+    independence: independent
+    name: 38 North Think Tank
+    tier: 2
+North Korea/South Korea:
+  independent:
+  - feed_url: https://www.rfa.org/english/rss2.0/korea.xml
+    ideology: unknown
+    independence: independent
+    name: Radio Free Asia Korea
+    tier: 2
+North Macedonia:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Repro Print DOOEL Skopje.
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Vecer Press DOO
+    tier: 2
+Northern Mariana Islands:
+  business:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Marianas Business Journal
+    tier: 2
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Marianas Variety News & Views
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Saipan Tribune
+    tier: 1
+Norway:
+  mainstream:
+  - feed_url: https://web.archive.org/web/20140904201825/http://alldailynewspapers.com/
+    ideology: center
+    independence: mixed
+    name: All Daily Newspapers
+    tier: 1
+  - feed_url: https://norway.allmedialink.com
+    ideology: center
+    independence: mixed
+    name: All Daily Newspapers, Online Newsportal, Magazine and Others
+    tier: 1
+Oman:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Al-Roya
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Alwatan
+    tier: 2
+Pakistan:
+  business:
+  - feed_url: https://brecorder.com/feeds/latest-news
+    ideology: center
+    independence: mixed
+    name: Business Recorder
+    tier: 2
+  - feed_url: https://thenews.com.pk/rss/3/6
+    ideology: center
+    independence: mixed
+    name: The News Business
+    tier: 2
+  gov:
+  - feed_url: https://mofa.gov.pk/press-releases
+    ideology: pro-government
+    independence: state
+    name: Ministry of Foreign Affairs Pakistan
+    tier: 1
+  - feed_url: https://finance.gov.pk/feed
+    ideology: pro-government
+    independence: state
+    name: Ministry of Finance Pakistan
+    tier: 1
+  - feed_url: https://ispr.gov.pk/press-release-home
+    ideology: pro-government
+    independence: state
+    name: ISPR
+    tier: 1
+  independent:
+  - feed_url: https://thefridaytimes.com/feed
+    ideology: left
+    independence: independent
+    name: The Friday Times
+    tier: 2
+  - feed_url: https://dailytimes.com.pk/feed
+    ideology: left
+    independence: independent
+    name: Daily Times Pakistan
+    tier: 2
+  - feed_url: https://dawn.com/feeds/opinion
+    ideology: left
+    independence: independent
+    name: Dawn Opinion
+    tier: 2
+  - feed_url: https://pakobserver.net/feed
+    ideology: right
+    independence: independent
+    name: Pakistan Observer
+    tier: 2
+  - feed_url: https://nawaiwaqt.com.pk/feed
+    ideology: right
+    independence: independent
+    name: Nawa-i-Waqt English
+    tier: 2
+  mainstream:
+  - feed_url: https://dawn.com/feeds/home
+    ideology: center
+    independence: mixed
+    name: Dawn
+    tier: 1
+  - feed_url: https://thenews.com.pk/rss/1/1
+    ideology: center
+    independence: mixed
+    name: The News International
+    tier: 1
+  - feed_url: https://tribune.com.pk/feed
+    ideology: center
+    independence: mixed
+    name: Express Tribune
+    tier: 1
+  - feed_url: https://geo.tv/rss
+    ideology: center
+    independence: mixed
+    name: Geo News
+    tier: 1
+  - feed_url: https://arynews.tv/feed
+    ideology: center
+    independence: mixed
+    name: ARY News
+    tier: 1
+  - feed_url: https://nation.com.pk/feed
+    ideology: center
+    independence: mixed
+    name: The Nation Pakistan
+    tier: 1
+  - feed_url: https://pakistantoday.com.pk/feed
+    ideology: center
+    independence: mixed
+    name: Pakistan Today
+    tier: 1
+Palau:
+  gov:
+  - feed_url: https://www.census.gov/history/www/programs/geography/island_areas.html
+    ideology: pro-government
+    independence: state
+    name: '"Island Areas"'
+    tier: 1
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Palauan
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Sonsorolese
+    tier: 2
+Palestine:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Al Ayyam
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Al Difa
+    tier: 2
+Palestine, State of:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Falastin
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Felestin
+    tier: 2
+Panama:
+  mainstream:
+  - feed_url: http://www.critica.com.pa
+    ideology: center
+    independence: mixed
+    name: website
+    tier: 2
+  - feed_url: http://www.diaadia.com.pa
+    ideology: center
+    independence: mixed
+    name: Día a Día
+    tier: 2
+Papua New Guinea:
+  mainstream:
+  - feed_url: https://www.postcourier.com.pg/feed
+    ideology: center
+    independence: mixed
+    name: Post-Courier PNG
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The National
+    tier: 2
+Paraguay:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: ABC Color
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Asunción
+    tier: 2
+Peru:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Ajá
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Los Andes (Peruvian newspaper)
+    tier: 2
+Philippines:
+  gov:
+  - feed_url: https://dfa.gov.ph/feed/
+    ideology: pro-government
+    independence: state
+    name: Philippines DFA
+    tier: 1
+  independent:
+  - feed_url: https://www.rappler.com/rss
+    ideology: unknown
+    independence: independent
+    name: Rappler
+    tier: 2
+  mainstream:
+  - feed_url: https://newsinfo.inquirer.net/feed
+    ideology: center
+    independence: mixed
+    name: Philippine Daily Inquirer
+    tier: 1
+  - feed_url: https://news.abs-cbn.com/rss/headlines
+    ideology: center
+    independence: mixed
+    name: ABS-CBN News
+    tier: 1
+  - feed_url: https://www.philstar.com/rss/headlines
+    ideology: center
+    independence: mixed
+    name: Philstar Global
+    tier: 1
+  - feed_url: https://www.manilatimes.net/feed
+    ideology: center
+    independence: mixed
+    name: Manila Times
+    tier: 1
+Pitcairn:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Pitkern
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Ned Young
+    tier: 2
+Poland:
+  mainstream:
+  - feed_url: https://notesfrompoland.com/feed/
+    ideology: center
+    independence: mixed
+    name: Notes From Poland
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Fakt
+    tier: 2
+Poland/Hungary/Czech Republic/Romania:
+  think_tank:
+  - feed_url: https://visegradinsight.eu/feed/
+    ideology: center
+    independence: independent
+    name: Visegrad Insight
+    tier: 2
+Portugal:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Avante!
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Esquerda Socialista
+    tier: 2
+Puerto Rico:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Puerto Rico portal
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Media of Puerto Rico
+    tier: 2
+Qatar:
+  gov:
+  - feed_url: https://www.qna.org.qa/en/rss
+    ideology: pro-government
+    independence: state
+    name: Qatar News Agency
+    tier: 1
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Al Arab
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Al Raya
+    tier: 2
+Romania:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Adevărul de Cluj
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Brașovul tău
+    tier: 2
+Romania/Hungary/Greece/Czech Republic:
+  mainstream:
+  - feed_url: https://balkaninsight.com/feed/
+    ideology: center
+    independence: mixed
+    name: Balkan Insight
+    tier: 1
+Russia:
+  independent:
+  - feed_url: https://meduza.io/rss/en/all
+    ideology: unknown
+    independence: independent
+    name: Meduza
+    tier: 2
+  mainstream:
+  - feed_url: https://www.themoscowtimes.com/rss/news
+    ideology: center
+    independence: mixed
+    name: Moscow Times
+    tier: 1
+Russian Federation:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Argumenty i Fakty
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Argumenty Nedeli
+    tier: 2
+Rwanda:
+  mainstream:
+  - feed_url: https://www.newtimes.co.rw/rss
+    ideology: center
+    independence: mixed
+    name: Rwanda New Times
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Elections in Rwanda
+    tier: 2
+Réunion:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Réunion Creole French
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: FR-974
+    tier: 2
+Saint Barthélemy:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Saint-Barthélemy French
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Antillean Creole
+    tier: 2
+Saint Helena, Ascension and Tristan da Cunha:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: .sh
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: .uk
+    tier: 2
+Saint Kitts and Nevis:
+  gov:
+  - feed_url: https://www.sknis.gov.kn
+    ideology: pro-government
+    independence: state
+    name: St. Kitts and Nevis Information Service
+    tier: 1
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The St. Kitts-Nevis Observer
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The Labour Spokesman
+    tier: 2
+Saint Lucia:
+  mainstream:
+  - feed_url: https://stluciatimes.com
+    ideology: center
+    independence: mixed
+    name: St. Lucia Times
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Rick Wayne
+    tier: 2
+Saint Martin (French part):
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Euro
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: United States dollar
+    tier: 2
+Saint Pierre and Miquelon:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Saint-Pierrais
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Miquelonnais
+    tier: 2
+Saint Vincent and the Grenadines:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The News
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The Vincentian
+    tier: 2
+Samoa:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Savali
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Le Samoa
+    tier: 2
+San Marino:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: L'Informazione di San Marino
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Lo Sportivo.sm
+    tier: 2
+Sao Tome and Principe:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Telecommunications in São Tomé and Príncipe
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Literature of São Tomé and Príncipe
+    tier: 2
+Saudi Arabia:
+  gov:
+  - feed_url: https://www.spa.gov.sa/rss.php
+    ideology: pro-government
+    independence: state
+    name: Saudi Press Agency
+    tier: 1
+  mainstream:
+  - feed_url: https://saudigazette.com.sa/feed
+    ideology: center
+    independence: mixed
+    name: Saudi Gazette
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Al-Bilad
+    tier: 2
+Saudi Arabia/UAE/Iran/Iraq/Turkey/Israel/Palestine/Jordan/Lebanon/Syria/Yemen/Qatar/Egypt:
+  mainstream:
+  - feed_url: https://www.aljazeera.com/xml/rss/all.xml
+    ideology: center
+    independence: mixed
+    name: Al Jazeera English
+    tier: 1
+  - feed_url: https://www.middleeasteye.net/rss
+    ideology: center
+    independence: mixed
+    name: Middle East Eye
+    tier: 1
+Saudi Arabia/UAE/Iran/Iraq/Turkey/Israel/Palestine/Lebanon/Syria/Egypt:
+  independent:
+  - feed_url: https://www.jadaliyya.com/feed/
+    ideology: unknown
+    independence: independent
+    name: Jadaliyya
+    tier: 2
+  mainstream:
+  - feed_url: https://feeds.feedburner.com/al-monitor/frontpage
+    ideology: center
+    independence: mixed
+    name: Al Monitor
+    tier: 1
+  think_tank:
+  - feed_url: https://www.washingtoninstitute.org/rss
+    ideology: center
+    independence: independent
+    name: Washington Institute for Near East Policy
+    tier: 2
+Saudi Arabia/UAE/Iran/Iraq/Turkey/Israel/Palestine/Lebanon/Syria/Yemen/Egypt:
+  independent:
+  - feed_url: https://www.middleeasteye.net/rss/opinion
+    ideology: unknown
+    independence: independent
+    name: MEE Opinion
+    tier: 2
+  mainstream:
+  - feed_url: https://feeds.reuters.com/reuters/middleeastNews
+    ideology: center
+    independence: mixed
+    name: Reuters Middle East
+    tier: 1
+  - feed_url: https://feeds.bbci.co.uk/news/world/middle_east/rss.xml
+    ideology: center
+    independence: mixed
+    name: BBC Middle East
+    tier: 1
+  - feed_url: https://www.newarab.com/feed
+    ideology: center
+    independence: mixed
+    name: The New Arab
+    tier: 1
+  think_tank:
+  - feed_url: https://www.mei.edu/feed/
+    ideology: center
+    independence: independent
+    name: Middle East Institute
+    tier: 2
+  - feed_url: https://www.chathamhouse.org/rss/regions/middle-east-north-africa
+    ideology: center
+    independence: independent
+    name: Chatham House MENA
+    tier: 2
+  - feed_url: https://carnegieendowment.org/middle-east/feed/
+    ideology: center
+    independence: independent
+    name: Carnegie Middle East
+    tier: 2
+  - feed_url: https://www.iiss.org/rss/middle-east-north-africa
+    ideology: center
+    independence: independent
+    name: IISS MENA
+    tier: 2
+  - feed_url: https://www.stimson.org/feed
+    ideology: center
+    independence: independent
+    name: Stimson Center MENA
+    tier: 2
+Saudi Arabia/UAE/Iran/Iraq/Turkey/Israel/Palestine/Lebanon/Syria/Yemen/Egypt/Libya/Tunisia/Morocco/Algeria:
+  think_tank:
+  - feed_url: https://www.crisisgroup.org/rss/middle-east-north-africa
+    ideology: center
+    independence: independent
+    name: International Crisis Group MENA
+    tier: 2
+Saudi Arabia/UAE/Iran/Iraq/Turkey/Israel/Palestine/Lebanon/Syria/Yemen/Egypt/Tunisia/Morocco/Algeria:
+  think_tank:
+  - feed_url: https://www.arab-reform.net/feed/
+    ideology: center
+    independence: independent
+    name: Arab Reform Initiative
+    tier: 2
+Saudi Arabia/UAE/Iran/Iraq/Turkey/Israel/Palestine/Lebanon/Syria/Yemen/Qatar/Egypt:
+  think_tank:
+  - feed_url: https://www.brookings.edu/feed/?region=middle-east
+    ideology: center
+    independence: independent
+    name: Brookings Doha
+    tier: 2
+Saudi Arabia/UAE/Qatar/Kuwait/Bahrain/Oman:
+  mainstream:
+  - feed_url: https://www.arabnews.com/rss.xml
+    ideology: center
+    independence: mixed
+    name: Arab News
+    tier: 1
+Senegal:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Moniteur du Sénégal et dépendances
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Le Réveil du Sénégal
+    tier: 2
+  think_tank:
+  - feed_url: http://www.sist.sn/gsdl/collect/butravau/index/assoc/HASHc73d.dir/THL-7A.pdf
+    ideology: center
+    independence: independent
+    name: Jacques Bouzerand
+    tier: 2
+Serbia:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Insajder tim d.o.o.
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Novosti a.d.
+    tier: 2
+Seychelles:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Seychellois Creole
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Creole
+    tier: 2
+Sierra Leone:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: For Di People
+    tier: 2
+  - feed_url: https://web.archive.org/web/20140930075151/http://www-sul.stanford.edu/depts/ssrg/africa/sierra/sierranews.html
+    ideology: center
+    independence: mixed
+    name: '"Sierra Leone: News"'
+    tier: 2
+Singapore:
+  gov:
+  - feed_url: https://www.mfa.gov.sg/Newsroom/Press-Statements-Transcripts-and-Photos/rss
+    ideology: pro-government
+    independence: state
+    name: Singapore MFA
+    tier: 1
+  independent:
+  - feed_url: https://theindependent.sg/feed/
+    ideology: unknown
+    independence: independent
+    name: The Independent Singapore
+    tier: 2
+  mainstream:
+  - feed_url: https://www.straitstimes.com/news/world/rss.xml
+    ideology: center
+    independence: mixed
+    name: The Straits Times
+    tier: 1
+  - feed_url: https://www.businesstimes.com.sg/rss/international
+    ideology: center
+    independence: mixed
+    name: The Business Times Singapore
+    tier: 1
+  - feed_url: https://www.todayonline.com/rss.xml
+    ideology: center
+    independence: mixed
+    name: Today Online
+    tier: 1
+  - feed_url: https://www.straitstimes.com/RSS/STITopStories.xml
+    ideology: center
+    independence: mixed
+    name: Straits Times
+    tier: 1
+  - feed_url: https://www.todayonline.com/feed
+    ideology: center
+    independence: mixed
+    name: Today Singapore
+    tier: 1
+  - feed_url: https://www.businesstimes.com.sg/rss/top-stories
+    ideology: center
+    independence: mixed
+    name: Business Times Singapore
+    tier: 1
+Singapore/Thailand/Indonesia/Philippines:
+  independent:
+  - feed_url: https://coconuts.co/feed/
+    ideology: unknown
+    independence: independent
+    name: Coconuts Media
+    tier: 2
+Singapore/Thailand/Vietnam/Indonesia/Philippines/Malaysia:
+  business:
+  - feed_url: https://www.dealstreetasia.com/feed
+    ideology: center
+    independence: mixed
+    name: Deal Street Asia
+    tier: 2
+  - feed_url: https://www.eco-business.com/feed/
+    ideology: center
+    independence: mixed
+    name: Eco-Business
+    tier: 2
+Singapore/Thailand/Vietnam/Indonesia/Philippines/Malaysia/Cambodia:
+  mainstream:
+  - feed_url: https://www.channelnewsasia.com/api/v1/rss-outbound-feed?_format=xml
+    ideology: center
+    independence: mixed
+    name: Channel News Asia
+    tier: 1
+Singapore/Thailand/Vietnam/Indonesia/Philippines/Malaysia/Cambodia/Laos:
+  think_tank:
+  - feed_url: https://www.iseas.edu.sg/feed/
+    ideology: center
+    independence: independent
+    name: ISEAS-Yusof Ishak Institute
+    tier: 2
+Sint Maarten (Dutch part):
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Roman Catholic
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Protestant
+    tier: 2
+Slovakia:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Pannonia
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Pannonian Limes
+    tier: 2
+Slovenia:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Primorske novice
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Časopis Porabje
+    tier: 2
+Solomon Islands:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The Island Sun
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Solomon Star
+    tier: 2
+Somalia:
+  gov:
+  - feed_url: https://web.archive.org/web/20130603134406/http://www.mipt.gov.so/
+    ideology: pro-government
+    independence: state
+    name: Somalia Ministry of Information, Posts and Telecommunication
+    tier: 1
+  independent:
+  - feed_url: https://www.garoweonline.com/en/rss
+    ideology: unknown
+    independence: independent
+    name: Somalia Garowe Online
+    tier: 2
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Somalia portal
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Communications in Somalia
+    tier: 2
+South Africa:
+  gov:
+  - feed_url: https://www.thepresidency.gov.za/rss
+    ideology: pro-government
+    independence: state
+    name: South Africa Presidency
+    tier: 1
+  independent:
+  - feed_url: https://www.dailymaverick.co.za/feed/
+    ideology: unknown
+    independence: independent
+    name: Daily Maverick
+    tier: 2
+  - feed_url: https://amabhungane.co.za/feed/
+    ideology: unknown
+    independence: independent
+    name: amaBhungane
+    tier: 2
+  mainstream:
+  - feed_url: https://feeds.news24.com/articles/news24/TopStories/rss
+    ideology: center
+    independence: mixed
+    name: News24
+    tier: 1
+  - feed_url: https://mg.co.za/feed/
+    ideology: center
+    independence: mixed
+    name: Mail and Guardian
+    tier: 1
+  - feed_url: https://businesslive.co.za/bd/rss
+    ideology: center
+    independence: mixed
+    name: Business Day
+    tier: 1
+  - feed_url: https://www.timeslive.co.za/rss
+    ideology: center
+    independence: mixed
+    name: Sunday Times SA
+    tier: 1
+  think_tank:
+  - feed_url: https://saiia.org.za/feed/
+    ideology: center
+    independence: independent
+    name: South African Institute of International Affairs
+    tier: 2
+South Africa/Nigeria/Kenya/Ethiopia/Ghana/Tanzania:
+  independent:
+  - feed_url: https://theconversation.com/africa/articles.atom
+    ideology: unknown
+    independence: independent
+    name: The Conversation Africa
+    tier: 2
+South Africa/Nigeria/Kenya/Ethiopia/Ghana/Tanzania/Uganda/Rwanda/DRC/Sudan:
+  think_tank:
+  - feed_url: https://issafrica.org/feed
+    ideology: center
+    independence: independent
+    name: Institute for Security Studies Africa
+    tier: 2
+South Georgia and the South Sandwich Islands:
+  gov:
+  - feed_url: https://laws.gov.gs/gazettes/
+    ideology: pro-government
+    independence: state
+    name: Official website
+    tier: 1
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Coat of arms
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Commissioner
+    tier: 2
+South Korea:
+  business:
+  - feed_url: https://www.kedglobal.com/feed
+    ideology: center
+    independence: mixed
+    name: Korea Economic Daily
+    tier: 2
+  gov:
+  - feed_url: https://www.mofa.go.kr/eng/rss
+    ideology: pro-government
+    independence: state
+    name: South Korean MOFA
+    tier: 1
+  mainstream:
+  - feed_url: https://www.koreaherald.com/rss/
+    ideology: center
+    independence: mixed
+    name: Korea Herald
+    tier: 1
+  - feed_url: https://koreajoongangdaily.joins.com/rss
+    ideology: center
+    independence: mixed
+    name: Korea JoongAng Daily
+    tier: 1
+  - feed_url: https://english.hani.co.kr/rss
+    ideology: center
+    independence: mixed
+    name: Hankyoreh English
+    tier: 1
+  - feed_url: https://en.yna.co.kr/RSS/headline.xml
+    ideology: center
+    independence: mixed
+    name: Yonhap News Agency
+    tier: 1
+South Korea/North Korea:
+  think_tank:
+  - feed_url: https://keia.org/feed
+    ideology: center
+    independence: independent
+    name: Korea Economic Institute
+    tier: 2
+South Sudan:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Radios in South Sudan
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Television in South Sudan
+    tier: 2
+Spain:
+  mainstream:
+  - feed_url: https://feeds.elpais.com/mrss-s/list/feed/section/inenglish
+    ideology: center
+    independence: mixed
+    name: El País English
+    tier: 1
+  - feed_url: http://www.costa-news.com
+    ideology: center
+    independence: mixed
+    name: Costa News
+    tier: 2
+Spain/Mexico/Argentina/Colombia/Chile:
+  mainstream:
+  - feed_url: https://feeds.elpais.com/mrss-s/pages/ep/site/english.elpais.com/portada
+    ideology: center
+    independence: mixed
+    name: El Pais America
+    tier: 1
+Sri Lanka:
+  business:
+  - feed_url: https://ft.lk/feed
+    ideology: center
+    independence: mixed
+    name: Daily FT Sri Lanka
+    tier: 2
+  gov:
+  - feed_url: https://dgi.gov.lk/feed
+    ideology: pro-government
+    independence: state
+    name: Department of Government Information
+    tier: 1
+  - feed_url: https://mfa.gov.lk
+    ideology: pro-government
+    independence: state
+    name: Ministry of Foreign Affairs Sri Lanka
+    tier: 1
+  - feed_url: https://treasury.gov.lk
+    ideology: pro-government
+    independence: state
+    name: Ministry of Finance Sri Lanka
+    tier: 1
+  independent:
+  - feed_url: https://groundviews.org/feed
+    ideology: unknown
+    independence: independent
+    name: Groundviews
+    tier: 2
+  - feed_url: https://lankabusinessonline.com/feed
+    ideology: unknown
+    independence: independent
+    name: Lanka Business Online
+    tier: 2
+  mainstream:
+  - feed_url: https://dailymirror.lk/feed
+    ideology: center
+    independence: mixed
+    name: Daily Mirror Sri Lanka
+    tier: 1
+  - feed_url: https://island.lk/feed
+    ideology: center
+    independence: mixed
+    name: The Island
+    tier: 1
+  - feed_url: https://adaderana.lk/feed
+    ideology: center
+    independence: mixed
+    name: Ada Derana English
+    tier: 1
+  - feed_url: https://colombogazette.com/feed
+    ideology: center
+    independence: mixed
+    name: Colombo Gazette
+    tier: 1
+  - feed_url: https://colombopage.com/feed
+    ideology: center
+    independence: mixed
+    name: Colombo Page
+    tier: 1
+  - feed_url: https://ceylontoday.lk/feed
+    ideology: center
+    independence: mixed
+    name: Ceylon Today
+    tier: 1
+  - feed_url: https://dailynews.lk/feed
+    ideology: center
+    independence: mixed
+    name: Daily News Sri Lanka
+    tier: 1
+Sudan:
+  independent:
+  - feed_url: https://www.sudantribune.com/spip.php?page=backend
+    ideology: unknown
+    independence: independent
+    name: Sudan Tribune
+    tier: 2
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Akhbar Al Youm
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Akhir Lahza
+    tier: 2
+Suriname:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Lam Foeng
+    tier: 2
+  - feed_url: https://parbode.com/
+    ideology: center
+    independence: mixed
+    name: Paramaribo
+    tier: 2
+Svalbard and Jan Mayen:
+  gov:
+  - feed_url: https://www.cia.gov/the-world-factbook/countries/jan-mayen/
+    ideology: pro-government
+    independence: state
+    name: '"Jan Mayen"'
+    tier: 1
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: CET
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Europe portal
+    tier: 2
+  think_tank:
+  - feed_url: https://web.archive.org/web/20130831200055/http://www.npolar.no/en/the-arctic/jan-mayen/
+    ideology: center
+    independence: independent
+    name: Jan Mayen at Norwegian Polar Institute
+    tier: 2
+Sweden:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Dagens Nyheter
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Göteborgs-Posten
+    tier: 1
+Sweden/Norway/Denmark/Germany/France/Italy/Spain/Austria/Switzerland:
+  mainstream:
+  - feed_url: https://www.thelocal.com/feed/
+    ideology: center
+    independence: mixed
+    name: The Local Europe
+    tier: 1
+Switzerland:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Austria
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Azerbaijan
+    tier: 2
+Syrian Arab Republic:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: French Syria
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: King Faisal
+    tier: 2
+Taiwan:
+  gov:
+  - feed_url: https://www.mofa.gov.tw/rss/en
+    ideology: pro-government
+    independence: state
+    name: Taiwanese MOFA
+    tier: 1
+  mainstream:
+  - feed_url: https://www.taipeitimes.com/rss
+    ideology: center
+    independence: mixed
+    name: Taipei Times
+    tier: 1
+  - feed_url: https://www.taiwannews.com.tw/en/rss
+    ideology: center
+    independence: mixed
+    name: Taiwan News
+    tier: 1
+  - feed_url: https://focustaiwan.tw/rss
+    ideology: center
+    independence: mixed
+    name: Focus Taiwan
+    tier: 1
+Taiwan, Province of China:
+  business:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: China Economic Daily
+    tier: 2
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: China Education Daily
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: China News Digest
+    tier: 2
+Tajikistan:
+  mainstream:
+  - feed_url: https://asiaplus.tj/en/rss
+    ideology: center
+    independence: mixed
+    name: Asia-Plus
+    tier: 1
+  - feed_url: https://www.ozodi.org/api/zpcjqmveiy
+    ideology: center
+    independence: mixed
+    name: Radio Ozodi
+    tier: 1
+Tanzania, United Republic of:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Swahili
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Shambala
+    tier: 2
+Thailand:
+  gov:
+  - feed_url: https://www.mfa.go.th/en/rss
+    ideology: pro-government
+    independence: state
+    name: Thai MFA
+    tier: 1
+  independent:
+  - feed_url: https://prachatai.com/english/feed
+    ideology: unknown
+    independence: independent
+    name: Prachatai English
+    tier: 2
+  mainstream:
+  - feed_url: https://www.bangkokpost.com/rss/data/topstories.xml
+    ideology: center
+    independence: mixed
+    name: Bangkok Post
+    tier: 1
+  - feed_url: https://www.nationthailand.com/rss
+    ideology: center
+    independence: mixed
+    name: The Nation Thailand
+    tier: 1
+Thailand/Vietnam/Indonesia/Philippines/Malaysia/Cambodia:
+  mainstream:
+  - feed_url: https://www.benarnews.org/rss/english
+    ideology: center
+    independence: mixed
+    name: Benar News
+    tier: 1
+Thailand/Vietnam/Indonesia/Philippines/Malaysia/Singapore:
+  think_tank:
+  - feed_url: https://pacforum.org/feed
+    ideology: center
+    independence: independent
+    name: Pacific Forum CSIS
+    tier: 2
+Thailand/Vietnam/Indonesia/Philippines/Malaysia/Singapore/Cambodia:
+  business:
+  - feed_url: https://www.aseanbriefing.com/news/feed/
+    ideology: center
+    independence: mixed
+    name: ASEAN Briefing
+    tier: 2
+  independent:
+  - feed_url: https://www.lowyinstitute.org/the-interpreter/rss
+    ideology: left
+    independence: independent
+    name: The Interpreter Lowy
+    tier: 2
+  mainstream:
+  - feed_url: https://www.scmp.com/rss/91/feed
+    ideology: center
+    independence: mixed
+    name: South China Morning Post Asia
+    tier: 1
+  - feed_url: https://asiasentinel.com/feed
+    ideology: center
+    independence: mixed
+    name: Asia Sentinel
+    tier: 1
+  think_tank:
+  - feed_url: https://eastasiaforum.org/feed
+    ideology: center
+    independence: independent
+    name: East Asia Forum
+    tier: 2
+  - feed_url: https://www.lowyinstitute.org/feed
+    ideology: center
+    independence: independent
+    name: Lowy Institute
+    tier: 2
+  - feed_url: https://www.aspi.org.au/rss
+    ideology: center
+    independence: independent
+    name: Australian Strategic Policy Institute
+    tier: 2
+  - feed_url: https://www.csis.org/programs/southeast-asia-program/feed
+    ideology: center
+    independence: independent
+    name: CSIS Southeast Asia
+    tier: 2
+  - feed_url: https://www.stimson.org/feed
+    ideology: center
+    independence: independent
+    name: Stimson Southeast Asia
+    tier: 2
+Thailand/Vietnam/Indonesia/Philippines/Malaysia/Singapore/Cambodia/Laos:
+  independent:
+  - feed_url: https://www.newmandala.org/feed/
+    ideology: left
+    independence: independent
+    name: New Mandala
+    tier: 2
+  mainstream:
+  - feed_url: https://asia.nikkei.com/rss/feed/nar
+    ideology: center
+    independence: mixed
+    name: Nikkei Asia
+    tier: 1
+  - feed_url: https://thediplomat.com/regions/southeast-asia/feed
+    ideology: center
+    independence: mixed
+    name: The Diplomat Southeast Asia
+    tier: 1
+  - feed_url: https://southeastasiaglobe.com/feed
+    ideology: center
+    independence: mixed
+    name: Southeast Asia Globe
+    tier: 1
+Thailand/Vietnam/Indonesia/Philippines/Malaysia/Singapore/Cambodia/Laos/Brunei:
+  gov:
+  - feed_url: https://asean.org/news/rss
+    ideology: pro-government
+    independence: state
+    name: ASEAN Official Statements
+    tier: 1
+Timor-Leste:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Jornal da República
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Freedom of the press in Timor-Leste
+    tier: 2
+Togo:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: LCF (television)
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Télévision Togolaise
+    tier: 2
+Tokelau:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Te Vakai
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Te Ulugā Talafau
+    tier: 2
+Tonga:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Australia
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Federated States of Micronesia
+    tier: 2
+Trinidad and Tobago:
+  mainstream:
+  - feed_url: https://www.trinidadexpress.com/feed/
+    ideology: center
+    independence: mixed
+    name: Trinidad Express
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Trinidad and Tobago's Newsday
+    tier: 2
+Tunisia:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Akhbar Al Joumhouria
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Alchourouk
+    tier: 2
+Turkey:
+  gov:
+  - feed_url: https://www.mfa.gov.tr/rss.en.mfa
+    ideology: pro-government
+    independence: state
+    name: Turkish Foreign Ministry
+    tier: 1
+  independent:
+  - feed_url: https://bianet.org/english/rss
+    ideology: unknown
+    independence: independent
+    name: Bianet English
+    tier: 2
+  - feed_url: https://www.cumhuriyet.com.tr/rss/en
+    ideology: unknown
+    independence: independent
+    name: Cumhuriyet English
+    tier: 2
+  mainstream:
+  - feed_url: https://www.hurriyetdailynews.com/rss
+    ideology: center
+    independence: mixed
+    name: Hurriyet Daily News
+    tier: 1
+  - feed_url: https://www.dailysabah.com/rss
+    ideology: center
+    independence: mixed
+    name: Daily Sabah
+    tier: 1
+Turkmenistan:
+  gov:
+  - feed_url: http://metbugat.gov.tm/subnewspapers
+    ideology: pro-government
+    independence: state
+    name: Newspapers at PDF
+    tier: 1
+  independent:
+  - feed_url: https://en.turkmen.news/rss
+    ideology: unknown
+    independence: independent
+    name: Turkmen News
+    tier: 2
+  - feed_url: https://en.hronikatm.com/feed/
+    ideology: unknown
+    independence: independent
+    name: Chronicles of Turkmenistan
+    tier: 2
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Zaman
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Balkan
+    tier: 2
+Turks and Caicos Islands:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Turks and Caicos Free Press
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Turks and Caicos Sun
+    tier: 2
+Tuvalu:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Tuvalu Media Corporation
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Enele Sopoaga
+    tier: 2
+Türkiye:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Media of Turkey
+    tier: 2
+  - feed_url: https://www.freedomforum.org/todaysfrontpages/#TUR_TUR
+    ideology: center
+    independence: mixed
+    name: Today'sTürkiyefront page
+    tier: 1
+UAE:
+  gov:
+  - feed_url: https://www.uaecabinet.ae/en/rss
+    ideology: pro-government
+    independence: state
+    name: UAE Government News
+    tier: 1
+UAE/Saudi Arabia/Qatar/Kuwait/Bahrain/Oman:
+  business:
+  - feed_url: https://gulfbusiness.com/feed/
+    ideology: center
+    independence: mixed
+    name: Gulf Business
+    tier: 2
+  - feed_url: https://www.zawya.com/rss
+    ideology: center
+    independence: mixed
+    name: Zawya
+    tier: 2
+  - feed_url: https://www.meed.com/rss
+    ideology: center
+    independence: mixed
+    name: MEED
+    tier: 2
+  mainstream:
+  - feed_url: https://www.thenationalnews.com/rss
+    ideology: center
+    independence: mixed
+    name: The National UAE
+    tier: 1
+  - feed_url: https://gulfnews.com/rss
+    ideology: center
+    independence: mixed
+    name: Gulf News
+    tier: 1
+  - feed_url: https://www.khaleejtimes.com/rss
+    ideology: center
+    independence: mixed
+    name: Khaleej Times
+    tier: 1
+UK:
+  gov:
+  - feed_url: https://www.gov.uk/search/news-and-communications.atom
+    ideology: pro-government
+    independence: state
+    name: UK Government Press Releases
+    tier: 1
+  - feed_url: https://www.gov.uk/search/news-and-communications.atom?organisations%5B%5D=foreign-commonwealth-development-office
+    ideology: pro-government
+    independence: state
+    name: UK Foreign Office
+    tier: 1
+  independent:
+  - feed_url: https://www.opendemocracy.net/en/rss.xml
+    ideology: left
+    independence: independent
+    name: openDemocracy
+    tier: 2
+  - feed_url: https://www.spectator.co.uk/feed/
+    ideology: right
+    independence: independent
+    name: The Spectator
+    tier: 2
+  - feed_url: https://www.climatechangenews.com/feed/
+    ideology: unknown
+    independence: independent
+    name: Climate Home News
+    tier: 2
+  mainstream:
+  - feed_url: https://www.theguardian.com/world/rss
+    ideology: center
+    independence: mixed
+    name: The Guardian
+    tier: 1
+  - feed_url: https://www.ft.com/rss/home/uk
+    ideology: center
+    independence: mixed
+    name: Financial Times UK
+    tier: 1
+  - feed_url: https://www.thetimes.co.uk/rss/
+    ideology: center
+    independence: mixed
+    name: The Times UK
+    tier: 1
+  - feed_url: https://www.independent.co.uk/rss
+    ideology: center
+    independence: mixed
+    name: The Independent
+    tier: 1
+  think_tank:
+  - feed_url: https://www.carbonbrief.org/feed/
+    ideology: center
+    independence: independent
+    name: Carbon Brief
+    tier: 2
+UK/Germany/France/Italy/Spain/Netherlands:
+  business:
+  - feed_url: https://www.ft.com/rss/home
+    ideology: center
+    independence: mixed
+    name: Financial Times
+    tier: 2
+  - feed_url: https://feeds.bloomberg.com/europe/news.rss
+    ideology: center
+    independence: mixed
+    name: Bloomberg Europe
+    tier: 2
+UK/Germany/France/Italy/Spain/Netherlands/Belgium/Poland:
+  mainstream:
+  - feed_url: https://www.politico.eu/feed/
+    ideology: center
+    independence: mixed
+    name: Politico Europe
+    tier: 1
+UK/Germany/France/Italy/Spain/Netherlands/Poland:
+  think_tank:
+  - feed_url: https://ecfr.eu/feed/
+    ideology: center
+    independence: independent
+    name: European Council on Foreign Relations
+    tier: 2
+UK/Germany/France/Italy/Spain/Netherlands/Poland/Ukraine:
+  mainstream:
+  - feed_url: https://www.euronews.com/rss
+    ideology: center
+    independence: mixed
+    name: Euronews
+    tier: 1
+UK/Germany/France/Italy/Spain/Netherlands/Poland/Ukraine/Russia:
+  mainstream:
+  - feed_url: https://feeds.bbci.co.uk/news/world/rss.xml
+    ideology: center
+    independence: mixed
+    name: BBC World
+    tier: 1
+  - feed_url: https://feeds.reuters.com/reuters/europeNews
+    ideology: center
+    independence: mixed
+    name: Reuters Europe
+    tier: 1
+  think_tank:
+  - feed_url: https://carnegieeurope.eu/feed/
+    ideology: center
+    independence: independent
+    name: Carnegie Europe
+    tier: 2
+  - feed_url: https://www.chathamhouse.org/rss
+    ideology: center
+    independence: independent
+    name: Chatham House
+    tier: 2
+  - feed_url: https://www.iiss.org/rss
+    ideology: center
+    independence: independent
+    name: IISS
+    tier: 2
+UK/Germany/France/Ukraine/Russia/Poland:
+  think_tank:
+  - feed_url: https://warontherocks.com/feed/
+    ideology: center
+    independence: independent
+    name: War on the Rocks
+    tier: 2
+UK/US:
+  independent:
+  - feed_url: https://www.desmog.com/feed/
+    ideology: unknown
+    independence: independent
+    name: DeSmog
+    tier: 2
+US:
+  independent:
+  - feed_url: https://grist.org/feed/
+    ideology: unknown
+    independence: independent
+    name: Grist
+    tier: 2
+  - feed_url: https://insideclimatenews.org/feed/
+    ideology: unknown
+    independence: independent
+    name: Inside Climate News
+    tier: 2
+Uganda:
+  mainstream:
+  - feed_url: https://www.monitor.co.ug/rss
+    ideology: center
+    independence: mixed
+    name: Uganda Monitor
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Media in Uganda
+    tier: 2
+Ukraine:
+  mainstream:
+  - feed_url: https://kyivindependent.com/feed/
+    ideology: center
+    independence: mixed
+    name: Kyiv Independent
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Ukraine portal
+    tier: 2
+Ukraine/Russia/Poland/Hungary/Romania/Czech Republic:
+  mainstream:
+  - feed_url: https://www.rferl.org/api/zqcjqmveiy
+    ideology: center
+    independence: mixed
+    name: RFE/RL
+    tier: 1
+United Arab Emirates:
+  business:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Emirates Business 24/7
+    tier: 2
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Al Khaleej
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Akhbar Al Arab
+    tier: 2
+United Kingdom:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: '[12]'
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The Argus
+    tier: 2
+United States:
+  business:
+  - feed_url: https://feeds.bloomberg.com/markets/news.rss
+    ideology: center
+    independence: mixed
+    name: Bloomberg
+    tier: 2
+  - feed_url: https://www.ft.com/rss/home
+    ideology: center
+    independence: mixed
+    name: Financial Times
+    tier: 2
+  - feed_url: https://www.cnbc.com/id/100003114/device/rss/rss.html
+    ideology: center
+    independence: mixed
+    name: CNBC
+    tier: 2
+  - feed_url: https://www.forbes.com/real-time/feed2/
+    ideology: center
+    independence: mixed
+    name: Forbes
+    tier: 2
+  - feed_url: https://www.economist.com/latest/rss.xml
+    ideology: center
+    independence: mixed
+    name: The Economist
+    tier: 2
+  gov:
+  - feed_url: https://www.whitehouse.gov/feed/
+    ideology: pro-government
+    independence: state
+    name: White House Press Releases
+    tier: 1
+  - feed_url: https://www.state.gov/rss-feeds/
+    ideology: pro-government
+    independence: state
+    name: US State Department
+    tier: 1
+  - feed_url: https://www.defense.gov/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=945&max=10
+    ideology: pro-government
+    independence: state
+    name: US Department of Defense
+    tier: 1
+  - feed_url: https://ustr.gov/rss.xml
+    ideology: pro-government
+    independence: state
+    name: US Trade Representative
+    tier: 1
+  independent:
+  - feed_url: https://feeds.feedburner.com/TheAtlantic
+    ideology: left
+    independence: independent
+    name: The Atlantic
+    tier: 2
+  - feed_url: https://feeds.feedburner.com/motherjones/main
+    ideology: left
+    independence: independent
+    name: Mother Jones
+    tier: 2
+  - feed_url: https://www.thenation.com/feed/
+    ideology: left
+    independence: independent
+    name: The Nation
+    tier: 2
+  - feed_url: https://feeds.propublica.org/propublica/main
+    ideology: left
+    independence: independent
+    name: ProPublica
+    tier: 2
+  - feed_url: https://theintercept.com/feed/?rss
+    ideology: left
+    independence: independent
+    name: The Intercept
+    tier: 2
+  - feed_url: https://www.democracynow.org/democracynow.rss
+    ideology: left
+    independence: independent
+    name: Democracy Now
+    tier: 2
+  - feed_url: https://jacobin.com/feed/
+    ideology: left
+    independence: independent
+    name: Jacobin
+    tier: 2
+  - feed_url: https://feeds.feedburner.com/nationalreview/TEB7
+    ideology: right
+    independence: independent
+    name: National Review
+    tier: 2
+  - feed_url: https://thefederalist.com/feed/
+    ideology: right
+    independence: independent
+    name: The Federalist
+    tier: 2
+  - feed_url: https://www.washingtonexaminer.com/rss
+    ideology: right
+    independence: independent
+    name: Washington Examiner
+    tier: 2
+  - feed_url: https://www.dailywire.com/feeds/rss.xml
+    ideology: right
+    independence: independent
+    name: The Daily Wire
+    tier: 2
+  - feed_url: https://reason.com/feed/
+    ideology: right
+    independence: independent
+    name: Reason Magazine
+    tier: 2
+  mainstream:
+  - feed_url: https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml
+    ideology: center
+    independence: mixed
+    name: New York Times
+    tier: 1
+  - feed_url: https://feeds.washingtonpost.com/rss/world
+    ideology: center
+    independence: mixed
+    name: Washington Post
+    tier: 1
+  - feed_url: https://feeds.a.dj.com/rss/RSSWorldNews.xml
+    ideology: center
+    independence: mixed
+    name: Wall Street Journal
+    tier: 1
+  - feed_url: https://feeds.npr.org/1001/rss.xml
+    ideology: center
+    independence: mixed
+    name: NPR News
+    tier: 1
+  - feed_url: https://www.pbs.org/newshour/feeds/rss/headlines
+    ideology: center
+    independence: mixed
+    name: PBS NewsHour
+    tier: 1
+  - feed_url: https://www.cbsnews.com/latest/rss/main
+    ideology: center
+    independence: mixed
+    name: CBS News
+    tier: 1
+  - feed_url: https://feeds.nbcnews.com/nbcnews/public/news
+    ideology: center
+    independence: mixed
+    name: NBC News
+    tier: 1
+  - feed_url: https://rssfeeds.usatoday.com/usatoday-NewsTopStories
+    ideology: center
+    independence: mixed
+    name: USA Today
+    tier: 1
+  think_tank:
+  - feed_url: https://www.cfr.org/rss.xml
+    ideology: center
+    independence: independent
+    name: Council on Foreign Relations
+    tier: 2
+  - feed_url: https://www.brookings.edu/feed/
+    ideology: center
+    independence: independent
+    name: Brookings Institution
+    tier: 2
+  - feed_url: https://feeds.cato.org/CatoRecentOpeds
+    ideology: center
+    independence: independent
+    name: CATO Institute
+    tier: 2
+  - feed_url: https://www.americanprogress.org/feed/
+    ideology: center
+    independence: independent
+    name: Center for American Progress
+    tier: 2
+  - feed_url: https://www.rand.org/feeds/rand-all.xml
+    ideology: center
+    independence: independent
+    name: RAND Corporation
+    tier: 2
+  - feed_url: https://www.wilsoncenter.org/feed
+    ideology: center
+    independence: independent
+    name: Wilson Center
+    tier: 2
+  - feed_url: https://www.atlanticcouncil.org/feed/
+    ideology: center
+    independence: independent
+    name: Atlantic Council
+    tier: 2
+  - feed_url: https://www.csis.org/feed
+    ideology: center
+    independence: independent
+    name: CSIS
+    tier: 2
+  - feed_url: https://carnegieendowment.org/feed/
+    ideology: center
+    independence: independent
+    name: Carnegie Endowment
+    tier: 2
+  - feed_url: https://feeds.feedburner.com/TheFoundry
+    ideology: center
+    independence: independent
+    name: Heritage Foundation
+    tier: 2
+United States Minor Outlying Islands:
+  gov:
+  - feed_url: https://www.census.gov/programs-surveys/decennial-census/data/tables.2010.html
+    ideology: pro-government
+    independence: state
+    name: '"2010 Census Tables"'
+    tier: 1
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: United States portal
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Demographics of the United States
+    tier: 2
+Uruguay:
+  mainstream:
+  - feed_url: http://www.brecha.com.uy/
+    ideology: center
+    independence: mixed
+    name: Brecha
+    tier: 2
+  - feed_url: http://www.busqueda.com.uy/
+    ideology: center
+    independence: mixed
+    name: Búsqueda
+    tier: 2
+Uzbekistan:
+  gov:
+  - feed_url: https://mfa.uz/en/press/news/rss
+    ideology: pro-government
+    independence: state
+    name: Uzbekistan MFA
+    tier: 1
+  mainstream:
+  - feed_url: https://kun.uz/en/rss.xml
+    ideology: center
+    independence: mixed
+    name: Kun.uz English
+    tier: 1
+  - feed_url: https://www.uzdaily.uz/en/rss
+    ideology: center
+    independence: mixed
+    name: UzDaily
+    tier: 1
+Vanuatu:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: L'Hebdo du Vanuatu
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Nasara
+    tier: 2
+Venezuela:
+  independent:
+  - feed_url: https://www.caracaschronicles.com/feed/
+    ideology: unknown
+    independence: independent
+    name: Caracas Chronicles
+    tier: 2
+Venezuela, Bolivarian Republic of:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Army
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Navy
+    tier: 2
+Viet Nam:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Báo Ảnh Việt Nam
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Báo Biên phòng
+    tier: 2
+Vietnam:
+  mainstream:
+  - feed_url: https://e.vnexpress.net/rss/news.rss
+    ideology: center
+    independence: mixed
+    name: VnExpress International
+    tier: 1
+  - feed_url: https://vietnamnews.vn/rss
+    ideology: center
+    independence: mixed
+    name: Vietnam News
+    tier: 1
+  - feed_url: https://tuoitrenews.vn/rss
+    ideology: center
+    independence: mixed
+    name: Tuoi Tre News
+    tier: 1
+Virgin Islands, British:
+  gov:
+  - feed_url: ''
+    ideology: pro-government
+    independence: state
+    name: The Virgin Islands Official Gazette
+    tier: 1
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The Virgin Islands Daily News
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: BVI Beacon
+    tier: 2
+Virgin Islands, U.S.:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Black
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: White
+    tier: 2
+Wallis and Futuna:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Wallisian
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Futunan
+    tier: 2
+Western Sahara:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Morocco
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Sahrawi Republic
+    tier: 2
+Yemen:
+  independent:
+  - feed_url: https://yemenmonitor.com/feed
+    ideology: unknown
+    independence: independent
+    name: Yemen Monitor
+    tier: 2
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Media of Yemen
+    tier: 2
+  - feed_url: http://www.al-bab.com/arab/newspapers.htm
+    ideology: center
+    independence: mixed
+    name: '"Arab news media online: Yemen"'
+    tier: 2
+Zambia:
+  business:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Zambian Business Times
+    tier: 2
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Lusaka Times
+    tier: 1
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: Times of Zambia
+    tier: 1
+Zimbabwe:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: British South Africa Company Government Gazette
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: The Central African Examiner
+    tier: 2
+Åland Islands:
+  mainstream:
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: FI-01
+    tier: 2
+  - feed_url: ''
+    ideology: center
+    independence: mixed
+    name: FC Åland
+    tier: 2

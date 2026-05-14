@@ -1,3 +1,9 @@
+// Augmented registry (credibility_score + topic_strengths per outlet)
+// produced by score_sources.py. Loaded once at startup; failures are
+// non-fatal — scoreArticle just skips the boost if a source isn't
+// found in the registry.
+const { getMetaByName: getRegistryMeta, getTopicBoost: getRegistryTopicBoost } = require('./source_registry');
+
 const SOURCES = {
   'south-asia': [
     // ── INDIA — Mainstream ──
@@ -1261,6 +1267,27 @@ function scoreArticle(article, region, userProfile, activeSectors) {
   if (article.sourceTier === 'think-tank-academic') score += 8;
   else if (article.sourceTier === 'mainstream') score += 5;
   else if (article.sourceTier === 'independent-critical') score += 6;
+
+  // ── Registry-driven credibility & topic strengths (0-22) ──
+  // Pulls per-source signals from the expanded registry (~615 outlets
+  // with country-press-freedom-prior-based credibility 0..1 and topic
+  // affinity scores). Falls back silently if the source name isn't
+  // in the registry (legacy entries, ad-hoc sources from server.js).
+  const regMeta = getRegistryMeta(article.source);
+  if (regMeta) {
+    if (typeof regMeta.credibility_score === 'number') {
+      // 0..1 → 0..10 additive bonus. Highly-credible outlets float up;
+      // low-cred outlets get no bonus (rather than a penalty, since the
+      // existing tier signal already differentiates them).
+      score += Math.round(regMeta.credibility_score * 10);
+    }
+    if (activeSectors && activeSectors.length > 0) {
+      // Topic match: source's best strength across topics implied by
+      // the user's active sectors. 0..1 → 0..12.
+      const tb = getRegistryTopicBoost(regMeta, activeSectors);
+      if (tb > 0) score += Math.round(tb * 12);
+    }
+  }
 
   // ── User profile match (0-35) ──
   if (userProfile) {
