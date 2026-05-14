@@ -3507,59 +3507,128 @@ function renderFeed(articles, options) {
   // No featured article — every card identical.
   const featuredArticle = null;
 
-  // Partition articles into category groups using the user's active
-  // filters. Each article goes under the FIRST matching category in
-  // priority order: keyword → narrow sector → narrow region.
-  // Broadened (endless-scroll tail) articles always land in a final
-  // "More you might like" group regardless of match.
+  // ── Dynamic Sector × Region grouping ──
+  // Replaces the older keyword → region → fallback flat partitioning.
+  // Each article is bucketed by the tuple (primarySector, country|region)
+  // computed from its CONTENT (extracted on the server), so the
+  // section header reads like "Technology & AI · United States"
+  // instead of "Southeast Asia" (which only described the publisher).
+  // Buckets are then RANKED by user-relevance: active sectors, active
+  // locations, profile sector match, keyword matches in the section,
+  // and engagement memory from the session tracker.
   const userKeywords = Array.isArray(filterKeywords) ? filterKeywords.slice() : [];
   const userRegions = (typeof getActiveRegions === 'function' ? getActiveRegions() : []) || [];
   const userSectors = (typeof getActivePills === 'function' && sectorPills)
     ? getActivePills(sectorPills) : [];
-  const totalRegions = 11;
-  const totalSectors = SECTOR_OPTIONS.length;
-  const narrowedRegions = (userRegions.length > 0 && userRegions.length < totalRegions)
-    ? userRegions : [];
-  const narrowedSectors = (userSectors.length > 0 && userSectors.length < totalSectors)
-    ? userSectors : [];
 
-  const groupBuckets = new Map();
+  const profile = (typeof getProfile === 'function' ? getProfile() : null) || {};
+  const profileIndustries = new Set((profile.industries || []).map(s => String(s).toLowerCase()));
+  const profileLocationSet = new Set(
+    String(profile.location || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
+  );
+  const userActiveSectors = new Set(userSectors.map(s => s.toLowerCase()));
+  const userLocationChips = new Set((filterLocations || []).map(s => String(s).toLowerCase()));
+  const userActiveRegions = new Set(userRegions.map(s => s.toLowerCase()));
+
+  // Engagement memory (top sectors/regions the user has historically
+  // opened or saved). Empty until ~10 events accumulate.
+  const patterns = (typeof gsTracker !== 'undefined' && gsTracker.getPatternSummary)
+    ? (gsTracker.getPatternSummary() || {})
+    : {};
+  const engagedSectors = new Set((patterns.topSectors || []).map(s => String(s).toLowerCase()));
+  const engagedRegions = new Set((patterns.topRegions || []).map(s => String(s).toLowerCase()));
+
   const broadenedBucket = [];
-  const orderedLabels = [];
-  const ensureBucket = (label) => {
-    if (!groupBuckets.has(label)) {
-      groupBuckets.set(label, []);
-      orderedLabels.push(label);
-    }
-    return groupBuckets.get(label);
-  };
+  const buckets = new Map(); // key -> { label, sec, reg, articles, score }
 
-  // Sort articles by score so each group's first card is its strongest.
+  // Sort articles by score so each bucket's strongest card lands first.
   const sortedArticles = [...articles].sort((a, b) => (b.score || 0) - (a.score || 0));
 
   for (const a of sortedArticles) {
     if (a.broadened) { broadenedBucket.push(a); continue; }
-    const text = ((a.title || '') + ' ' + (a.description || '')).toLowerCase();
-    // 1) Keyword match — strongest user intent
-    let placed = false;
-    for (const kw of userKeywords) {
-      const lcKw = String(kw).toLowerCase().trim();
-      if (lcKw && text.includes(lcKw)) {
-        ensureBucket(kw).push(a);
-        placed = true;
-        break;
+    // Sector dimension: server-extracted primarySector (keyword-scored).
+    const sec = a.primarySector || '';
+    // Region dimension: prefer content-extracted country (most specific),
+    // fall back to subjectRegion (broader). NEVER use a.region — that
+    // describes the publisher, not the article subject.
+    const reg = a.country || a.subjectRegion || '';
+    let key, label;
+    if (sec && reg) { key = sec + ' · ' + reg; label = key; }
+    else if (sec)   { key = 'Sector:' + sec; label = sec; }
+    else if (reg)   { key = 'Region:' + reg; label = reg; }
+    else            { key = '__other__';     label = 'Other stories'; }
+    if (!buckets.has(key)) buckets.set(key, { label, sec, reg, articles: [], score: 0 });
+    buckets.get(key).articles.push(a);
+  }
+
+  // Score each bucket so we can rank them by personalized relevance.
+  for (const b of buckets.values()) {
+    let score = 0;
+    // Article-quality contribution — sum of scores, attenuated by
+    // sqrt(count) so a small-but-strong section can outrank a large
+    // weak one.
+    const total = b.articles.reduce((s, a) => s + Math.max(0, a.score || 0), 0);
+    score += total / Math.sqrt(b.articles.length);
+
+    const secLc = (b.sec || '').toLowerCase();
+    const regLc = (b.reg || '').toLowerCase();
+
+    // Direct match with the user's currently-active sector filter
+    if (secLc && userActiveSectors.has(secLc)) score += 120;
+    // Profile industry match (background, not active selection)
+    if (secLc && profileIndustries.has(secLc)) score += 60;
+    // Engagement memory — user has opened this sector before
+    if (secLc && engagedSectors.has(secLc)) score += 40;
+
+    // Region: location chips are the strongest signal (user typed it)
+    if (regLc && userLocationChips.has(regLc)) score += 140;
+    // Profile.location (typically same as chips, double-counts gently)
+    if (regLc && profileLocationSet.has(regLc)) score += 60;
+    // Active region pill match (when user narrowed regions)
+    if (regLc && userActiveRegions.has(regLc)) score += 80;
+    // Engagement memory — user has opened this region before
+    if (regLc && engagedRegions.has(regLc)) score += 40;
+
+    // Keyword hit rate — what fraction of articles in this section
+    // contain at least one of the user's keyword chips.
+    if (userKeywords.length > 0) {
+      let hits = 0;
+      for (const a of b.articles) {
+        const text = ((a.title || '') + ' ' + (a.description || '')).toLowerCase();
+        for (const kw of userKeywords) {
+          if (text.includes(String(kw).toLowerCase())) { hits++; break; }
+        }
       }
+      score += (hits / b.articles.length) * 120;
     }
-    if (placed) continue;
-    // 2) Narrow region — only when user picked specific regions (not all)
-    if (narrowedRegions.length > 0 && a.region && narrowedRegions.includes(a.region)) {
-      ensureBucket(a.region).push(a);
-      continue;
+
+    // Small-section penalty so a 1-article "section" doesn't claim the
+    // top slot just because its single article scored high.
+    if (b.articles.length < 3) score -= 25;
+
+    b.score = score;
+  }
+
+  // Sort by personalized relevance, take top 8 fully-formed sections,
+  // collapse the rest into a tail. Tiny single-article buckets always
+  // go to the tail so the feed doesn't fragment into noise.
+  const allBuckets = Array.from(buckets.values()).sort((a, b) => b.score - a.score);
+  const TOP_N = 8;
+  const renderGroups = [];
+  const tailArticles = [];
+  for (let i = 0; i < allBuckets.length; i++) {
+    const b = allBuckets[i];
+    if (renderGroups.length < TOP_N && b.articles.length >= 2) {
+      renderGroups.push({ label: b.label, articles: b.articles });
+    } else {
+      tailArticles.push(...b.articles);
     }
-    // 3) Fallback — group by the article's own region for a clean
-    //    Google-News-style visual structure.
-    const fallbackLabel = a.region || 'Other';
-    ensureBucket(fallbackLabel).push(a);
+  }
+  if (tailArticles.length > 0) {
+    renderGroups.push({ label: 'More you might like', articles: tailArticles });
+  }
+  if (broadenedBucket.length > 0) {
+    renderGroups.push({ label: 'More you might like', articles: broadenedBucket, broadened: true });
   }
 
   // Within each bucket, interleave so no single publisher dominates.
@@ -3596,13 +3665,10 @@ function renderFeed(articles, options) {
     return out;
   }
 
-  // Build the final ordered list of groups. Pre-existing buckets
-  // are already in insertion order; broadened group always last.
-  const renderGroups = orderedLabels
-    .map(label => ({ label, articles: diversifyBySource(groupBuckets.get(label)) }))
-    .filter(g => g.articles.length > 0);
-  if (broadenedBucket.length > 0) {
-    renderGroups.push({ label: 'More you might like', articles: diversifyBySource(broadenedBucket), broadened: true });
+  // Apply publisher round-robin within each section to prevent any
+  // single source from dominating the top of a section.
+  for (const g of renderGroups) {
+    g.articles = diversifyBySource(g.articles);
   }
   // If we somehow ended up with one giant group, drop the header
   // (avoid showing a single "Other" header above the entire feed).

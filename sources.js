@@ -1537,6 +1537,112 @@ function extractPrimaryCountry(article) {
   return '';
 }
 
+// Country → display region. Used to derive a content-based region
+// for an article from its extracted subject country, so the feed's
+// "region" dimension reflects what the story is ABOUT rather than
+// where its publisher is based.
+const COUNTRY_TO_REGION = {
+  // South Asia
+  'India': 'South Asia', 'Pakistan': 'South Asia', 'Bangladesh': 'South Asia',
+  'Sri Lanka': 'South Asia', 'Nepal': 'South Asia', 'Bhutan': 'South Asia',
+  'Afghanistan': 'South Asia', 'Maldives': 'South Asia', 'Myanmar': 'South Asia',
+  // North America
+  'United States': 'North America', 'Canada': 'North America', 'Mexico': 'North America',
+  // Latin America (Mexico kept in NA above; keep duplicates consistent there)
+  'Brazil': 'Latin America', 'Argentina': 'Latin America', 'Colombia': 'Latin America',
+  'Chile': 'Latin America', 'Peru': 'Latin America', 'Venezuela': 'Latin America',
+  'Ecuador': 'Latin America', 'Bolivia': 'Latin America', 'Uruguay': 'Latin America',
+  'Paraguay': 'Latin America', 'Cuba': 'Latin America', 'Dominican Republic': 'Latin America',
+  'Haiti': 'Latin America', 'Guatemala': 'Latin America', 'Honduras': 'Latin America',
+  'El Salvador': 'Latin America', 'Nicaragua': 'Latin America', 'Costa Rica': 'Latin America',
+  'Panama': 'Latin America', 'Jamaica': 'Latin America', 'Trinidad': 'Latin America',
+  // Europe
+  'United Kingdom': 'Europe', 'Germany': 'Europe', 'France': 'Europe', 'Italy': 'Europe',
+  'Spain': 'Europe', 'Netherlands': 'Europe', 'Belgium': 'Europe', 'Sweden': 'Europe',
+  'Norway': 'Europe', 'Denmark': 'Europe', 'Finland': 'Europe', 'Poland': 'Europe',
+  'Czech Republic': 'Europe', 'Hungary': 'Europe', 'Romania': 'Europe', 'Greece': 'Europe',
+  'Portugal': 'Europe', 'Switzerland': 'Europe', 'Austria': 'Europe', 'Ukraine': 'Europe',
+  'Russia': 'Europe', 'Ireland': 'Europe', 'Slovakia': 'Europe', 'Bulgaria': 'Europe',
+  'Croatia': 'Europe', 'Slovenia': 'Europe', 'Serbia': 'Europe', 'Bosnia': 'Europe',
+  'North Macedonia': 'Europe', 'Albania': 'Europe', 'Estonia': 'Europe',
+  'Latvia': 'Europe', 'Lithuania': 'Europe', 'Moldova': 'Europe', 'Belarus': 'Europe',
+  'Iceland': 'Europe', 'Luxembourg': 'Europe',
+  // Middle East
+  'Saudi Arabia': 'Middle East', 'UAE': 'Middle East', 'Iran': 'Middle East',
+  'Iraq': 'Middle East', 'Turkey': 'Middle East', 'Israel': 'Middle East',
+  'Palestine': 'Middle East', 'Jordan': 'Middle East', 'Lebanon': 'Middle East',
+  'Syria': 'Middle East', 'Yemen': 'Middle East', 'Qatar': 'Middle East',
+  'Kuwait': 'Middle East', 'Bahrain': 'Middle East', 'Oman': 'Middle East',
+  'Egypt': 'Middle East', 'Libya': 'Middle East', 'Tunisia': 'Middle East',
+  'Morocco': 'Middle East', 'Algeria': 'Middle East',
+  // Africa (sub-Saharan)
+  'Nigeria': 'Africa', 'South Africa': 'Africa', 'Kenya': 'Africa',
+  'Ethiopia': 'Africa', 'Ghana': 'Africa', 'Tanzania': 'Africa',
+  'Uganda': 'Africa', 'Rwanda': 'Africa', 'Senegal': 'Africa',
+  'Cameroon': 'Africa', 'DRC': 'Africa', 'Sudan': 'Africa',
+  'Somalia': 'Africa', 'Zimbabwe': 'Africa', 'Mozambique': 'Africa',
+  'Angola': 'Africa', 'Zambia': 'Africa', 'Botswana': 'Africa',
+  'Ivory Coast': 'Africa', 'Mali': 'Africa', 'Niger': 'Africa',
+  'Burkina Faso': 'Africa', 'Chad': 'Africa', 'Madagascar': 'Africa',
+  // East Asia
+  'China': 'East Asia', 'Japan': 'East Asia', 'South Korea': 'East Asia',
+  'North Korea': 'East Asia', 'Taiwan': 'East Asia', 'Mongolia': 'East Asia',
+  'Hong Kong': 'East Asia',
+  // Southeast Asia
+  'Thailand': 'Southeast Asia', 'Vietnam': 'Southeast Asia', 'Indonesia': 'Southeast Asia',
+  'Philippines': 'Southeast Asia', 'Malaysia': 'Southeast Asia', 'Singapore': 'Southeast Asia',
+  'Cambodia': 'Southeast Asia', 'Laos': 'Southeast Asia', 'Brunei': 'Southeast Asia',
+  'Timor-Leste': 'Southeast Asia',
+  // Central Asia & Caucasus
+  'Kazakhstan': 'Central Asia & Caucasus', 'Uzbekistan': 'Central Asia & Caucasus',
+  'Kyrgyzstan': 'Central Asia & Caucasus', 'Tajikistan': 'Central Asia & Caucasus',
+  'Turkmenistan': 'Central Asia & Caucasus', 'Azerbaijan': 'Central Asia & Caucasus',
+  'Armenia': 'Central Asia & Caucasus', 'Georgia': 'Central Asia & Caucasus',
+  // Oceania
+  'Australia': 'Oceania', 'New Zealand': 'Oceania', 'Papua New Guinea': 'Oceania',
+  'Fiji': 'Oceania', 'Solomon Islands': 'Oceania', 'Vanuatu': 'Oceania',
+  'Samoa': 'Oceania', 'Tonga': 'Oceania',
+};
+
+function regionForCountry(country) {
+  if (!country) return '';
+  return COUNTRY_TO_REGION[country] || '';
+}
+
+// Compute the article's primary sector by scoring its title +
+// description against each sector's keyword list. Returns the
+// highest-scoring sector name (e.g. "Technology & AI") or '' if no
+// sector keywords matched. Used to drive sector × region grouping
+// in the feed.
+function extractPrimarySector(article) {
+  const title = (article.title || '').toLowerCase();
+  const desc = (article.description || '').toLowerCase();
+  if (!title && !desc) return '';
+  let bestSector = '';
+  let bestScore = 0;
+  for (const sector of Object.keys(SECTOR_KEYWORDS)) {
+    const keywords = SECTOR_KEYWORDS[sector] || [];
+    let score = 0;
+    for (const kw of keywords) {
+      const lcKw = kw.toLowerCase();
+      // Multi-word phrases need a strict substring; single tokens use
+      // word-boundary regex to avoid "ai" matching "fair".
+      if (lcKw.includes(' ')) {
+        if (title.includes(lcKw)) score += 3;
+        else if (desc.includes(lcKw)) score += 1.5;
+      } else {
+        const re = new RegExp('\\b' + lcKw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b');
+        if (re.test(title)) score += 2;
+        else if (re.test(desc)) score += 1;
+      }
+    }
+    if (score > bestScore) { bestScore = score; bestSector = sector; }
+  }
+  // Require at least a minimum signal so we don't tag every random
+  // article with whatever sector happened to score 1.
+  return bestScore >= 2 ? bestSector : '';
+}
+
 // ── Source descriptions ────────────────────────────────────────
 // One-line human descriptions for the top ~40 sources that appear
 // most often in the feed. Surfaced as a tooltip on each card's
@@ -1764,7 +1870,8 @@ function getSourceDescription(source) {
 module.exports = {
   SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT,
   SECTOR_KEYWORDS, REGION_COUNTRIES, JUNK_PATTERNS, SIGNIFICANCE_WORDS,
-  classifyArticleType, extractPrimaryCountry,
+  classifyArticleType, extractPrimaryCountry, regionForCountry,
+  extractPrimarySector, COUNTRY_TO_REGION,
   SOURCE_DESCRIPTIONS, getSourceDescription,
   SOURCE_BIAS, getSourceBias, getTierCategory, getAllSourcesForBrowser,
   REGION_LABEL_MAP

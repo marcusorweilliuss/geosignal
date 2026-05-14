@@ -4,7 +4,7 @@ const fetch = require('node-fetch');
 const Groq = require('groq-sdk');
 const Parser = require('rss-parser');
 
-const { SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT, classifyArticleType, extractPrimaryCountry, getSourceDescription, SECTOR_KEYWORDS, getAllSourcesForBrowser, getSourceBias, getTierCategory } = require('./sources');
+const { SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT, classifyArticleType, extractPrimaryCountry, regionForCountry, extractPrimarySector, getSourceDescription, SECTOR_KEYWORDS, getAllSourcesForBrowser, getSourceBias, getTierCategory } = require('./sources');
 
 const { queryArticles, upsertManyArticles, updateThumbnail, getUserProfile, saveUserProfile } = require('./db');
 const { runFullIngest, googleNewsLiveSearch, liveFetchManyQueries } = require('./ingest');
@@ -1355,10 +1355,17 @@ app.get('/api/news', async (req, res) => {
     // Remove junk articles (score -1)
     unique = unique.filter(a => a.score >= 0);
 
-    // Classify article type + extract a primary country for each article
+    // Classify article type + extract content-based subject signals
+    // for each article. `country` and `subjectRegion` describe what
+    // the article is ABOUT, derived from text — they do NOT inherit
+    // from the publisher's location. `primarySector` is the highest-
+    // scoring sector by keyword match (used for dynamic Sector ×
+    // Region grouping in the feed).
     unique.forEach(a => {
       a.articleType = classifyArticleType(a);
       a.country = extractPrimaryCountry(a);
+      a.subjectRegion = regionForCountry(a.country);
+      a.primarySector = extractPrimarySector(a);
     });
 
     // Article-type as a soft preference. Articles outside the user's
@@ -1649,6 +1656,8 @@ app.get('/api/news', async (req, res) => {
         thumbnail: article.thumbnail || '',
         articleType: article.articleType || 'News',
         country: article.country || '',
+        subjectRegion: article.subjectRegion || '',
+        primarySector: article.primarySector || '',
         sourceDescription: getSourceDescription(article.source),
         matchReason: (() => { try { return buildMatchReason(article, userProfile, expandedSearchTerms, expandedProfileKeywords, activeSectors, regionList); } catch { return ''; } })(),
         broadened: !!article.broadened
@@ -1700,6 +1709,8 @@ app.get('/api/news', async (req, res) => {
             isOfficial: article.sourceTier === 'government-official',
             score: article.score, thumbnail: article.thumbnail || '',
             articleType: article.articleType || 'News', country: article.country || '',
+            subjectRegion: article.subjectRegion || '',
+            primarySector: article.primarySector || '',
             sourceDescription: getSourceDescription(article.source),
             matchReason: '', broadened: true
           };
