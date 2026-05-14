@@ -4978,6 +4978,21 @@ select:focus {
 }
 
 /* Footer — editorial colophon */
+.footer-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+.footer-links a {
+  color: var(--text-tertiary);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.footer-links a:hover { color: var(--accent); }
+.footer-dot { color: var(--text-tertiary); }
+
 footer {
   margin-top: 64px;
   padding-top: 28px;
@@ -4987,6 +5002,8 @@ footer {
   align-items: center;
   font-family: var(--sans);
   font-size: 11px;
+  flex-wrap: wrap;
+  gap: 14px;
   color: var(--text-tertiary);
   letter-spacing: 0.2px;
   font-weight: 500;
@@ -5542,6 +5559,132 @@ footer span {
   color: var(--text-secondary);
   font-style: italic;
 }
+
+/* ── Follow-up chat box inside expanded briefings ───────────── */
+.briefing-chat {
+  margin-top: 26px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border);
+}
+.briefing-chat-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.briefing-chat-title {
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.briefing-chat-hint {
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+.briefing-chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 60vh;
+  overflow-y: auto;
+  margin-bottom: 12px;
+}
+.briefing-chat-messages:empty { display: none; }
+.briefing-chat-msg {
+  font-family: var(--sans);
+  font-size: 14.5px;
+  line-height: 1.6;
+  padding: 10px 14px;
+  border-radius: 12px;
+  max-width: 92%;
+}
+.briefing-chat-msg-user {
+  align-self: flex-end;
+  background: var(--accent);
+  color: #fff;
+}
+.briefing-chat-msg-assistant {
+  align-self: flex-start;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+.briefing-chat-answer {
+  font-family: var(--sans);
+  white-space: pre-wrap;
+}
+.briefing-chat-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-tertiary);
+}
+.briefing-chat-loading .spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.briefing-chat-sources {
+  margin-top: 8px;
+  font-size: 13px;
+}
+.briefing-chat-sources summary {
+  cursor: pointer;
+  color: var(--text-tertiary);
+  font-weight: 600;
+}
+.briefing-chat-sources ul {
+  list-style: none;
+  padding: 8px 0 0;
+  margin: 0;
+}
+.briefing-chat-sources li { padding: 3px 0; }
+.briefing-chat-sources a {
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+.briefing-chat-sources a:hover { color: var(--accent); text-decoration: underline; }
+.briefing-chat-form {
+  display: flex;
+  gap: 8px;
+}
+.briefing-chat-input {
+  flex: 1;
+  padding: 11px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-family: var(--sans);
+  font-size: 14.5px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  transition: border-color 0.15s;
+}
+.briefing-chat-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.briefing-chat-send {
+  padding: 11px 18px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.briefing-chat-send:hover { background: var(--accent-hover); }
+.briefing-chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* "More you might like" divider — shown once when the feed
    transitions from the user's strict filter pool to the broader

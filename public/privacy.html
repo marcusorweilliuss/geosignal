@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy — GeoSignal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="static-pages.css">
+</head>
+<body class="static-page">
+  <nav class="static-nav">
+    <a href="/" class="static-nav-brand">GeoSignal</a>
+    <div class="static-nav-links">
+      <a href="/about.html">About</a>
+      <a href="/navigate.html">How to navigate</a>
+      <a href="/privacy.html" class="active">Privacy</a>
+      <a href="/" class="static-nav-cta">Open the feed →</a>
+    </div>
+  </nav>
+
+  <main class="static-main">
+    <header class="static-hero">
+      <h1>Privacy Policy</h1>
+      <p class="static-lede">
+        Plain English. No dark patterns. Last updated: today.
+      </p>
+    </header>
+
+    <section class="static-section">
+      <h2>The short version</h2>
+      <ul>
+        <li>We don’t sell your data.</li>
+        <li>We don’t share it with advertisers.</li>
+        <li>If you don’t sign up, your profile is stored only in your
+            browser (localStorage) — we never see it.</li>
+        <li>If you do sign up, your profile is stored on our server so
+            it syncs across devices. That’s it.</li>
+        <li>We use a few third-party services to make the app work
+            (Perplexity for AI search, Groq for ranking, Render for
+            hosting, Clerk for authentication). They each see only what
+            they need.</li>
+      </ul>
+    </section>
+
+    <section class="static-section">
+      <h2>What we collect</h2>
+      <h3>Anonymous users</h3>
+      <p>
+        Nothing personally identifying. Your profile preferences (role,
+        regions, sectors, keywords, saved articles, reading history)
+        live in your browser’s localStorage and never reach our
+        servers.
+      </p>
+      <p>
+        We do log normal HTTP request data — your filter selections,
+        IP-address-derived rough geography, browser user agent — at the
+        server layer. These are kept for up to 30 days for debugging
+        and abuse prevention, then deleted.
+      </p>
+
+      <h3>Signed-in users (when you create an account)</h3>
+      <p>
+        Authentication is handled by <a href="https://clerk.com">Clerk</a>,
+        who stores your email address and any social-login identity
+        you used. Their privacy policy applies to that data:
+        <a href="https://clerk.com/privacy">clerk.com/privacy</a>.
+      </p>
+      <p>
+        On our side, we store: your Clerk user ID, your profile
+        object (role, company, focus, sectors, regions, keywords,
+        location preferences), and a timestamp. That’s the entire
+        record. We don’t store reading history or saved articles on
+        the server yet.
+      </p>
+    </section>
+
+    <section class="static-section">
+      <h2>What we share with third parties</h2>
+      <ul>
+        <li>
+          <strong>Perplexity (AI search):</strong> When you read a
+          briefing or use the chat box, we send the article title and
+          your question to Perplexity to generate the response. They
+          do not receive your profile, email, or any identifying info.
+        </li>
+        <li>
+          <strong>Groq (AI ranking):</strong> When we re-rank articles
+          for your feed, we send the candidate article titles plus
+          your filter preferences (sectors, keywords, regions). They
+          don’t receive your email or any identifying info.
+        </li>
+        <li>
+          <strong>Clerk (authentication):</strong> Handles your sign-in
+          credentials. Whatever they need to verify you, they see.
+        </li>
+        <li>
+          <strong>Render (hosting):</strong> Sees normal server-access
+          logs (IP, request paths, timestamps) for the period they’re
+          retained.
+        </li>
+      </ul>
+      <p>
+        We do not use Google Analytics, Facebook Pixel, or any
+        third-party tracking scripts. We don’t set advertising cookies.
+      </p>
+    </section>
+
+    <section class="static-section">
+      <h2>Cookies</h2>
+      <p>
+        We use cookies only for authentication (Clerk’s session
+        cookie) if you’ve signed in. Anonymous users have no cookies
+        set by us. We use localStorage for your preferences, which
+        is functionally similar but tied to your browser, not
+        sent on every request.
+      </p>
+    </section>
+
+    <section class="static-section">
+      <h2>Your rights</h2>
+      <ul>
+        <li>
+          <strong>Anonymous users:</strong> Clear your browser’s
+          localStorage at any time to wipe all preferences.
+        </li>
+        <li>
+          <strong>Signed-in users:</strong> Open “My profile” → Clear
+          profile to wipe your server-side data. You can also delete
+          your account entirely via Clerk’s account settings.
+        </li>
+        <li>
+          For any other data request — what we have, deletion, export
+          — send an email to the address in our About page and we’ll
+          respond within 30 days.
+        </li>
+      </ul>
+    </section>
+
+    <section class="static-section">
+      <h2>Article and source data</h2>
+      <p>
+        GeoSignal aggregates publicly available news articles. We do
+        not modify article content — we pass through titles, URLs,
+        and short excerpts attributed to their source. The AI-generated
+        briefings and analyses we produce are summaries, not
+        republications of original article text. Every claim we
+        surface comes with a citation back to the original outlet.
+      </p>
+    </section>
+
+    <section class="static-section">
+      <h2>Changes to this policy</h2>
+      <p>
+        If we change anything material, we’ll bump the date at the top
+        of this page and (if you have an account) email you. We won’t
+        backdate, retroactively expand, or remove protections.
+      </p>
+    </section>
+  </main>
+
+  <footer class="static-footer">
+    <a href="/about.html">About</a> ·
+    <a href="/navigate.html">How to navigate</a> ·
+    <a href="/privacy.html">Privacy</a> ·
+    <a href="/">Open feed</a>
+  </footer>
+</body>
+</html>

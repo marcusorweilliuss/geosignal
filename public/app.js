@@ -3582,8 +3582,13 @@ function renderFeed(articles, options) {
           '</button>' +
           '<div class="more-section-body" data-section-body="impact"></div>';
 
+        // Follow-up chat box — lets the user ask questions about the
+        // article and get a web-grounded answer.
+        const chatBox = buildChatBox(article);
+
         briefingMain.appendChild(briefingContent);
         briefingMain.appendChild(moreSections);
+        briefingMain.appendChild(chatBox);
         briefingEl.appendChild(recsRail);
         briefingEl.appendChild(briefingMain);
         card.appendChild(briefingEl);
@@ -3824,6 +3829,102 @@ async function fetchRecommendationsFor(currentArticle, railEl) {
   } catch (err) {
     railEl.style.display = 'none';
   }
+}
+
+// Build the follow-up chat box that lives at the bottom of every
+// expanded briefing. Lets the user ask questions about the article
+// and get a Perplexity-grounded answer with citations.
+function buildChatBox(article) {
+  const container = document.createElement('div');
+  container.className = 'briefing-chat';
+  container.innerHTML =
+    '<div class="briefing-chat-header">' +
+      '<span class="briefing-chat-title">Ask a follow-up</span>' +
+      '<span class="briefing-chat-hint">Get a web-grounded answer about this story</span>' +
+    '</div>' +
+    '<div class="briefing-chat-messages" aria-live="polite"></div>' +
+    '<form class="briefing-chat-form">' +
+      '<input type="text" class="briefing-chat-input" placeholder="What happened next? Who is X? Why does this matter for…" autocomplete="off" />' +
+      '<button type="submit" class="briefing-chat-send">Ask</button>' +
+    '</form>';
+
+  const history = [];
+  const messagesEl = container.querySelector('.briefing-chat-messages');
+  const form = container.querySelector('.briefing-chat-form');
+  const input = container.querySelector('.briefing-chat-input');
+  const sendBtn = container.querySelector('.briefing-chat-send');
+
+  const appendMessage = (role, contentHtml) => {
+    const m = document.createElement('div');
+    m.className = 'briefing-chat-msg briefing-chat-msg-' + role;
+    m.innerHTML = contentHtml;
+    messagesEl.appendChild(m);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return m;
+  };
+
+  form.addEventListener('click', e => e.stopPropagation());
+  input.addEventListener('keydown', e => e.stopPropagation());
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const question = input.value.trim();
+    if (!question) return;
+
+    appendMessage('user', escapeHtml(question));
+    history.push({ role: 'user', content: question });
+    input.value = '';
+    input.disabled = true;
+    sendBtn.disabled = true;
+    const loading = appendMessage('assistant',
+      '<span class="briefing-chat-loading"><span class="spinner"></span>Thinking…</span>');
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          article: {
+            title: article.title,
+            source: article.source,
+            region: article.region,
+            url: article.url,
+            publishedAt: article.publishedAt,
+            description: article.description,
+            content: article.content
+          },
+          question,
+          history
+        })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.answer) {
+        loading.innerHTML = '<em>' + escapeHtml(data.error || 'Couldn’t get an answer. Try again.') + '</em>';
+        return;
+      }
+      const rendered = renderCitations(data.answer, data.citationMap || {});
+      let html = '<div class="briefing-chat-answer">' + rendered + '</div>';
+      if (Array.isArray(data.sources) && data.sources.length > 0) {
+        html += '<details class="briefing-chat-sources"><summary>Sources</summary><ul>';
+        data.sources.forEach(s => {
+          html += '<li><a href="' + escapeHtml(s.url) + '" target="_blank" rel="noopener">'
+                + escapeHtml(s.publication) + ' — ' + escapeHtml(s.title) + '</a></li>';
+        });
+        html += '</ul></details>';
+      }
+      loading.innerHTML = html;
+      history.push({ role: 'assistant', content: data.answer });
+    } catch (err) {
+      loading.innerHTML = '<em>Network error. Try again.</em>';
+    } finally {
+      input.disabled = false;
+      sendBtn.disabled = false;
+      input.focus();
+    }
+  });
+
+  return container;
 }
 
 async function fetchBriefing(article, container) {

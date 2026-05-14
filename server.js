@@ -1841,6 +1841,83 @@ Now do "${cleaned}":`;
 
 // ── TL;DR Summaries ─────────────────────────────────────────────
 
+// ── Follow-up chat about an article ─────────────────────────────
+// Lets the user ask questions about a specific article and get a
+// web-grounded answer from Perplexity. Conversation history is
+// kept client-side and replayed on each call.
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { article, question, history } = req.body || {};
+    const q = String(question || '').trim();
+    if (!q) return res.status(400).json({ error: 'Missing question' });
+    if (!article || !article.title) {
+      return res.status(400).json({ error: 'Missing article context' });
+    }
+    if (!PERPLEXITY_API_KEY) {
+      return res.status(503).json({ error: 'Chat is unavailable (Perplexity not configured)' });
+    }
+
+    const systemPrompt = "You are a research assistant helping the reader understand a news story. The reader has already read the article and is asking a follow-up question. Use real-time web search to answer. Be specific and factual: named actors, dates, numbers, places. Never hedge with 'some say' or 'it could be argued'. Cite sources with [n] markers inline. If the answer isn't knowable, say so plainly instead of making it up.";
+
+    // Trim history to last 6 turns to keep the prompt bounded.
+    const recentHistory = Array.isArray(history)
+      ? history.slice(-6).filter(m => m && m.role && m.content)
+      : [];
+
+    const articleContext =
+      `THE ARTICLE THE READER IS ASKING ABOUT:\n` +
+      `Title: ${article.title}\n` +
+      `Source: ${article.source || ''}\n` +
+      (article.region ? `Region: ${article.region}\n` : '') +
+      (article.publishedAt ? `Published: ${article.publishedAt}\n` : '') +
+      `URL: ${article.url || ''}\n\n` +
+      (article.content
+        ? `Article excerpt:\n${String(article.content).slice(0, 1500)}\n`
+        : article.description
+          ? `Article summary: ${String(article.description).slice(0, 800)}\n`
+          : '');
+
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: articleContext + '\nReader question: ' + q }
+    ];
+    // Replay prior turns AFTER the article context so the model
+    // anchors on the article first.
+    for (const m of recentHistory) {
+      const role = m.role === 'assistant' ? 'assistant' : 'user';
+      messages.push({ role, content: String(m.content).slice(0, 2000) });
+    }
+    // The current question last so it's the most recent thing.
+    messages.push({ role: 'user', content: q });
+
+    const completion = await perplexityChat(messages, { temperature: 0.2, max_tokens: 700 });
+    const answer = completion?.choices?.[0]?.message?.content || '';
+
+    const searchResults = Array.isArray(completion.search_results)
+      ? completion.search_results : [];
+    const citations = Array.isArray(completion.citations)
+      ? completion.citations
+      : searchResults.map(r => r && r.url).filter(Boolean);
+
+    // Build a [n] → url map so the client can render numeric chips.
+    const citationMap = {};
+    citations.forEach((url, i) => {
+      if (url && typeof url === 'string') citationMap[String(i + 1)] = url;
+    });
+    const sourcesList = citations.map((url, i) => {
+      const match = searchResults.find(r => r && r.url === url) || searchResults[i] || null;
+      const title = (match && match.title) ? String(match.title) : '';
+      const publication = prettyPublicationName(url) || title || ('Source ' + (i + 1));
+      return { publication, title: title || 'Source', url };
+    });
+
+    res.json({ answer, citationMap, sources: sourcesList });
+  } catch (err) {
+    console.error('Chat error:', err.message);
+    res.status(500).json({ error: 'Chat failed: ' + err.message });
+  }
+});
+
 app.post('/api/tldr', async (req, res) => {
   try {
     const { articles } = req.body;
