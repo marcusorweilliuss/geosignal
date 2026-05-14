@@ -5,6 +5,7 @@ const Groq = require('groq-sdk');
 const Parser = require('rss-parser');
 
 const { SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT, classifyArticleType, extractPrimaryCountry, regionForCountry, extractPrimarySector, getSourceDescription, SECTOR_KEYWORDS, getAllSourcesForBrowser, getSourceBias, getTierCategory } = require('./sources');
+const { getWeight: getSourceWeight, getSourcesForTopic, topicForQuery } = require('./source_registry');
 
 const { queryArticles, upsertManyArticles, updateThumbnail, getUserProfile, saveUserProfile } = require('./db');
 const { runFullIngest, googleNewsLiveSearch, liveFetchManyQueries } = require('./ingest');
@@ -1368,6 +1369,45 @@ app.get('/api/news', async (req, res) => {
       a.primarySector = extractPrimarySector(a);
     });
 
+    // ── Topic-index keyword boost ──
+    // If the user's search query maps to a known topic (e.g. "ai" ->
+    // TECHNOLOGY-AND-AI), boost any article whose source appears in
+    // that topic's curated list. The boost is proportional to the
+    // source's topic weight (10 = top-tier source for this topic).
+    // Lifts authoritative coverage to the top for topical queries.
+    if (typeof topicForQuery === 'function' && search) {
+      const matchedTopic = topicForQuery(search);
+      if (matchedTopic) {
+        const topicSources = getSourcesForTopic(matchedTopic);
+        if (topicSources && topicSources.length > 0) {
+          const weightByName = new Map();
+          for (const ts of topicSources) {
+            weightByName.set(String(ts.name || '').toLowerCase(), ts.weight || 5);
+          }
+          unique.forEach(a => {
+            const w = weightByName.get(String(a.source || '').toLowerCase());
+            if (w) {
+              // 0-30pt boost (10 -> 30, 5 -> 15)
+              a.score += w * 3;
+              a.topicMatched = matchedTopic;
+            }
+          });
+        }
+      }
+    }
+
+    // ── Source weight multiplier ──
+    // Apply the per-source weight (1-10, from expansion file or backfilled
+    // from tier) as a soft multiplier on the base score. Range 0.7-1.3 so
+    // a tier-1 outlet (weight 10) gets ~+30% boost, a weak weight-1 source
+    // gets ~-30%. Cap so multiplier doesn't dominate the other signals.
+    unique.forEach(a => {
+      const w = (typeof getSourceWeight === 'function') ? getSourceWeight(a.source) : 5;
+      const mult = 0.7 + (Math.max(1, Math.min(10, w)) - 1) * (0.6 / 9); // maps 1..10 -> 0.7..1.3
+      a.score = Math.max(0, a.score) * mult;
+      a.sourceWeight = w;
+    });
+
     // Article-type as a soft preference. Articles outside the user's
     // selected types get down-ranked but never deleted — otherwise a
     // crypto headline that happens to read like opinion gets dropped
@@ -1499,6 +1539,34 @@ app.get('/api/news', async (req, res) => {
         else overflow.push(a);
       }
       unique = [...top, ...overflow];
+    }
+
+    // ── Geographic diversity ── Cap any single COUNTRY at 20% of the
+    // top window. Without this, a country with many domestic outlets
+    // (India, US) dominates the feed even when their content isn't
+    // the most globally relevant. Excess articles get pushed to the
+    // tail so they remain available on scroll.
+    {
+      const TOP_WINDOW = 40;          // window to enforce the cap over
+      const CAP_FRACTION = 0.20;      // max 20% from one country
+      const cap = Math.max(2, Math.floor(TOP_WINDOW * CAP_FRACTION));
+      const countryCounts = {};
+      const top = [];
+      const tail = [];
+      let placedInTop = 0;
+      for (const a of unique) {
+        // Use content-extracted country (about), not publisher country.
+        const c = (a.country || a.subjectRegion || '__unknown__').toLowerCase();
+        countryCounts[c] = (countryCounts[c] || 0);
+        if (placedInTop < TOP_WINDOW && countryCounts[c] < cap) {
+          top.push(a);
+          countryCounts[c]++;
+          placedInTop++;
+        } else {
+          tail.push(a);
+        }
+      }
+      unique = [...top, ...tail];
     }
 
     // ── Headline dedup across outlets ── If multiple outlets cover the
@@ -1726,6 +1794,60 @@ app.get('/api/news', async (req, res) => {
         }
       } catch (e) {
         console.log('Auto-broaden failed:', e.message);
+      }
+    }
+
+    // ── Final zero-results fallback ──
+    // If after all narrowing + auto-broaden the article list is still
+    // empty, return the top-N globally-ranked articles unconditionally
+    // (no region / sector / location filters). Better to show something
+    // tagged as "broader than your filters" than an empty feed.
+    if (offset === 0 && articles.length === 0) {
+      try {
+        const ultraBroad = queryArticles({
+          regionSlugs: ['__all__'],
+          sinceMs: Date.now() - 7 * 24 * 60 * 60 * 1000, // 7d window
+          q: null, includeSources: null, excludeSources: null,
+          limit: 200,
+        });
+        const top = ultraBroad
+          .map(a => {
+            a.score = scoreArticle(a, regionList[0] || 'global', userProfile, []);
+            const w = getSourceWeight(a.source);
+            const mult = 0.7 + (Math.max(1, Math.min(10, w)) - 1) * (0.6 / 9);
+            a.score = Math.max(0, a.score) * mult;
+            return a;
+          })
+          .sort((x, y) => (y.score || 0) - (x.score || 0))
+          .slice(0, 25);
+        const fallbackCards = top.map(article => {
+          let desc = stripHtml(article.description || '');
+          if (desc.length > 180) {
+            const end = desc.slice(0, 220).search(/[.!?](?:\s|$)/);
+            desc = end >= 40 ? desc.slice(0, end + 1) : desc.slice(0, 180).replace(/\s\S*$/, '') + '…';
+          }
+          return {
+            title: article.title, source: article.source, sourceTier: article.sourceTier,
+            publishedAt: article.publishedAt, description: desc,
+            content: stripHtml(article.content || article.description || '').slice(0, 600),
+            url: article.url, region: article.region || 'Global',
+            isOfficial: article.sourceTier === 'government-official',
+            score: article.score, thumbnail: article.thumbnail || '',
+            articleType: article.articleType || 'News',
+            country: extractPrimaryCountry({ title: article.title, description: desc }),
+            subjectRegion: regionForCountry(extractPrimaryCountry({ title: article.title, description: desc })),
+            primarySector: extractPrimarySector({ title: article.title, description: desc }),
+            sourceDescription: getSourceDescription(article.source),
+            matchReason: '', broadened: true
+          };
+        });
+        articles.push(...fallbackCards);
+        if (fallbackCards.length > 0) {
+          coverageNote = 'No articles matched your exact filters. Showing the top headlines from the past week instead.';
+          console.log(`Zero-results fallback: returning ${fallbackCards.length} top-headline cards.`);
+        }
+      } catch (e) {
+        console.log('Zero-results fallback failed:', e.message);
       }
     }
 

@@ -1,0 +1,1169 @@
+{
+  "GEOPOLITICS": [
+    {
+      "name": "Foreign Affairs",
+      "region": "us",
+      "bias": "center",
+      "weight": 10,
+      "feed_url": "https://www.foreignaffairs.com/rss.xml"
+    },
+    {
+      "name": "The Diplomat",
+      "region": "asia-pacific",
+      "bias": "center",
+      "weight": 9,
+      "feed_url": "https://thediplomat.com/feed"
+    },
+    {
+      "name": "International Crisis Group",
+      "region": "global",
+      "bias": "center",
+      "weight": 9,
+      "feed_url": "https://www.crisisgroup.org/rss"
+    },
+    {
+      "name": "World Politics Review",
+      "region": "us",
+      "bias": "center",
+      "weight": 8,
+      "feed_url": "https://www.worldpoliticsreview.com/feed"
+    },
+    {
+      "name": "Carnegie Endowment",
+      "region": "us",
+      "bias": "center",
+      "weight": 8,
+      "feed_url": "https://carnegieendowment.org/feed"
+    },
+    {
+      "name": "War on the Rocks",
+      "region": "us",
+      "bias": "center-right",
+      "weight": 7,
+      "feed_url": "https://warontherocks.com/feed"
+    },
+    {
+      "name": "ECFR",
+      "region": "europe",
+      "bias": "center-left",
+      "weight": 7,
+      "feed_url": "https://ecfr.eu/feed"
+    },
+    {
+      "name": "Stimson Center",
+      "region": "us",
+      "bias": "center",
+      "weight": 7,
+      "feed_url": "https://www.stimson.org/feed"
+    }
+  ],
+  "ECONOMICS-AND-TRADE": [
+    {
+      "name": "Financial Times",
+      "region": "uk",
+      "bias": "center",
+      "weight": 10,
+      "feed_url": "https://www.ft.com/rss/home"
+    },
+    {
+      "name": "The Economist",
+      "region": "uk",
+      "bias": "center-right",
+      "weight": 10,
+      "feed_url": "https://www.economist.com/latest/rss.xml"
+    },
+    {
+      "name": "Wall Street Journal",
+      "region": "us",
+      "bias": "center-right",
+      "weight": 9,
+      "feed_url": "https://feeds.a.dj.com/rss/RSSWorldNews.xml"
+    },
+    {
+      "name": "Brookings Economics",
+      "region": "us",
+      "bias": "center-left",
+      "weight": 8,
+      "feed_url": "https://www.brookings.edu/feed"
+    },
+    {
+      "name": "Project Syndicate",
+      "region": "global",
+      "bias": "center-left",
+      "weight": 6,
+      "feed_url": "https://www.project-syndicate.org/rss"
+    }
+  ],
+  "TECHNOLOGY-AND-AI": [
+    {
+      "name": "MIT Technology Review",
+      "region": "us",
+      "bias": "center",
+      "weight": 10,
+      "feed_url": "https://www.technologyreview.com/feed"
+    },
+    {
+      "name": "Wired",
+      "region": "us",
+      "bias": "center-left",
+      "weight": 10,
+      "feed_url": "https://www.wired.com/feed/rss"
+    },
+    {
+      "name": "The Verge",
+      "region": "us",
+      "bias": "center",
+      "weight": 9,
+      "feed_url": "https://www.theverge.com/rss/index.xml"
+    },
+    {
+      "name": "Ars Technica",
+      "region": "us",
+      "bias": "center",
+      "weight": 9,
+      "feed_url": "https://feeds.arstechnica.com/arstechnica/index"
+    },
+    {
+      "name": "TechCrunch",
+      "region": "us",
+      "bias": "center",
+      "weight": 9,
+      "feed_url": "https://techcrunch.com/feed"
+    },
+    {
+      "name": "IEEE Spectrum",
+      "region": "us",
+      "bias": "nonpartisan",
+      "weight": 8,
+      "feed_url": "https://spectrum.ieee.org/feed"
+    },
+    {
+      "name": "Nature Tech",
+      "region": "global",
+      "bias": "nonpartisan",
+      "weight": 8,
+      "feed_url": "https://www.nature.com/subjects/technology.rss"
+    },
+    {
+      "name": "Science Technology",
+      "region": "global",
+      "bias": "nonpartisan",
+      "weight": 8,
+      "feed_url": "https://www.science.org/rss/news_current.xml"
+    },
+    {
+      "name": "404 Media",
+      "region": "us",
+      "bias": "center",
+      "weight": 7,
+      "feed_url": "https://www.404media.co/feed"
+    },
+    {
+      "name": "The Register",
+      "region": "uk",
+      "bias": "center",
+      "weight": 7,
+      "feed_url": "https://www.theregister.com/headlines.atom"
+    },
+    {
+      "name": "Hacker News",
+      "region": "us",
+      "bias": "nonpartisan",
+      "weight": 6,
+      "feed_url": "https://news.ycombinator.com/rss"
+    },
+    {
+      "name": "VentureBeat AI",
+      "region": "us",
+      "bias": "center",
+      "weight": 6,
+      "feed_url": "https://venturebeat.com/feed"
+    },
+    {
+      "name": "AI Business",
+      "region": "global",
+      "bias": "nonpartisan",
+      "weight": 5,
+      "feed_url": "https://aibusiness.com/feed"
+    }
+  ],
+  "CLIMATE-AND-ENVIRONMENT": [
+    {
+      "name": "Carbon Brief",
+      "region": "uk",
+      "bias": "center",
+      "weight": 10,
+      "feed_url": "https://www.carbonbrief.org/feed"
+    },
+    {
+      "name": "Inside Climate News",
+      "region": "us",
+      "bias": "center-left",
+      "weight": 10,
+      "feed_url": "https://insideclimatenews.org/feed"
+    },
+    {
+      "name": "Climate Home News",
+      "region": "uk",
+      "bias": "center",
+      "weight": 9,
+      "feed_url": "https://www.climatechangenews.com/feed"
+    },
+    {
+      "name": "Grist",
+      "region": "us",
+      "bias": "center-left",
+      "weight": 9,
+      "feed_url": "https://grist.org/feed"
+    },
+    {
+      "name": "E&E News",
+      "region": "us",
+      "bias": "center",
+      "weight": 8,
+      "feed_url": "https://www.eenews.net/rss"
+    },
+    {
+      "name": "The Guardian Environment",
+      "region": "uk",
+      "bias": "center-left",
+      "weight": 8,
+      "feed_url": "https://www.theguardian.com/environment/rss"
+    },
+    {
+      "name": "Bloomberg Green",
+      "region": "us",
+      "bias": "center",
+      "weight": 7,
+      "feed_url": "https://feeds.bloomberg.com/green/news.rss"
+    },
+    {
+      "name": "Mongabay",
+      "region": "us",
+      "bias": "center",
+      "weight": 6,
+      "feed_url": "https://news.mongabay.com/feed"
+    },
+    {
+      "name": "Canary Media",
+      "region": "us",
+      "bias": "center-left",
+      "weight": 6,
+      "feed_url": "https://www.canarymedia.com/feed"
+    }
+  ],
+  "DEFENCE-AND-SECURITY": [
+    {
+      "name": "War on the Rocks",
+      "region": "us",
+      "bias": "center-right",
+      "weight": 10,
+      "feed_url": "https://warontherocks.com/feed"
+    },
+    {
+      "name": "Defense One",
+      "region": "us",
+      "bias": "center",
+      "weight": 9,
+      "feed_url": "https://www.defenseone.com/rss/all"
+    },
+    {
+      "name": "Stimson Center",
+      "region": "us",
+      "bias": "center",
+      "weight": 8,
+      "feed_url": "https://www.stimson.org/feed"
+    },
+    {
+      "name": "Just Security",
+      "region": "us",
+      "bias": "center-left",
+      "weight": 7,
+      "feed_url": "https://www.justsecurity.org/feed"
+    },
+    {
+      "name": "Small Wars Journal",
+      "region": "us",
+      "bias": "center",
+      "weight": 6,
+      "feed_url": "https://smallwarsjournal.com/feed"
+    },
+    {
+      "name": "The Cipher Brief",
+      "region": "us",
+      "bias": "center-right",
+      "weight": 5,
+      "feed_url": "https://www.thecipherbrief.com/feed"
+    }
+  ],
+  "FINANCE-AND-MARKETS": [
+    {
+      "name": "Financial Times",
+      "region": "uk",
+      "bias": "center",
+      "weight": 10,
+      "feed_url": "https://www.ft.com/rss/home"
+    },
+    {
+      "name": "Wall Street Journal Markets",
+      "region": "us",
+      "bias": "center-right",
+      "weight": 9,
+      "feed_url": "https://feeds.a.dj.com/rss/RSSMarketsMain.xml"
+    },
+    {
+      "name": "Seeking Alpha",
+      "region": "us",
+      "bias": "center",
+      "weight": 7,
+      "feed_url": "https://seekingalpha.com/feed.xml"
+    },
+    {
+      "name": "MarketWatch",
+      "region": "us",
+      "bias": "center",
+      "weight": 6,
+      "feed_url": "https://feeds.marketwatch.com/marketwatch/topstories"
+    },
+    {
+      "name": "CoinDesk Crypto",
+      "region": "us",
+      "bias": "center",
+      "weight": 5,
+      "feed_url": "https://www.coindesk.com/arc/outboundfeeds/rss"
+    }
+  ],
+  "HUMAN-RIGHTS": [
+    {
+      "name": "Amnesty International",
+      "region": "global",
+      "bias": "center-left",
+      "weight": 10,
+      "feed_url": "https://www.amnesty.org/en/feed"
+    },
+    {
+      "name": "Refugees International",
+      "region": "us",
+      "bias": "center-left",
+      "weight": 8,
+      "feed_url": "https://www.refugeesinternational.org/feed"
+    },
+    {
+      "name": "Frontline Defenders",
+      "region": "ireland",
+      "bias": "center-left",
+      "weight": 7,
+      "feed_url": "https://www.frontlinedefenders.org/en/rss.xml"
+    },
+    {
+      "name": "Justice in Conflict",
+      "region": "global",
+      "bias": "center",
+      "weight": 6,
+      "feed_url": "https://justiceinconflict.org/feed"
+    },
+    {
+      "name": "International Justice Monitor",
+      "region": "global",
+      "bias": "center",
+      "weight": 6,
+      "feed_url": "https://www.ijmonitor.org/feed"
+    },
+    {
+      "name": "Witness",
+      "region": "global",
+      "bias": "center-left",
+      "weight": 5,
+      "feed_url": "https://blog.witness.org/feed"
+    }
+  ],
+  "HEALTH-AND-MEDICINE": [
+    {
+      "name": "STAT News",
+      "region": "us",
+      "bias": "center",
+      "weight": 10,
+      "feed_url": "https://www.statnews.com/feed"
+    },
+    {
+      "name": "The Lancet",
+      "region": "uk",
+      "bias": "nonpartisan",
+      "weight": 9,
+      "feed_url": "https://www.thelancet.com/rssfeed/lancet_online.xml"
+    },
+    {
+      "name": "Nature Medicine",
+      "region": "global",
+      "bias": "nonpartisan",
+      "weight": 9,
+      "feed_url": "https://www.nature.com/nm.rss"
+    },
+    {
+      "name": "New England Journal Medicine",
+      "region": "us",
+      "bias": "nonpartisan",
+      "weight": 9,
+      "feed_url": "https://www.nejm.org/action/showFeed?type=etoc&feed=rss&jc=nejm"
+    },
+    {
+      "name": "JAMA",
+      "region": "us",
+      "bias": "nonpartisan",
+      "weight": 8,
+      "feed_url": "https://jamanetwork.com/rss/site_3/67.xml"
+    },
+    {
+      "name": "KFF Health",
+      "region": "us",
+      "bias": "center",
+      "weight": 8,
+      "feed_url": "https://kffhealthnews.org/feed"
+    },
+    {
+      "name": "Health Affairs",
+      "region": "us",
+      "bias": "center",
+      "weight": 7,
+      "feed_url": "https://www.healthaffairs.org/action/showFeed?type=etoc&feed=rss&jc=hlthaff"
+    },
+    {
+      "name": "Outbreak News Today",
+      "region": "global",
+      "bias": "center",
+      "weight": 5,
+      "feed_url": "https://outbreaknewstoday.com/feed"
+    }
+  ],
+  "SCIENCE-AND-RESEARCH": [
+    {
+      "name": "Nature",
+      "region": "global",
+      "bias": "nonpartisan",
+      "weight": 10,
+      "feed_url": "https://www.nature.com/nature.rss"
+    },
+    {
+      "name": "Science Magazine",
+      "region": "global",
+      "bias": "nonpartisan",
+      "weight": 10,
+      "feed_url": "https://www.science.org/rss/news_current.xml"
+    },
+    {
+      "name": "MIT News",
+      "region": "us",
+      "bias": "nonpartisan",
+      "weight": 8,
+      "feed_url": "https://news.mit.edu/rss/research"
+    },
+    {
+      "name": "Phys.org",
+      "region": "global",
+      "bias": "nonpartisan",
+      "weight": 8,
+      "feed_url": "https://phys.org/rss-feed"
+    },
+    {
+      "name": "ScienceNews",
+      "region": "us",
+      "bias": "nonpartisan",
+      "weight": 7,
+      "feed_url": "https://www.sciencenews.org/feed"
+    },
+    {
+      "name": "Smithsonian",
+      "region": "us",
+      "bias": "nonpartisan",
+      "weight": 7,
+      "feed_url": "https://www.smithsonianmag.com/rss/latest_articles"
+    },
+    {
+      "name": "Quanta Magazine",
+      "region": "us",
+      "bias": "nonpartisan",
+      "weight": 6,
+      "feed_url": "https://www.quantamagazine.org/feed"
+    },
+    {
+      "name": "Popular Science",
+      "region": "us",
+      "bias": "nonpartisan",
+      "weight": 5,
+      "feed_url": "https://www.popsci.com/feed"
+    }
+  ],
+  "ARCHAEOLOGY-AND-HISTORY": [
+    {
+      "name": "Smithsonian Magazine",
+      "region": "us",
+      "bias": "nonpartisan",
+      "weight": 10,
+      "feed_url": "https://www.smithsonianmag.com/rss/latest_articles"
+    },
+    {
+      "name": "Archaeology Magazine",
+      "region": "us",
+      "bias": "nonpartisan",
+      "weight": 9,
+      "feed_url": "https://www.archaeology.org/news/rss"
+    },
+    {
+      "name": "Seeker Archaeology",
+      "region": "us",
+      "bias": "nonpartisan",
+      "weight": 7,
+      "feed_url": "https://www.seeker.com/rss"
+    },
+    {
+      "name": "Heritage Daily",
+      "region": "uk",
+      "bias": "nonpartisan",
+      "weight": 6,
+      "feed_url": "https://www.heritagedaily.com/feed"
+    },
+    {
+      "name": "Ancient Origins",
+      "region": "global",
+      "bias": "nonpartisan",
+      "weight": 5,
+      "feed_url": "https://www.ancient-origins.net/feed"
+    }
+  ],
+  "SPACE-AND-ASTRONOMY": [
+    {
+      "name": "NASA News",
+      "region": "us",
+      "bias": "nonpartisan",
+      "weight": 10,
+      "feed_url": "https://www.nasa.gov/rss/dyn/breaking_news.rss"
+    },
+    {
+      "name": "Space.com",
+      "region": "us",
+      "bias": "nonpartisan",
+      "weight": 10,
+      "feed_url": "https://www.space.com/feeds/all"
+    },
+    {
+      "name": "Astronomy Magazine",
+      "region": "us",
+      "bias": "nonpartisan",
+      "weight": 9,
+      "feed_url": "https://astronomy.com/news/rss"
+    },
+    {
+      "name": "Spaceflight Now",
+      "region": "us",
+      "bias": "nonpartisan",
+      "weight": 7,
+      "feed_url": "https://spaceflightnow.com/feed"
+    },
+    {
+      "name": "Universe Today",
+      "region": "canada",
+      "bias": "nonpartisan",
+      "weight": 7,
+      "feed_url": "https://www.universetoday.com/feed"
+    },
+    {
+      "name": "Futurism Space",
+      "region": "us",
+      "bias": "nonpartisan",
+      "weight": 5,
+      "feed_url": "https://futurism.com/feed"
+    }
+  ],
+  "ENERGY-AND-OIL": [
+    {
+      "name": "Oilprice.com",
+      "region": "us",
+      "bias": "center",
+      "weight": 9,
+      "feed_url": "https://oilprice.com/rss/main"
+    },
+    {
+      "name": "Energy Monitor",
+      "region": "uk",
+      "bias": "center",
+      "weight": 9,
+      "feed_url": "https://www.energymonitor.ai/feed"
+    },
+    {
+      "name": "Power Magazine",
+      "region": "us",
+      "bias": "center",
+      "weight": 7,
+      "feed_url": "https://www.powermag.com/feed"
+    },
+    {
+      "name": "PV Magazine Solar",
+      "region": "global",
+      "bias": "center",
+      "weight": 6,
+      "feed_url": "https://www.pv-magazine.com/feed"
+    }
+  ],
+  "FOOD-AND-AGRICULTURE": [
+    {
+      "name": "The Counter Food",
+      "region": "us",
+      "bias": "center-left",
+      "weight": 8,
+      "feed_url": "https://thecounter.org/feed"
+    },
+    {
+      "name": "Civil Eats",
+      "region": "us",
+      "bias": "center-left",
+      "weight": 7,
+      "feed_url": "https://civileats.com/feed"
+    },
+    {
+      "name": "Food Policy",
+      "region": "global",
+      "bias": "nonpartisan",
+      "weight": 5,
+      "feed_url": "https://www.foodpolitics.com/feed"
+    },
+    {
+      "name": "Modern Farmer",
+      "region": "us",
+      "bias": "center",
+      "weight": 5,
+      "feed_url": "https://modernfarmer.com/feed"
+    }
+  ],
+  "MIGRATION-AND-REFUGEES": [
+    {
+      "name": "Refugees International",
+      "region": "us",
+      "bias": "center-left",
+      "weight": 9,
+      "feed_url": "https://www.refugeesinternational.org/feed"
+    },
+    {
+      "name": "Global Detention Project",
+      "region": "global",
+      "bias": "center-left",
+      "weight": 6,
+      "feed_url": "https://www.globaldetentionproject.org/feed"
+    }
+  ],
+  "LEGAL-AND-JUSTICE": [
+    {
+      "name": "Just Security",
+      "region": "us",
+      "bias": "center-left",
+      "weight": 10,
+      "feed_url": "https://www.justsecurity.org/feed"
+    },
+    {
+      "name": "SCOTUSblog",
+      "region": "us",
+      "bias": "center",
+      "weight": 9,
+      "feed_url": "https://www.scotusblog.com/feed"
+    },
+    {
+      "name": "International Justice Monitor",
+      "region": "global",
+      "bias": "center",
+      "weight": 9,
+      "feed_url": "https://www.ijmonitor.org/feed"
+    },
+    {
+      "name": "EJIL Talk",
+      "region": "europe",
+      "bias": "center",
+      "weight": 8,
+      "feed_url": "https://www.ejiltalk.org/feed"
+    },
+    {
+      "name": "Opinio Juris",
+      "region": "us",
+      "bias": "center",
+      "weight": 8,
+      "feed_url": "https://opiniojuris.org/feed"
+    },
+    {
+      "name": "Legal Cheek",
+      "region": "uk",
+      "bias": "center",
+      "weight": 5,
+      "feed_url": "https://www.legalcheek.com/feed"
+    }
+  ],
+  "CULTURE-AND-ARTS": [
+    {
+      "name": "Artforum",
+      "region": "us",
+      "bias": "center-left",
+      "weight": 10,
+      "feed_url": "https://www.artforum.com/feed"
+    },
+    {
+      "name": "Hyperallergic",
+      "region": "us",
+      "bias": "center-left",
+      "weight": 8,
+      "feed_url": "https://hyperallergic.com/feed"
+    },
+    {
+      "name": "Guardian Culture",
+      "region": "uk",
+      "bias": "center-left",
+      "weight": 8,
+      "feed_url": "https://www.theguardian.com/culture/rss"
+    },
+    {
+      "name": "Pitchfork Music",
+      "region": "us",
+      "bias": "center-left",
+      "weight": 7,
+      "feed_url": "https://pitchfork.com/feed/feed-news/rss"
+    },
+    {
+      "name": "Variety Entertainment",
+      "region": "us",
+      "bias": "center",
+      "weight": 7,
+      "feed_url": "https://variety.com/feed"
+    },
+    {
+      "name": "Deadline Hollywood",
+      "region": "us",
+      "bias": "center",
+      "weight": 6,
+      "feed_url": "https://deadline.com/feed"
+    }
+  ],
+  "HAPPY-AND-POSITIVE-NEWS": [
+    {
+      "name": "Good News Network",
+      "region": "us",
+      "bias": "nonpartisan",
+      "weight": 10,
+      "feed_url": "https://www.goodnewsnetwork.org/feed"
+    },
+    {
+      "name": "Positive News",
+      "region": "uk",
+      "bias": "nonpartisan",
+      "weight": 9,
+      "feed_url": "https://www.positive.news/feed"
+    },
+    {
+      "name": "Reasons to be Cheerful",
+      "region": "us",
+      "bias": "center",
+      "weight": 8,
+      "feed_url": "https://reasonstobecheerful.world/feed"
+    },
+    {
+      "name": "BBC Good News",
+      "region": "uk",
+      "bias": "nonpartisan",
+      "weight": 8,
+      "feed_url": "https://www.bbc.co.uk/news/10628994"
+    },
+    {
+      "name": "Yes Magazine",
+      "region": "us",
+      "bias": "center-left",
+      "weight": 7,
+      "feed_url": "https://www.yesmagazine.org/feed"
+    },
+    {
+      "name": "Upworthy",
+      "region": "us",
+      "bias": "center",
+      "weight": 7,
+      "feed_url": "https://www.upworthy.com/feed"
+    },
+    {
+      "name": "The Happy Newspaper",
+      "region": "uk",
+      "bias": "nonpartisan",
+      "weight": 6,
+      "feed_url": "https://thehappynewspaper.com/feed"
+    },
+    {
+      "name": "Brighter World McMaster",
+      "region": "canada",
+      "bias": "nonpartisan",
+      "weight": 5,
+      "feed_url": "https://brighterworld.mcmaster.ca/feed"
+    }
+  ],
+  "CYBER-AND-TECH-POLICY": [
+    {
+      "name": "Krebs on Security",
+      "region": "us",
+      "bias": "nonpartisan",
+      "weight": 10,
+      "feed_url": "https://krebsonsecurity.com/feed"
+    },
+    {
+      "name": "Ars Technica Security",
+      "region": "us",
+      "bias": "center",
+      "weight": 9,
+      "feed_url": "https://arstechnica.com/security/feed"
+    },
+    {
+      "name": "Recorded Future",
+      "region": "us",
+      "bias": "center",
+      "weight": 9,
+      "feed_url": "https://www.recordedfuture.com/feed"
+    },
+    {
+      "name": "Cyber Scoop",
+      "region": "us",
+      "bias": "center",
+      "weight": 9,
+      "feed_url": "https://cyberscoop.com/feed"
+    },
+    {
+      "name": "Electronic Frontier Foundation",
+      "region": "us",
+      "bias": "center-left",
+      "weight": 7,
+      "feed_url": "https://www.eff.org/rss/updates.xml"
+    },
+    {
+      "name": "Access Now",
+      "region": "global",
+      "bias": "center-left",
+      "weight": 7,
+      "feed_url": "https://www.accessnow.org/feed"
+    },
+    {
+      "name": "Citizen Lab",
+      "region": "canada",
+      "bias": "center-left",
+      "weight": 6,
+      "feed_url": "https://citizenlab.ca/feed"
+    },
+    {
+      "name": "Atlantic Council Cyber",
+      "region": "us",
+      "bias": "center",
+      "weight": 6,
+      "feed_url": "https://www.atlanticcouncil.org/feed"
+    },
+    {
+      "name": "Oxford Internet Institute",
+      "region": "uk",
+      "bias": "nonpartisan",
+      "weight": 5,
+      "feed_url": "https://www.oii.ox.ac.uk/feed"
+    }
+  ],
+  "GENDER-AND-SOCIETY": [
+    {
+      "name": "Ms Magazine",
+      "region": "us",
+      "bias": "center-left",
+      "weight": 9,
+      "feed_url": "https://msmagazine.com/feed"
+    },
+    {
+      "name": "Jezebel",
+      "region": "us",
+      "bias": "center-left",
+      "weight": 9,
+      "feed_url": "https://jezebel.com/rss"
+    },
+    {
+      "name": "Refinery 29",
+      "region": "us",
+      "bias": "center-left",
+      "weight": 8,
+      "feed_url": "https://www.refinery29.com/rss.xml"
+    },
+    {
+      "name": "The 19th News",
+      "region": "us",
+      "bias": "center-left",
+      "weight": 8,
+      "feed_url": "https://19thnews.org/feed"
+    },
+    {
+      "name": "Gender Policy Report",
+      "region": "us",
+      "bias": "center",
+      "weight": 7,
+      "feed_url": "https://genderpolicyreport.umn.edu/feed"
+    }
+  ],
+  "INDIGENOUS-AND-MINORITY": [
+    {
+      "name": "Intercontinental Cry",
+      "region": "global",
+      "bias": "center-left",
+      "weight": 9,
+      "feed_url": "https://intercontinentalcry.org/feed"
+    },
+    {
+      "name": "First Nations Development Institute",
+      "region": "us",
+      "bias": "center",
+      "weight": 8,
+      "feed_url": "https://www.firstnations.org/feed"
+    }
+  ],
+  "OCEANS-AND-MARINE": [
+    {
+      "name": "NOAA Ocean",
+      "region": "us",
+      "bias": "nonpartisan",
+      "weight": 10,
+      "feed_url": "https://oceanservice.noaa.gov/rss/newsline.xml"
+    },
+    {
+      "name": "Marine Insight",
+      "region": "global",
+      "bias": "nonpartisan",
+      "weight": 9,
+      "feed_url": "https://www.marineinsight.com/feed"
+    },
+    {
+      "name": "Hakai Magazine",
+      "region": "canada",
+      "bias": "nonpartisan",
+      "weight": 9,
+      "feed_url": "https://www.hakaimagazine.com/feed"
+    },
+    {
+      "name": "Ocean News",
+      "region": "global",
+      "bias": "nonpartisan",
+      "weight": 8,
+      "feed_url": "https://oceannews.com/feed"
+    },
+    {
+      "name": "Mongabay Oceans",
+      "region": "us",
+      "bias": "center",
+      "weight": 8,
+      "feed_url": "https://news.mongabay.com/feed/?category=marine"
+    },
+    {
+      "name": "DeepSea News",
+      "region": "us",
+      "bias": "nonpartisan",
+      "weight": 7,
+      "feed_url": "https://deepseanews.com/feed"
+    },
+    {
+      "name": "Splash Maritime",
+      "region": "global",
+      "bias": "center",
+      "weight": 5,
+      "feed_url": "https://splash247.com/feed"
+    }
+  ],
+  "NATURAL-DISASTERS": [
+    {
+      "name": "USGS Earthquakes",
+      "region": "us",
+      "bias": "nonpartisan",
+      "weight": 10,
+      "feed_url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.atom"
+    },
+    {
+      "name": "GDACS",
+      "region": "global",
+      "bias": "nonpartisan",
+      "weight": 9,
+      "feed_url": "https://www.gdacs.org/xml/rss.xml"
+    },
+    {
+      "name": "Floodlist",
+      "region": "global",
+      "bias": "nonpartisan",
+      "weight": 7,
+      "feed_url": "https://floodlist.com/feed"
+    },
+    {
+      "name": "Wildfire Today",
+      "region": "us",
+      "bias": "nonpartisan",
+      "weight": 7,
+      "feed_url": "https://wildfiretoday.com/feed"
+    }
+  ],
+  "SPORT": [
+    {
+      "name": "BBC Sport",
+      "region": "uk",
+      "bias": "center",
+      "weight": 10,
+      "feed_url": "https://feeds.bbci.co.uk/sport/rss.xml"
+    },
+    {
+      "name": "Sky Sports",
+      "region": "uk",
+      "bias": "center",
+      "weight": 9,
+      "feed_url": "https://www.skysports.com/rss/12040"
+    },
+    {
+      "name": "Guardian Sport",
+      "region": "uk",
+      "bias": "center-left",
+      "weight": 9,
+      "feed_url": "https://www.theguardian.com/sport/rss"
+    },
+    {
+      "name": "AP Sports",
+      "region": "us",
+      "bias": "center",
+      "weight": 8,
+      "feed_url": "https://apnews.com/hub/sports"
+    },
+    {
+      "name": "The Athletic",
+      "region": "us",
+      "bias": "center",
+      "weight": 7,
+      "feed_url": "https://theathletic.com/rss"
+    },
+    {
+      "name": "Cricinfo",
+      "region": "global",
+      "bias": "center",
+      "weight": 6,
+      "feed_url": "https://www.espncricinfo.com/rss/content/story/feeds/0.xml"
+    }
+  ],
+  "RELIGION": [
+    {
+      "name": "Christianity Today",
+      "region": "us",
+      "bias": "center-right",
+      "weight": 9,
+      "feed_url": "https://www.christianitytoday.com/rss"
+    },
+    {
+      "name": "Crux Catholic News",
+      "region": "us",
+      "bias": "center",
+      "weight": 8,
+      "feed_url": "https://cruxnow.com/feed"
+    },
+    {
+      "name": "Jewish Telegraphic Agency",
+      "region": "us",
+      "bias": "center",
+      "weight": 7,
+      "feed_url": "https://www.jta.org/feed"
+    }
+  ],
+  "EDUCATION": [
+    {
+      "name": "Education Week",
+      "region": "us",
+      "bias": "center",
+      "weight": 8,
+      "feed_url": "https://www.edweek.org/feed"
+    },
+    {
+      "name": "EdSurge",
+      "region": "us",
+      "bias": "center",
+      "weight": 7,
+      "feed_url": "https://edsurge.com/news.rss"
+    },
+    {
+      "name": "Global Partnership Education",
+      "region": "global",
+      "bias": "nonpartisan",
+      "weight": 6,
+      "feed_url": "https://www.globalpartnership.org/feed"
+    },
+    {
+      "name": "Campus Reform",
+      "region": "us",
+      "bias": "center-right",
+      "weight": 6,
+      "feed_url": "https://www.campusreform.org/feed"
+    }
+  ],
+  "INFRASTRUCTURE-AND-URBAN": [
+    {
+      "name": "Curbed Architecture",
+      "region": "us",
+      "bias": "center",
+      "weight": 9,
+      "feed_url": "https://www.curbed.com/rss/index.xml"
+    },
+    {
+      "name": "The Guardian Cities",
+      "region": "uk",
+      "bias": "center-left",
+      "weight": 8,
+      "feed_url": "https://www.theguardian.com/cities/rss"
+    },
+    {
+      "name": "Infrastructure Investor",
+      "region": "uk",
+      "bias": "center",
+      "weight": 6,
+      "feed_url": "https://www.infrastructureinvestor.com/feed"
+    },
+    {
+      "name": "ITDP Transport",
+      "region": "global",
+      "bias": "center-left",
+      "weight": 5,
+      "feed_url": "https://www.itdp.org/feed"
+    }
+  ],
+  "SATIRE-AND-COMMENTARY": [
+    {
+      "name": "The Onion",
+      "region": "us",
+      "bias": "center-left",
+      "weight": 10,
+      "feed_url": "https://www.theonion.com/rss"
+    },
+    {
+      "name": "The Beaverton Canada",
+      "region": "canada",
+      "bias": "center-left",
+      "weight": 7,
+      "feed_url": "https://www.thebeaverton.com/feed"
+    },
+    {
+      "name": "The Daily Mash UK",
+      "region": "uk",
+      "bias": "center",
+      "weight": 7,
+      "feed_url": "https://www.thedailymash.co.uk/feed"
+    },
+    {
+      "name": "El Mundo Today Spain",
+      "region": "spain",
+      "bias": "center",
+      "weight": 7,
+      "feed_url": "https://elmundotoday.com/feed"
+    },
+    {
+      "name": "The Shovel Australia",
+      "region": "australia",
+      "bias": "center-left",
+      "weight": 6,
+      "feed_url": "https://www.theshovel.com.au/feed"
+    },
+    {
+      "name": "Reductress",
+      "region": "us",
+      "bias": "center-left",
+      "weight": 4,
+      "feed_url": "https://reductress.com/feed"
+    }
+  ]
+}

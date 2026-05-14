@@ -1,0 +1,1101 @@
+Probe report — C:\Users\susri\Downloads\GEOSIGNAL_SOURCES_EXPANSION_1.txt
+========================
+
+Regional: 185 verified / 408 total
+Topic index: 159 verified / 300 total
+
+=== Dropped regional ===
+  14ymedio Cuba
+    https://www.14ymedio.com/feed
+    [HTTP 404]
+  ABC Color Paraguay
+    https://www.abc.com.py/rss
+    [HTTP 404]
+  APA News
+    https://apanews.net/feed
+    [HTTP 403]
+  Abidjan.net
+    https://news.abidjan.net/rss
+    [HTTP 404]
+  Africa Policy Research Institute
+    https://afripoli.org/feed
+    [HTTP 404]
+  Agenzia Nova Libya
+    https://www.agenzianova.com/en/feed
+    [HTTP 404]
+  Al Ahram Weekly Egypt
+    https://english.ahram.org.eg/RSS.aspx
+    [HTTP 403]
+  Al-Arabiya English
+    https://english.alarabiya.net/rss
+    [HTTP 403]
+  Al-Jumhuriya Syria
+    https://aljumhuriya.net/en/feed
+    [HTTP 403]
+  Al-Mada Iraq
+    https://almadapaper.net/feed
+    [HTTP 403]
+  Albania Daily News
+    https://www.albaniadailynews.al/feed
+    [connection error: HTTPSConnectionPool(host='www.albaniadailynews.al', port=443]
+  Amnesty International US
+    https://www.amnestyusa.org/feed
+    [HTTP 403]
+  Angola Press Agency ANGOP
+    https://www.angop.ao/en/rss
+    [connection error: ('Connection aborted.', ConnectionResetError(10054, 'An exis]
+  Antara News English
+    https://en.antaranews.com/rss/latest-news
+    [HTTP 404]
+  Arizona Republic
+    https://rssfeeds.azcentral.com/home/latest
+    [HTTP 404]
+  Asia Pacific Pathways to Progress
+    https://www.app.ph/feed
+    [connection error: ('Connection aborted.', RemoteDisconnected('Remote end close]
+  Asia Times Southeast Asia
+    https://asiatimes.com/category/southeast-asia/feed
+    [HTTP 429]
+  Bahrain News Agency
+    https://www.bna.bh/en/rss
+    [HTTP 405]
+  Bolivia Government
+    https://www.presidencia.gob.bo/feed
+    [HTTP 404]
+  Borneo Bulletin
+    https://borneobulletin.com.bn/feed
+    [HTTP 403]
+  Boston Globe
+    https://www.bostonglobe.com/rss/homepage
+    [HTTP 404]
+  Botswana Daily News
+    https://dailynews.gov.bw/feed
+    [HTTP 404]
+  Burkina Faso Fasonet
+    https://fasonet.bf/feed
+    [SSL error]
+  Business Daily Kenya
+    https://www.businessdailyafrica.com/rss
+    [HTTP 403]
+  BuzzFeed News
+    https://www.buzzfeednews.com/rss
+    [HTTP 406]
+  CGTN English
+    https://www.cgtn.com/feed
+    [HTTP 404]
+  CIPERCHILE
+    https://www.ciperchile.cl/feed
+    [HTTP 500]
+  Canadian Centre for Policy Alternatives
+    https://www.policyalternatives.ca/rss.xml
+    [HTTP 404]
+  Chile Government News
+    https://www.gob.cl/noticias/feed
+    [HTTP 403]
+  Chosun Ilbo English
+    https://english.chosun.com/rss
+    [HTTP 404]
+  Cinco Dias
+    https://cincodias.elpais.com/rss
+    [HTTP 404]
+  Code for Africa
+    https://codeforafrica.org/feed
+    [HTTP 404]
+  Commonwealth Magazine Taiwan
+    https://english.cw.com.tw/feed
+    [HTTP 404]
+  Confidencial Nicaragua
+    https://confidencial.digital/feed
+    [HTTP 403]
+  Congo Planet
+    https://congoplanet.com/feed
+    [HTTP 404]
+  Cuba Debate
+    https://cubadebate.cu/feed
+    [read timeout]
+  Cuba Granma Official
+    https://www.granma.cu/feed
+    [read timeout]
+  Danish Institute for International Studies
+    https://www.diis.dk/en/rss
+    [HTTP 404]
+  Deal Street Asia
+    https://www.dealstreetasia.com/feed
+    [HTTP 503]
+  Djibouti Nation
+    https://www.la-nation.dj/feed
+    [connection error: HTTPSConnectionPool(host='www.la-nation.dj', port=443): Max ]
+  East-West Center East Asia
+    https://www.eastwestcenter.org/feed
+    [HTTP 403]
+  Ecuador Government
+    https://www.presidencia.gob.ec/feed
+    [connect timeout]
+  Edge Malaysia
+    https://www.theedgemarkets.com/rss
+    [HTTP 404]
+  El Comercio Peru
+    https://elcomercio.pe/rss/ultimas-noticias.xml
+    [HTTP 404]
+  El Espectador
+    https://www.elespectador.com/arc/outboundfeeds/rss
+    [HTTP 404]
+  El Faro Central America
+    https://elfaro.net/feed
+    [HTTP 404]
+  El Heraldo Honduras
+    https://www.elheraldo.hn/feed
+    [HTTP 404]
+  El Mercurio Chile
+    https://www.emol.com/rss
+    [connection error: ('Connection aborted.', RemoteDisconnected('Remote end close]
+  El Pais Uruguay
+    https://www.elpais.com.uy/feed
+    [HTTP 403]
+  El Peruano
+    https://elperuano.pe/rss
+    [HTTP 404]
+  El Salvador El Mundo
+    https://elmundo.sv/feed
+    [connection error: HTTPSConnectionPool(host='diario.elmundo.sv', port=443): Max]
+  El Universal Mexico
+    https://www.eluniversal.com.mx/rss.xml
+    [HTTP 404]
+  El Universo Ecuador
+    https://www.eluniverso.com/rss/all.xml
+    [HTTP 404]
+  El Universo Ecuador
+    https://www.eluniverso.com/rss/all.xml
+    [HTTP 404]
+  Eleven Media
+    https://www.elevenmyanmar.com/feed
+    [HTTP 404]
+  Eritrea ERINA
+    https://www.erina.gov.er/feed
+    [connection error: HTTPSConnectionPool(host='www.erina.gov.er', port=443): Max ]
+  Estadao International
+    https://internacional.estadao.com.br/rss
+    [HTTP 404]
+  Eswatini News
+    https://www.swazinews.co.sz/feed
+    [connection error: HTTPSConnectionPool(host='www.swazinews.co.sz', port=443): M]
+  Finance Uncovered Africa
+    https://financeuncovered.org/feed
+    [HTTP 404]
+  Foreign Policy
+    https://feeds.foreignpolicy.com/rss/Foreign-Policy-Main-RSS-Feed
+    [HTTP 404]
+  Fraser Institute Canada
+    https://www.fraserinstitute.org/feed
+    [HTTP 403]
+  Freedom House
+    https://freedomhouse.org/feed
+    [HTTP 404]
+  Frontier Myanmar
+    https://www.frontiermyanmar.net/feed
+    [HTTP 403]
+  G1 Globo English
+    https://g1.globo.com/rss/g1/ultimas-noticias
+    [HTTP 403]
+  Gallup News
+    https://news.gallup.com/rss.aspx
+    [HTTP 404]
+  Graphic Online
+    https://www.graphic.com.gh/feed
+    [HTTP 404]
+  Griffith Asia Institute
+    https://www.griffith.edu.au/asia-institute/rss
+    [HTTP 403]
+  Gulf Daily News Bahrain
+    https://www.gulf-daily-news.com/rss
+    [HTTP 404]
+  Haiti Liberte
+    https://www.haiti-liberte.com/rss
+    [SSL error]
+  Herald Zimbabwe
+    https://www.herald.co.zw/feed
+    [HTTP 403]
+  Hertie School Jacques Delors Centre
+    https://hertieschool.org/feed
+    [SSL error]
+  Het Financieele Dagblad
+    https://fd.nl/rss
+    [HTTP 404]
+  Hiiraan Online
+    https://hiiraan.com/feed
+    [HTTP 404]
+  Human Rights Watch
+    https://www.hrw.org/rss/world-reports
+    [HTTP 404]
+  Human Rights Watch Southeast Asia
+    https://www.hrw.org/rss/region/asia/southeast-asia
+    [HTTP 404]
+  IAI Italy
+    https://www.iai.it/en/rss
+    [HTTP 404]
+  IUPERJ Brazil
+    https://iuperj.edu.br/feed
+    [connection error: HTTPSConnectionPool(host='iuperj.edu.br', port=443): Max ret]
+  In These Times
+    https://inthesetimes.com/feed
+    [HTTP 403]
+  Institut Montaigne
+    https://www.institutmontaigne.org/en/feed
+    [HTTP 404]
+  Instituto Lula Brazil
+    https://institutolula.org/feed
+    [HTTP 404]
+  Investigate Europe
+    https://www.investigate-europe.eu/feed
+    [HTTP 404]
+  Irish Times
+    https://www.irishtimes.com/feed
+    [HTTP 404]
+  Jakarta Post Business
+    https://www.thejakartapost.com/rss/id/business
+    [HTTP 404]
+  Jamaica Gleaner
+    https://jamaica-gleaner.com/feed
+    [HTTP 404]
+  Japan Institute of International Affairs
+    https://www.jiia.or.jp/en/rss
+    [HTTP 404]
+  Jeune Afrique
+    https://www.jeuneafrique.com/rss
+    [HTTP 404]
+  Jordan Times
+    https://www.jordantimes.com/rss
+    [HTTP 403]
+  KBS World Korea
+    https://world.kbs.co.kr/rss
+    [HTTP 403]
+  KPL News Laos
+    https://www.kpl.net.la/rss
+    [connection error: HTTPSConnectionPool(host='www.kpl.net.la', port=443): Max re]
+  Kigali Today
+    https://kigalitoday.com/feed
+    [HTTP 404]
+  Kompas English
+    https://www.kompas.com/english/rss
+    [HTTP 404]
+  Korea Institute for National Unification
+    https://www.kinu.or.kr/eng/rss
+    [HTTP 404]
+  Kosovo 2.0
+    https://kosovotwopointzero.com/feed
+    [read timeout]
+  Kurdistan 24
+    https://www.kurdistan24.net/en/rss
+    [HTTP 403]
+  Kuwait Times
+    https://www.kuwaittimes.com/feed
+    [HTTP 404]
+  L'Essor Mali
+    https://lessor.ml/feed
+    [HTTP 404]
+  LSE IDEAS
+    https://www.lse.ac.uk/ideas/rss
+    [HTTP 404]
+  La Diaria Uruguay
+    https://ladiaria.com.uy/feed
+    [HTTP 404]
+  La Estrella Panama
+    https://www.laestrella.com.pa/feed
+    [HTTP 404]
+  La Mula Peru
+    https://lamula.pe/feed
+    [connect timeout]
+  La Nacion Argentina
+    https://www.lanacion.com.ar/rss
+    [HTTP 404]
+  La Opinion Colombia
+    https://www.laopinion.com.co/feed
+    [HTTP 404]
+  La Prensa Bolivia
+    https://www.laprensa.com.bo/feed
+    [SSL error]
+  La Prensa Honduras
+    https://www.laprensa.hn/feed
+    [read timeout]
+  La Prensa Libre Costa Rica
+    https://www.prensalibre.cr/feed
+    [connection error: HTTPSConnectionPool(host='www.prensalibre.cr', port=443): Ma]
+  La Tercera Chile
+    https://www.latercera.com/feed
+    [HTTP 404]
+  Lebanon 24
+    https://www.lebanon24.com/en/rss
+    [HTTP 404]
+  Les Echos
+    https://www.lesechos.fr/rss
+    [HTTP 403]
+  Listin Diario Dominican Republic
+    https://listindiario.com/feed
+    [HTTP 404]
+  Los Tiempos Bolivia
+    https://www.lostiempos.com/feed
+    [HTTP 404]
+  Macau Business
+    https://macaubusiness.com/feed
+    [HTTP 404]
+  Madagascar Tribune
+    https://www.madagascar-tribune.com/rss
+    [HTTP 404]
+  Malaysian Reserve
+    https://themalaysianreserve.com/feed
+    [HTTP 403]
+  Marshall Project
+    https://www.themarshallproject.org/feeds/news
+    [HTTP 404]
+  Matangi Tonga
+    https://matangitonga.to/feed
+    [HTTP 404]
+  Mekong Commons
+    https://www.mekongcommons.org/feed
+    [read timeout]
+  Mekong Policy Project
+    https://www.mekongpolicyproject.org/feed
+    [connection error: HTTPSConnectionPool(host='www.mekongpolicyproject.org', port]
+  Miami Herald
+    https://www.miamiherald.com/news/nation-world/?widgetName=rssfeed
+    [read timeout]
+  Milenio Mexico
+    https://www.milenio.com/rss
+    [HTTP 404]
+  Mongolia News Agency
+    https://www.montsame.mn/en/rss
+    [HTTP 404]
+  Morocco Le360
+    https://www.le360.ma/en/rss
+    [read timeout]
+  Mozambique News Reports
+    https://mozambiquenewsreports.com/feed
+    [connection error: HTTPSConnectionPool(host='mozambiquenewsreports.com', port=4]
+  Munhwa Ilbo
+    https://www.munhwa.com/rss
+    [HTTP 404]
+  Myanmar Ministry of Information
+    https://www.moi.gov.mm/rss
+    [HTTP 404]
+  Myanmar Times
+    https://www.mmtimes.com/feed
+    [connection error: ('Connection aborted.', RemoteDisconnected('Remote end close]
+  NBER Research
+    https://www.nber.org/rss/new_working_papers.xml
+    [HTTP 404]
+  NHK World Japan
+    https://www3.nhk.or.jp/nhkworld/en/news/feeds
+    [HTTP 403]
+  NZZ Switzerland
+    https://www.nzz.ch/english/rss
+    [HTTP 404]
+  Nairobi News
+    https://nairobinews.nation.africa/rss
+    [HTTP 403]
+  Nairobi-based Aga Khan University
+    https://www.aku.edu/rss
+    [HTTP 404]
+  National Institute for Defense Studies Japan
+    https://www.nids.mod.go.jp/en/rss
+    [HTTP 404]
+  Nauru News
+    https://www.ournauru.nr/feed
+    [connection error: HTTPSConnectionPool(host='www.ournauru.nr', port=443): Max r]
+  New Naratif
+    https://newnaratif.com/feed
+    [HTTP 403]
+  New Vision Uganda
+    https://www.newvision.co.ug/rss
+    [HTTP 404]
+  New Zealand Herald Premium
+    https://www.nzherald.co.nz/feed
+    [HTTP 404]
+  News Suriname
+    https://www.news.sr/feed
+    [connection error: HTTPSConnectionPool(host='www.news.sr', port=443): Max retri]
+  News.am Armenia
+    https://news.am/eng/rss/all.xml
+    [HTTP 404]
+  Newsweek
+    https://www.newsweek.com/rss
+    [HTTP 406]
+  Nhan Dan English
+    https://en.nhandan.vn/rss
+    [HTTP 404]
+  Nicaragua Government
+    https://www.presidencia.gob.ni/feed
+    [connection error: HTTPSConnectionPool(host='www.presidencia.gob.ni', port=443)]
+  Niger Actu
+    https://nigeractu.com/feed
+    [connection error: HTTPSConnectionPool(host='nigeractu.com', port=443): Max ret]
+  Nikkei Southeast Asia
+    https://asia.nikkei.com/rss/feed/southeastasia
+    [HTTP 404]
+  Niue Tourism News
+    https://www.niuetourism.nu/feed
+    [connection error: HTTPSConnectionPool(host='www.niuetourism.nu', port=443): Ma]
+  Norwegian Institute of International Affairs
+    https://www.nupi.no/en/rss
+    [HTTP 404]
+  OCCRP Africa
+    https://www.occrp.org/en/tag/africa.rss
+    [HTTP 404]
+  Okinawa Times
+    https://www.okinawatimes.co.jp/rss
+    [HTTP 404]
+  Oman Observer
+    https://www.omanobserver.om/feed
+    [HTTP 404]
+  PIIE Economic Institute
+    https://www.piie.com/feed
+    [HTTP 403]
+  Pacific Beat
+    https://www.abc.net.au/pacific/feed/51132/rss.xml
+    [HTTP 404]
+  Pacific Island Times Guam
+    https://www.pacificislandtimes.com/feed
+    [HTTP 404]
+  Pacific Media Watch
+    https://www.pmc.aut.ac.nz/feed
+    [connection error: HTTPSConnectionPool(host='www.pmc.aut.ac.nz', port=443): Max]
+  Panama Government
+    https://www.presidencia.gob.pa/feed
+    [HTTP 404]
+  Papua New Guinea Loop
+    https://www.looppng.com/feed
+    [connection error: HTTPSConnectionPool(host='www.looppng.com', port=443): Max r]
+  Paraguay Government
+    https://www.presidencia.gov.py/feed
+    [connect timeout]
+  Pensieve Philippines
+    https://pensieve.com.ph/feed
+    [SSL error]
+  Peru 21
+    https://peru21.pe/rss/ultimas-noticias.xml
+    [HTTP 404]
+  Peru Government
+    https://www.gob.pe/rss
+    [HTTP 404]
+  Peru Grade
+    https://www.grade.org.pe/feed
+    [read timeout]
+  Politico
+    https://www.politico.com/rss/politicopicks.xml
+    [HTTP 403]
+  Quillette
+    https://quillette.com/feed
+    [HTTP 404]
+  RFA Taiwan
+    https://www.rfa.org/english/rss2.0/taiwan.xml
+    [HTTP 404]
+  RTBF English
+    https://www.rtbf.be/rss/en
+    [HTTP 404]
+  RTE News
+    https://www.rte.ie/news/rss/news-ireland.xml
+    [read timeout]
+  Radio Free Asia Uyghur
+    https://www.rfa.org/english/rss2.0/uyghur.xml
+    [HTTP 404]
+  Rudaw Opinion
+    https://www.rudaw.net/rss/opinion
+    [HTTP 404]
+  S. Rajaratnam School of International Studies
+    https://www.rsis.edu.sg/feed
+    [HTTP 403]
+  Samoa Observer
+    https://www.samoaobserver.ws/feed
+    [HTTP 404]
+  San Francisco Chronicle
+    https://www.sfchronicle.com/news/feed
+    [HTTP 404]
+  Sankei Biz English
+    https://www.sankei.com/en/rss
+    [HTTP 404]
+  Seneplus
+    https://www.seneplus.com/rss
+    [HTTP 404]
+  Seneweb
+    https://www.seneweb.com/feed
+    [HTTP 404]
+  Seychelles News Agency
+    https://www.seychellesnewsagency.com/feed
+    [HTTP 403]
+  Singapore PMO
+    https://www.pmo.gov.sg/newsroom/rss
+    [HTTP 404]
+  Sixth Tone China
+    https://www.sixthtone.com/feed
+    [HTTP 404]
+  Solomon Star
+    https://www.solomonstarnews.com/feed
+    [HTTP 403]
+  Sowetan Live
+    https://www.sowetanlive.co.za/rss
+    [HTTP 404]
+  Stabroek News Guyana
+    https://www.stabroeknews.com/feed
+    [HTTP 403]
+  Sudan Daily
+    https://www.sudandailymonitor.com/feed
+    [connection error: HTTPSConnectionPool(host='www.sudandailymonitor.com', port=4]
+  Swedish Institute of International Affairs
+    https://www.ui.se/feed
+    [HTTP 404]
+  Swiss Info
+    https://www.swissinfo.ch/eng/rss
+    [HTTP 410]
+  TV2 Denmark
+    https://www.tv2.dk/rss
+    [HTTP 404]
+  Tal Cual Venezuela
+    https://talcualdigital.com/feed
+    [HTTP 404]
+  Tanzanian Guardian
+    https://www.ippmedia.com/feed
+    [HTTP 403]
+  Texas Tribune
+    https://www.texastribune.org/feeds/articles
+    [HTTP 429]
+  Thanh Nien News
+    https://thanhniennews.com/rss
+    [connect timeout]
+  The American Prospect
+    https://prospect.org/feeds/rss
+    [HTTP 429]
+  The Local Norway
+    https://www.thelocal.no/feed
+    [HTTP 404]
+  The Local Sweden
+    https://www.thelocal.se/feed
+    [HTTP 404]
+  The New Republic
+    https://newrepublic.com/feed.rss
+    [HTTP 404]
+  The Observer Uganda
+    https://www.observer.ug/feed
+    [HTTP 429]
+  The Paper China
+    https://www.thepaper.cn/feed
+    [HTTP 404]
+  The Scoop Brunei
+    https://thescoop.co/feed
+    [HTTP 429]
+  The Star Malaysia
+    https://www.thestar.com.my/rss/news
+    [HTTP 404]
+  The Tyee British Columbia
+    https://thetyee.ca/feed
+    [HTTP 403]
+  Timor-Leste Government
+    https://www.gov.tl/rss
+    [connection error: HTTPSConnectionPool(host='www.gov.tl', port=443): Max retrie]
+  Togo First
+    https://www.togofirst.com/feed
+    [HTTP 404]
+  Tortoise Media
+    https://www.tortoisemedia.com/feed
+    [HTTP 404]
+  Transitions Online
+    https://tol.org/feed
+    [HTTP 429]
+  Trinidad Guardian
+    https://guardian.co.tt/feed
+    [HTTP 404]
+  Tuvalu Media Corporation
+    https://www.tmcfiji.com/feed
+    [connection error: HTTPSConnectionPool(host='www.tmcfiji.com', port=443): Max r]
+  UNSW Sydney Policy
+    https://www.unsw.edu.au/news/feed
+    [HTTP 404]
+  US-China Institute USC
+    https://china.usc.edu/feed
+    [HTTP 404]
+  Ultima Hora Paraguay
+    https://www.ultimahora.com/rss
+    [HTTP 202 (no usable content-type)]
+  Urban Institute
+    https://www.urban.org/rss
+    [HTTP 403]
+  Uruguay Government
+    https://www.gub.uy/feed
+    [HTTP 404]
+  Ushahidi
+    https://ushahidi.com/feed
+    [connection error: HTTPSConnectionPool(host='ushahidi.com', port=443): Max retr]
+  Vanuatu Daily Post
+    https://www.dailypost.vu/feed
+    [HTTP 404]
+  Venezuela Government
+    https://www.presidencia.gob.ve/feed
+    [SSL error]
+  Vienna Wires
+    https://www.wienerzeitung.at/rss/en
+    [HTTP 404]
+  Vientiane Times
+    https://www.vientianetimes.org.la/feed
+    [HTTP 404]
+  Vietnam Ministry of Foreign Affairs
+    https://www.mofa.gov.vn/en/tt_baochi/pbnfn/rss
+    [HTTP 404]
+  Vox
+    https://www.vox.com/rss/index.xml
+    [blocked/empty]
+  Wafa Palestinian Agency
+    https://english.wafa.ps/rss
+    [HTTP 404]
+  Warsaw Business Journal
+    https://wbj.pl/feed
+    [HTTP 404]
+  Washington Monthly
+    https://washingtonmonthly.com/feed
+    [HTTP 429]
+  Wirtschaftswoche
+    https://www.wiwo.de/rss
+    [HTTP 403]
+  Wits University Africa
+    https://wits.ac.za/feed
+    [SSL error]
+  Yemen Post
+    https://www.yemenpost.net/feed
+    [connection error: ('Connection aborted.', ConnectionResetError(10054, 'An exis]
+  Ynetnews
+    https://www.ynetnews.com/category/3082/rss
+    [HTTP 404]
+  Yomiuri Shimbun
+    https://www.yomiuri.co.jp/rss
+    [HTTP 404]
+  Zan Times Afghanistan/Iran
+    https://www.zantimes.com/feed
+    [HTTP 429]
+  Zimbabwe Independent
+    https://theindependent.co.zw/feed
+    [HTTP 404]
+  iPolitics Canada
+    https://ipolitics.ca/feed
+    [HTTP 403]
+
+=== Dropped topic-index entries ===
+  ABA Journal
+    https://www.abajournal.com/feed
+    [HTTP 404]
+  AP Climate
+    https://apnews.com/apf-environment
+    [HTTP 404]
+  Above the Law
+    https://abovethelaw.com/feed
+    [HTTP 403]
+  Agri-Pulse
+    https://www.agri-pulse.com/feed
+    [HTTP 404]
+  Al Jazeera Disasters
+    https://www.aljazeera.com/xml/rss/natural-disaster.xml
+    [HTTP 404]
+  Al Jazeera Migration
+    https://www.aljazeera.com/xml/rss/migration.xml
+    [HTTP 404]
+  Al Monitor Religion
+    https://feeds.feedburner.com/al-monitor/religion
+    [HTTP 404]
+  America Magazine Jesuit
+    https://www.americamagazine.org/feed
+    [HTTP 429]
+  Ancient History Encyclopedia
+    https://www.worldhistory.org/feed
+    [HTTP 404]
+  Architectural Record
+    https://www.architecturalrecord.com/rss/news
+    [HTTP 404]
+  ArtReview
+    https://artreview.com/feed
+    [HTTP 404]
+  Asylum Research Consultancy
+    https://www.asylumresearch.co.uk/feed
+    [HTTP 522]
+  BOMB Magazine
+    https://bombmagazine.org/feed
+    [HTTP 404]
+  Barron's
+    https://www.barrons.com/feed
+    [HTTP 403]
+  Bloomberg
+    https://feeds.bloomberg.com/markets/news.rss
+    [connect timeout]
+  Bloomberg Energy
+    https://feeds.bloomberg.com/energy/news.rss
+    [read timeout]
+  Bloomberg Markets
+    https://feeds.bloomberg.com/markets/news.rss
+    [connect timeout]
+  Breaking Defense
+    https://breakingdefense.com/feed
+    [HTTP 403]
+  Broadly Vice
+    https://www.vice.com/en/section/broadly/rss
+    [HTTP 404]
+  Bulletin Atomic Scientists
+    https://thebulletin.org/feed
+    [HTTP 403]
+  CGIAR Research
+    https://www.cgiar.org/news-events/rss
+    [HTTP 404]
+  CIVICUS
+    https://www.civicus.org/index.php/component/k2/rss
+    [HTTP 404]
+  CNBC Finance
+    https://www.cnbc.com/id/10000664/device/rss/rss.html
+    [HTTP 404]
+  CSIS Cyber
+    https://www.csis.org/topics/cybersecurity/feed
+    [HTTP 404]
+  Chatham House
+    https://www.chathamhouse.org/rss
+    [HTTP 403]
+  Chronicle of Higher Education
+    https://www.chronicle.com/feed
+    [HTTP 404]
+  CityLab Bloomberg
+    https://www.bloomberg.com/citylab/feed
+    [HTTP 403]
+  Council on Foreign Relations
+    https://www.cfr.org/rss.xml
+    [HTTP 404]
+  Cultural Survival
+    https://www.culturalsurvival.org/feed
+    [HTTP 404]
+  Current Archaeology
+    https://www.archaeology.co.uk/feed
+    [HTTP 403]
+  DeSmog
+    https://www.desmog.com/feed
+    [HTTP 403]
+  Devex Global Health
+    https://www.devex.com/news/rss
+    [blocked/empty]
+  Devex Migration
+    https://www.devex.com/news/rss/migration
+    [blocked/empty]
+  Dezeen Architecture
+    https://www.dezeen.com/feed
+    [HTTP 403]
+  Dhamma Wheel Buddhist
+    https://www.dhammawiki.com/feed
+    [HTTP 403]
+  ESA News
+    https://www.esa.int/rssfeed/News
+    [HTTP 404]
+  ESPN
+    https://www.espn.com/espn/rss/news
+    [HTTP 202 (no usable content-type)]
+  Emergency Management
+    https://www.emergencymgmt.com/feed
+    [connection error: HTTPSConnectionPool(host='www.emergencymgmt.com', port=443):]
+  Energy Intelligence
+    https://www.energyintel.com/rss
+    [HTTP 404]
+  EurekAlert AAAS
+    https://www.eurekalert.org/rss.xml
+    [HTTP 404]
+  FAO News
+    https://www.fao.org/news/rss-feed/en
+    [HTTP 404]
+  Food Navigator
+    https://www.foodnavigator.com/feed
+    [HTTP 404]
+  Food and Agriculture Monitor
+    https://www.fao.org/rss
+    [HTTP 404]
+  Forest Peoples Programme
+    https://www.forestpeoples.org/feed
+    [HTTP 404]
+  Freedom House
+    https://freedomhouse.org/feed
+    [HTTP 404]
+  Frieze
+    https://www.frieze.com/feed
+    [HTTP 403]
+  Global Arbitration Review
+    https://globalarbitrationreview.com/feed
+    [HTTP 404]
+  Global Witness
+    https://www.globalwitness.org/en/feed
+    [HTTP 404]
+  Goal.com Football
+    https://www.goal.com/feeds/en/news
+    [HTTP 404]
+  Haaretz Archaeology
+    https://www.haaretz.com/archaeology/rss
+    [HTTP 404]
+  Hechinger Report
+    https://hechingerreport.org/feed
+    [HTTP 429]
+  Hekima Global Women
+    https://www.hekima.org/feed
+    [connection error: ('Connection aborted.', ConnectionResetError(10054, 'An exis]
+  Hindu Business Line Religion
+    https://thfl.com/feed/religion
+    [connection error: HTTPSConnectionPool(host='thfl.com', port=443): Max retries ]
+  History Today
+    https://www.historytoday.com/feed
+    [HTTP 403]
+  Human Rights Watch
+    https://www.hrw.org/rss/world-reports
+    [HTTP 404]
+  ICRC
+    https://www.icrc.org/en/rss
+    [HTTP 404]
+  IFLScience
+    https://www.iflscience.com/rss
+    [HTTP 404]
+  IISS
+    https://www.iiss.org/rss
+    [HTTP 404]
+  IISS
+    https://www.iiss.org/rss
+    [HTTP 404]
+  IMF Blog
+    https://www.imf.org/en/Blogs/rss
+    [HTTP 403]
+  IOM
+    https://www.iom.int/rss
+    [HTTP 403]
+  IWGIA
+    https://www.iwgia.org/en/rss
+    [HTTP 404]
+  Indian Country Today
+    https://ictnews.org/feed
+    [HTTP 429]
+  InfoMigrants
+    https://www.infomigrants.net/en/rss
+    [HTTP 404]
+  Inside Higher Ed
+    https://www.insidehighered.com/rss
+    [HTTP 404]
+  Inside the Games
+    https://www.insidethegames.biz/feed
+    [HTTP 404]
+  Investopedia
+    https://www.investopedia.com/feedbuilder/feed/getfeed?feedName=rss_headline
+    [HTTP 404]
+  Islam21c
+    https://www.islam21c.com/feed
+    [HTTP 403]
+  Jane's Defence
+    https://www.janes.com/rss
+    [HTTP 404]
+  Land Portal
+    https://landportal.org/feed
+    [HTTP 403]
+  Lawfare
+    https://www.lawfareblog.com/feed
+    [HTTP 403]
+  Lawfare
+    https://www.lawfareblog.com/feed
+    [HTTP 403]
+  Lawfare Cyber
+    https://www.lawfareblog.com/topics/cybersecurity/feed
+    [HTTP 403]
+  Live Science Archaeology
+    https://www.livescience.com/feeds/archaeology
+    [HTTP 404]
+  Migration Policy Institute
+    https://www.migrationpolicy.org/feed
+    [HTTP 404]
+  Morningstar
+    https://www.morningstar.com/feeds/articles
+    [HTTP 404]
+  NOAA Disasters
+    https://www.noaa.gov/news-release/feed
+    [HTTP 404]
+  National Catholic Reporter
+    https://www.ncronline.org/feed
+    [HTTP 404]
+  New Scientist
+    https://www.newscientist.com/feed
+    [HTTP 406]
+  New Scientist Environment
+    https://www.newscientist.com/subject/environment/feed
+    [HTTP 406]
+  OECD
+    https://www.oecd.org/newsroom/rss
+    [HTTP 403]
+  Oceans 5
+    https://oceans5.org/feed
+    [HTTP 404]
+  Over The Horizon
+    https://overthehorizonmdos.wpcomstaging.com/feed
+    [HTTP 429]
+  PIIE
+    https://www.piie.com/feed
+    [HTTP 403]
+  Past Horizons
+    https://www.pasthorizonspr.com/index.php/feed
+    [connection error: HTTPSConnectionPool(host='www.pasthorizonspr.com', port=443)]
+  Planetizen Planning
+    https://www.planetizen.com/feed
+    [connection error: HTTPConnectionPool(host='127.0.0.1', port=80): Max retries e]
+  Platts S&P Energy
+    https://www.spglobal.com/commodity-insights/en/rss
+    [HTTP 403]
+  Politico Health
+    https://www.politico.com/rss/politics08.xml
+    [HTTP 403]
+  PreventionWeb
+    https://www.preventionweb.net/feed
+    [HTTP 404]
+  Private Eye
+    https://www.private-eye.co.uk/feed
+    [HTTP 404]
+  Protocol
+    https://www.protocol.com/feed
+    [HTTP 404]
+  RAND Security
+    https://www.rand.org/feeds/security.xml
+    [HTTP 404]
+  RELIEFWEB
+    https://reliefweb.int/rss.xml
+    [HTTP 406]
+  Rail Technology Magazine
+    https://www.railtechnologymagazine.com/feed
+    [HTTP 404]
+  Religion News Service
+    https://religionnews.com/feed
+    [HTTP 403]
+  Renewable Energy World
+    https://www.renewableenergyworld.com/feed
+    [HTTP 403]
+  Resilience.org
+    https://www.resilience.org/feed
+    [HTTP 403]
+  Rest of World
+    https://restofworld.org/feed
+    [HTTP 429]
+  Reuters Agriculture
+    https://feeds.reuters.com/reuters/allNews?tag=AgricultureFood
+    [connection error: HTTPSConnectionPool(host='feeds.reuters.com', port=443): Max]
+  Reuters Business
+    https://feeds.reuters.com/reuters/businessNews
+    [connection error: HTTPSConnectionPool(host='feeds.reuters.com', port=443): Max]
+  Reuters Climate
+    https://feeds.reuters.com/reuters/environment
+    [connection error: HTTPSConnectionPool(host='feeds.reuters.com', port=443): Max]
+  Reuters Disasters
+    https://feeds.reuters.com/reuters/scienceNews
+    [connection error: HTTPSConnectionPool(host='feeds.reuters.com', port=443): Max]
+  Reuters Energy
+    https://feeds.reuters.com/reuters/environment
+    [connection error: HTTPSConnectionPool(host='feeds.reuters.com', port=443): Max]
+  Reuters Finance
+    https://feeds.reuters.com/reuters/businessNews
+    [connection error: HTTPSConnectionPool(host='feeds.reuters.com', port=443): Max]
+  Reuters Health
+    https://feeds.reuters.com/reuters/healthNews
+    [connection error: HTTPSConnectionPool(host='feeds.reuters.com', port=443): Max]
+  Reuters Sport
+    https://feeds.reuters.com/reuters/sportsNews
+    [connection error: HTTPSConnectionPool(host='feeds.reuters.com', port=443): Max]
+  Reuters World
+    https://feeds.reuters.com/reuters/worldNews
+    [connection error: HTTPSConnectionPool(host='feeds.reuters.com', port=443): Max]
+  S&P Global Energy
+    https://www.spglobal.com/rss
+    [HTTP 403]
+  Scientific American
+    https://www.scientificamerican.com/feed
+    [HTTP 404]
+  Sky and Telescope
+    https://skyandtelescope.org/astronomy-news/feed
+    [HTTP 403]
+  Solutions Journalism Network
+    https://www.solutionsjournalism.org/feed
+    [HTTP 404]
+  SpaceNews
+    https://spacenews.com/feed
+    [HTTP 429]
+  Sunny Skyz
+    https://www.sunnyskyz.com/feed
+    [HTTP 404]
+  Survival International
+    https://www.survivalinternational.org/feed
+    [HTTP 404]
+  The Art Newspaper
+    https://www.theartnewspaper.com/feed
+    [HTTP 404]
+  The Atlantic Culture
+    https://www.theatlantic.com/culture/feed
+    [HTTP 404]
+  The Babylon Bee
+    https://babylonbee.com/feed
+    [HTTP 403]
+  The Block Crypto
+    https://www.theblock.co/feed
+    [HTTP 403]
+  The Civilian NZ
+    https://thecivilian.co.nz/feed
+    [SSL error]
+  The Conversation Education
+    https://theconversation.com/global/education/articles.atom
+    [HTTP 404]
+  The Conversation Law
+    https://theconversation.com/global/law/articles.atom
+    [HTTP 404]
+  The Conversation Science
+    https://theconversation.com/global/science+technology/articles.atom
+    [HTTP 404]
+  The Daily Show
+    https://www.cc.com/rss/episodes
+    [HTTP 404]
+  The Maritime Executive
+    https://maritime-executive.com/feed
+    [HTTP 404]
+  The National Interest
+    https://nationalinterest.org/rss.xml
+    [HTTP 404]
+  The New Humanitarian
+    https://www.thenewhumanitarian.org/feed
+    [HTTP 403]
+  The Planetary Society
+    https://www.planetary.org/rss
+    [HTTP 404]
+  Times Higher Education
+    https://www.timeshighereducation.com/feed
+    [HTTP 404]
+  UN Human Rights
+    https://www.ohchr.org/en/rss
+    [HTTP 404]
+  UN Women
+    https://www.unwomen.org/en/news/rss
+    [HTTP 403]
+  UNHCR
+    https://www.unhcr.org/en/rss
+    [HTTP 403]
+  University World News
+    https://www.universityworldnews.com/feed
+    [HTTP 404]
+  VoxEU
+    https://cepr.org/voxeu/rss.xml
+    [HTTP 404]
+  WFP News
+    https://www.wfp.org/rss
+    [HTTP 404]
+  WHO News
+    https://www.who.int/feeds/entity/mediacentre/news/en/rss.xml
+    [HTTP 404]
+  Wind Energy Journal
+    https://www.windenergyjournal.com/feed
+    [connection error: HTTPSConnectionPool(host='www.windenergyjournal.com', port=4]
+  Wired Security
+    https://www.wired.com/category/security/feed/rss
+    [HTTP 404]
+  Women's Media Center
+    https://womensmediacenter.com/feed
+    [read timeout]
+  World Bank Blog
+    https://blogs.worldbank.org/feed
+    [HTTP 404]
+  World Nuclear News
+    https://www.world-nuclear-news.org/rss
+    [HTTP 404]
+  Yale Environment 360
+    https://e360.yale.edu/feed
+    [HTTP 404]
