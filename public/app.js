@@ -3103,28 +3103,97 @@ function renderFeed(articles, options) {
     _feedPagination = { fetching: false, exhausted: true };
   }
 
-  const groups = groupArticlesByTime(articles);
+  // No featured article — every card identical.
+  const featuredArticle = null;
+
+  // Partition articles into category groups using the user's active
+  // filters. Each article goes under the FIRST matching category in
+  // priority order: keyword → narrow sector → narrow region.
+  // Broadened (endless-scroll tail) articles always land in a final
+  // "More you might like" group regardless of match.
+  const userKeywords = Array.isArray(filterKeywords) ? filterKeywords.slice() : [];
+  const userRegions = (typeof getActiveRegions === 'function' ? getActiveRegions() : []) || [];
+  const userSectors = (typeof getActivePills === 'function' && sectorPills)
+    ? getActivePills(sectorPills) : [];
+  const totalRegions = 11;
+  const totalSectors = SECTOR_OPTIONS.length;
+  const narrowedRegions = (userRegions.length > 0 && userRegions.length < totalRegions)
+    ? userRegions : [];
+  const narrowedSectors = (userSectors.length > 0 && userSectors.length < totalSectors)
+    ? userSectors : [];
+
+  const groupBuckets = new Map();
+  const broadenedBucket = [];
+  const orderedLabels = [];
+  const ensureBucket = (label) => {
+    if (!groupBuckets.has(label)) {
+      groupBuckets.set(label, []);
+      orderedLabels.push(label);
+    }
+    return groupBuckets.get(label);
+  };
+
+  // Sort articles by score so each group's first card is its strongest.
+  const sortedArticles = [...articles].sort((a, b) => (b.score || 0) - (a.score || 0));
+
+  for (const a of sortedArticles) {
+    if (a.broadened) { broadenedBucket.push(a); continue; }
+    const text = ((a.title || '') + ' ' + (a.description || '')).toLowerCase();
+    // 1) Keyword match — strongest user intent
+    let placed = false;
+    for (const kw of userKeywords) {
+      const lcKw = String(kw).toLowerCase().trim();
+      if (lcKw && text.includes(lcKw)) {
+        ensureBucket(kw).push(a);
+        placed = true;
+        break;
+      }
+    }
+    if (placed) continue;
+    // 2) Narrow region — only when user picked specific regions (not all)
+    if (narrowedRegions.length > 0 && a.region && narrowedRegions.includes(a.region)) {
+      ensureBucket(a.region).push(a);
+      continue;
+    }
+    // 3) Fallback — group by the article's own region for a clean
+    //    Google-News-style visual structure.
+    const fallbackLabel = a.region || 'Other';
+    ensureBucket(fallbackLabel).push(a);
+  }
+
+  // Build the final ordered list of groups. Pre-existing buckets
+  // are already in insertion order; broadened group always last.
+  const renderGroups = orderedLabels
+    .map(label => ({ label, articles: groupBuckets.get(label) }))
+    .filter(g => g.articles.length > 0);
+  if (broadenedBucket.length > 0) {
+    renderGroups.push({ label: 'More you might like', articles: broadenedBucket, broadened: true });
+  }
+  // If we somehow ended up with one giant group, drop the header
+  // (avoid showing a single "Other" header above the entire feed).
+  const showHeaders = renderGroups.length > 1;
+
   let globalIndex = 0;
 
-  // No featured article, no "For You" / "Breaking" / "Earlier"
-  // section labels — one continuous unified feed of identical cards
-  // sorted by relevance. The previous time-bucket layout buried
-  // user-relevant articles under hot-but-irrelevant breaking news.
-  const featuredArticle = null;
-  const groupLabels = [
-    { key: 'all', label: '', hint: '' }
-  ];
-  groups.all = [...articles].sort((a, b) => (b.score || 0) - (a.score || 0));
-
-  groupLabels.forEach(({ key, label, hint }) => {
-    const groupArticles = groups[key];
+  renderGroups.forEach((group, groupIdx) => {
+    const groupArticles = group.articles;
+    const isLastGroup = groupIdx === renderGroups.length - 1;
     if (groupArticles.length === 0) return;
 
-    // No section header — just the cards grid. We still wrap in a
-    // .feed-section div so existing CSS selectors keep working.
     const section = document.createElement('div');
-    section.className = 'feed-section feed-section-unified';
-    section.innerHTML = '<div class="feed-section-cards"></div>';
+    section.className = 'feed-section feed-section-unified'
+      + (group.broadened ? ' feed-section-broadened' : '');
+    if (showHeaders) {
+      const headerHtml =
+        '<div class="feed-category-header">' +
+          '<span class="feed-category-label">' + escapeHtml(group.label) + '</span>' +
+          '<span class="feed-category-count">' + groupArticles.length + '</span>' +
+          '<span class="feed-category-rule"></span>' +
+        '</div>';
+      section.innerHTML = headerHtml + '<div class="feed-section-cards"></div>';
+    } else {
+      section.innerHTML = '<div class="feed-section-cards"></div>';
+    }
     feed.appendChild(section);
     const cardsGrid = section.querySelector('.feed-section-cards');
 
@@ -3146,20 +3215,7 @@ function renderFeed(articles, options) {
     };
 
     let sentinelObserver = null;
-    // Track whether we've shown the "More you might like" divider —
-    // first broadened article triggers it.
-    let broadenedDividerShown = false;
     const renderOneCard = (article) => {
-      if (article.broadened && !broadenedDividerShown) {
-        broadenedDividerShown = true;
-        const divider = document.createElement('div');
-        divider.className = 'feed-broadened-divider';
-        divider.innerHTML =
-          '<span class="feed-broadened-rule"></span>' +
-          '<span class="feed-broadened-label">More you might like</span>' +
-          '<span class="feed-broadened-rule"></span>';
-        cardsGrid.appendChild(divider);
-      }
       const index = globalIndex++;
       const card = document.createElement('article');
 
@@ -3502,6 +3558,10 @@ function renderFeed(articles, options) {
     section.appendChild(sentinel);
 
     const maybeFetchMore = async () => {
+      // Only the LAST group fetches more from the server. Earlier
+      // groups stop rendering once they've drawn all their assigned
+      // articles — the user keeps scrolling and hits the next group.
+      if (!isLastGroup) return;
       if (!_feedPagination
           || _feedPagination.fetching
           || _feedPagination.exhausted
@@ -3519,6 +3579,9 @@ function renderFeed(articles, options) {
           return;
         }
         currentArticles = currentArticles.concat(more);
+        // Append paginated articles to whichever group this is — for
+        // the broadened "More you might like" group this just keeps
+        // growing the endless tail.
         groupArticles.push(...more);
         renderNextBatch();
         _feedPagination.nextOffset = data.nextOffset;

@@ -77,16 +77,46 @@ function looksLikeProductSpam(title) {
   return false;
 }
 
+// Detect publisher landing / section pages disguised as articles.
+// Examples Perplexity has returned:
+//   - "Ireland | The Times and The Sunday Times"
+//   - "Politics — The Guardian"
+//   - "Latest News - CNN International"
+//
+// Signals:
+//   - Title is short and ends with " | <publisher>" or " - <publisher>"
+//     where the right-hand side reads like an outlet name (3+ words,
+//     contains keywords like "Times", "News", "Post", "Journal").
+//   - Description is a generic site tagline ("Latest news, world news…").
+const LANDING_PAGE_TITLE = /[\s—|\-–]\s*(?:The\s+)?(?:[A-Z][\w'’]*\s*){1,5}(?:Times|News|Post|Journal|Herald|Tribune|Standard|Guardian|Express|Reporter|Telegraph|Observer|Daily|Online|Network|Wire|Digest|Today|Mail|CNN|BBC|NBC|CBS|ABC|FT|WSJ|Bloomberg|Reuters|Politico|Axios|Vox)\b[^A-Za-z]*$/i;
+// Titles like "Latest News", "Breaking News", "World News" — generic
+// landing-page headlines that aren't actual stories.
+const LANDING_PAGE_GENERIC_TITLE = /^(latest|breaking|top|today's?|world|sports?|business|politics|opinion)\s+news\b/i;
+const LANDING_PAGE_DESC = /\b(latest\s+news|breaking\s+news|news\s+and\s+(?:analysis|opinion|reviews?))\b.*\b(world|business|sports|politics|opinion|reviews?)/i;
+
+function looksLikeLandingPage(article) {
+  if (!article) return false;
+  const title = String(article.title || '').trim();
+  const desc = String(article.description || '').trim();
+  if (!title) return false;
+  if (title.length < 90 && LANDING_PAGE_TITLE.test(title)) return true;
+  if (title.length < 60 && LANDING_PAGE_GENERIC_TITLE.test(title)) return true;
+  if (LANDING_PAGE_DESC.test(desc)) return true;
+  return false;
+}
+
 function isJunkArticle(article) {
   if (!article) return true;
   if (!article.title || !article.url) return true;
   if (isNonNewsUrl(article.url)) return true;
   if (looksLikeProductSpam(article.title)) return true;
+  if (looksLikeLandingPage(article)) return true;
   return false;
 }
 
 module.exports = {
   isNonNewsUrl,
   looksLikeProductSpam,
+  looksLikeLandingPage,
   isJunkArticle
 };

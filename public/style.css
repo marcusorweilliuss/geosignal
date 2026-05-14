@@ -5501,6 +5501,48 @@ footer span {
   .briefing-with-recs .briefing-main { order: 1; }
 }
 
+/* Category section headers (Google News–style). One header per
+   user-filter bucket: keyword, sector, region. */
+.feed-category-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 22px 0 14px;
+  font-family: var(--serif);
+}
+.feed-section:first-of-type .feed-category-header {
+  margin-top: 4px;
+}
+.feed-category-label {
+  font-size: calc(22px * var(--text-scale));
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
+  text-transform: capitalize;
+}
+.feed-category-count {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  background: var(--accent-dim);
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+.feed-category-rule {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+  margin-left: 4px;
+}
+.feed-section-broadened .feed-category-header {
+  margin-top: 30px;
+}
+.feed-section-broadened .feed-category-label {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
 /* "More you might like" divider — shown once when the feed
    transitions from the user's strict filter pool to the broader
    recency-based tail. Sits across the full grid width. */
