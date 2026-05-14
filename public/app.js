@@ -354,6 +354,7 @@ const keywordClearAll = document.getElementById('keyword-clear-all');
 // Live arrays — persisted as part of geosignal-filters on change.
 let customFilterSectors = [];
 let filterKeywords = [];
+let filterLocations = [];
 const refreshBtn = document.getElementById('refresh-btn');
 const refreshConfirmation = document.getElementById('refresh-confirmation');
 let refreshConfirmationTimer = null;
@@ -1272,6 +1273,7 @@ function saveFilters() {
       sourceTypes: getActivePills(sourcePills),
       articleTypes: articleTypePills ? getActivePills(articleTypePills) : ['News', 'Analysis'],
       locations: locationsInput ? locationsInput.value.trim() : '',
+      locationChips: filterLocations.slice(),
       dateRange: getActiveDateRange(),
       customSectors: customFilterSectors.slice(),
       keywords: filterKeywords.slice()
@@ -1321,6 +1323,12 @@ function restoreFilters() {
     }
     if (state && Array.isArray(state.keywords)) {
       filterKeywords = state.keywords.slice();
+    }
+    if (state && Array.isArray(state.locationChips)) {
+      filterLocations = state.locationChips.slice();
+    } else if (state && typeof state.locations === 'string' && state.locations.trim()) {
+      // Migrate from the old single-string format on first load.
+      filterLocations = state.locations.split(',').map(s => s.trim()).filter(Boolean);
     }
   } catch { /* ignore */ }
 }
@@ -1395,6 +1403,27 @@ function syncKeywordChipsToSearch() {
   searchInput.dataset.kwSynced = joined;
   if (typeof searchClear !== 'undefined' && searchClear) {
     searchClear.style.display = joined.length > 0 ? 'block' : 'none';
+  }
+}
+
+// ── Location chips ──
+// Multi-country support: the user can add several countries / cities
+// as chips. The chip array mirrors into the legacy locationsInput
+// element (comma-joined) so the existing server param-builder keeps
+// working unchanged.
+function renderLocationChips() {
+  const container = document.getElementById('sidebar-location-chips');
+  if (container) {
+    container.innerHTML = filterLocations
+      .map((loc, i) => '<span class="keyword-chip" data-idx="' + i + '">' +
+        escapeHtml(loc) +
+        '<button type="button" aria-label="Remove ' + escapeHtml(loc) + '">&times;</button></span>')
+      .join('');
+  }
+  // Mirror into the hidden locationsInput so fetchStories picks it up
+  // without changes to the request builder.
+  if (locationsInput) {
+    locationsInput.value = filterLocations.join(', ');
   }
 }
 
@@ -1647,10 +1676,25 @@ function renderSourceBrowserList(searchTerm) {
     // Open if: search active, custom section, or user had it open
     // before this re-render.
     const expanded = q || region === 'Custom' || previouslyOpen.has(region);
+    // Bulk-action state: how many of this region's sources are already
+    // included / excluded? Used to render the buttons as active when
+    // every source in the region is in the matching set.
+    const allIncluded = items.length > 0 && items.every(s => sourceSelection.include.has(s.name));
+    const allExcluded = items.length > 0 && items.every(s => sourceSelection.exclude.has(s.name));
     return `<div class="source-region-group ${expanded ? 'open' : ''}" data-region="${escapeHtml(region)}">
       <div class="source-region-header" data-region-toggle>
         <span>${escapeHtml(region)}</span>
         <span class="source-region-count">${items.length}</span>
+        <div class="source-region-bulk" data-bulk-region>
+          <button type="button" class="source-region-bulk-btn ${allIncluded ? 'active-include' : ''}" data-bulk-act="include-all"
+                  title="Include every source in ${escapeHtml(region)}">
+            ${allIncluded ? '✓ All included' : 'Include all'}
+          </button>
+          <button type="button" class="source-region-bulk-btn ${allExcluded ? 'active-exclude' : ''}" data-bulk-act="exclude-all"
+                  title="Exclude every source in ${escapeHtml(region)}">
+            ${allExcluded ? '✗ All excluded' : 'Exclude all'}
+          </button>
+        </div>
       </div>
       <div class="source-region-list">
         ${items.map(buildRow).join('')}
@@ -1660,9 +1704,51 @@ function renderSourceBrowserList(searchTerm) {
 
   sourceBrowserBody.innerHTML = html;
 
-  // Region toggles (re-bound on each render — the elements are fresh)
+  // Region header toggles — clicking outside the bulk buttons toggles
+  // the region accordion. Clicks INSIDE the bulk-button row are
+  // captured and stopped so they don't also collapse the region.
   sourceBrowserBody.querySelectorAll('[data-region-toggle]').forEach(h => {
-    h.addEventListener('click', () => h.closest('.source-region-group').classList.toggle('open'));
+    h.addEventListener('click', (e) => {
+      if (e.target.closest('[data-bulk-region]')) return;
+      h.closest('.source-region-group').classList.toggle('open');
+    });
+  });
+
+  // Bulk Include All / Exclude All per region.
+  sourceBrowserBody.querySelectorAll('[data-bulk-region]').forEach(bulk => {
+    bulk.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-bulk-act]');
+      if (!btn) return;
+      e.stopPropagation();
+      const group = btn.closest('.source-region-group');
+      const region = group ? group.dataset.region : '';
+      if (!region) return;
+      const items = byRegion[region] || [];
+      const act = btn.dataset.bulkAct;
+      if (act === 'include-all') {
+        const turnOff = items.every(s => sourceSelection.include.has(s.name));
+        items.forEach(s => {
+          if (turnOff) {
+            sourceSelection.include.delete(s.name);
+          } else {
+            sourceSelection.include.add(s.name);
+            sourceSelection.exclude.delete(s.name);
+          }
+        });
+      } else if (act === 'exclude-all') {
+        const turnOff = items.every(s => sourceSelection.exclude.has(s.name));
+        items.forEach(s => {
+          if (turnOff) {
+            sourceSelection.exclude.delete(s.name);
+          } else {
+            sourceSelection.exclude.add(s.name);
+            sourceSelection.include.delete(s.name);
+          }
+        });
+      }
+      renderSourceBrowserList(sourceBrowserSearch ? sourceBrowserSearch.value : '');
+      updateSourceBrowserLegend();
+    });
   });
 }
 
@@ -1887,6 +1973,8 @@ function clearAllFilters() {
   });
   // Clear text-based filters
   if (locationsInput) locationsInput.value = '';
+  filterLocations = [];
+  if (typeof renderLocationChips === 'function') renderLocationChips();
   if (sectorOtherInput) sectorOtherInput.value = '';
   if (keywordsInput) keywordsInput.value = '';
   if (searchInput) {
@@ -2128,8 +2216,19 @@ handleFiltersChanged();
     // is the single editable surface — role / company / focus /
     // country auto-fill after wizard or profile save.
     const prof = (typeof getProfile === 'function' ? getProfile() : null) || {};
-    const sidebarLoc = document.getElementById('sidebar-locations-input');
-    if (sidebarLoc && prof.location && !sidebarLoc.value) sidebarLoc.value = prof.location;
+    // Mirror profile.location into the location chips (don't touch
+    // the input element itself — that's for typing the NEXT chip).
+    if (prof.location) {
+      const incoming = String(prof.location).split(',').map(s => s.trim()).filter(Boolean);
+      let changed = false;
+      for (const loc of incoming) {
+        if (!filterLocations.some(x => x.toLowerCase() === loc.toLowerCase())) {
+          filterLocations.push(loc);
+          changed = true;
+        }
+      }
+      if (changed && typeof renderLocationChips === 'function') renderLocationChips();
+    }
     const sidebarRole = document.getElementById('sidebar-role-input');
     if (sidebarRole && prof.role && !sidebarRole.value) sidebarRole.value = prof.role;
     const sidebarCompany = document.getElementById('sidebar-company-input');
@@ -2218,6 +2317,8 @@ handleFiltersChanged();
         sidebarSectorPills.querySelectorAll('.sidebar-pill.active').forEach(p => p.classList.remove('active'));
       }
       filterKeywords = [];
+      filterLocations = [];
+      if (typeof renderLocationChips === 'function') renderLocationChips();
       if (sidebarKeywordsInput) sidebarKeywordsInput.value = '';
       syncSidebarToMain();
       window.__syncSidebarFromMain();
@@ -2258,28 +2359,65 @@ handleFiltersChanged();
     });
   }
 
-  // ── Wire sidebar locations input → main locations + profile ──
+  // ── Wire sidebar locations input → chips → main locations + profile ──
+  // The sidebar location input is now a chips-style field. The user
+  // adds multiple countries with Enter or comma; chips render below.
+  // The hidden main locationsInput holds the comma-joined string.
   const sidebarLocations = document.getElementById('sidebar-locations-input');
   if (sidebarLocations) {
-    // Prefill from profile so the sidebar shows what was previously
-    // saved (e.g. by the wizard) instead of always starting empty.
+    // Prefill from profile.location (comma-joined). The wizard stores
+    // a single country today; this still works because split(',') of
+    // a single value returns one element.
     const p0 = (typeof getProfile === 'function' ? getProfile() : null) || {};
-    if (p0.location && !sidebarLocations.value) sidebarLocations.value = p0.location;
-    if (locationsInput && sidebarLocations.value && !locationsInput.value) {
-      locationsInput.value = sidebarLocations.value;
+    if (filterLocations.length === 0 && p0.location) {
+      filterLocations = String(p0.location).split(',').map(s => s.trim()).filter(Boolean);
     }
-    sidebarLocations.addEventListener('input', () => {
-      if (locationsInput) locationsInput.value = sidebarLocations.value;
+    renderLocationChips();
+    const commit = () => {
+      const raw = sidebarLocations.value.trim().replace(/,+$/, '').trim();
+      if (!raw) return false;
+      raw.split(',').map(s => s.trim()).filter(Boolean).forEach(term => {
+        if (!filterLocations.some(x => x.toLowerCase() === term.toLowerCase())) {
+          filterLocations.push(term);
+        }
+      });
+      sidebarLocations.value = '';
+      renderLocationChips();
       handleFiltersChanged();
-    });
-    // Persist to profile on blur so ranking + recall across sessions
-    // know where the user is based — previously the value lived only
-    // in the input element and was lost on refresh.
-    sidebarLocations.addEventListener('blur', () => {
+      // Persist to profile so the chips survive a refresh.
       const existing = (typeof getProfile === 'function' ? getProfile() : null) || {};
-      const next = Object.assign({}, existing, { location: sidebarLocations.value.trim() });
+      const next = Object.assign({}, existing, { location: filterLocations.join(', ') });
       if (typeof saveProfile === 'function') saveProfile(next);
+      return true;
+    };
+    sidebarLocations.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        commit();
+      }
     });
+    sidebarLocations.addEventListener('blur', () => {
+      if (sidebarLocations.value.trim()) commit();
+    });
+    // Chip × button removes the location.
+    const chipsContainer = document.getElementById('sidebar-location-chips');
+    if (chipsContainer) {
+      chipsContainer.addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        const chip = btn.closest('.keyword-chip');
+        if (!chip) return;
+        const idx = parseInt(chip.dataset.idx, 10);
+        if (!isNaN(idx)) {
+          filterLocations.splice(idx, 1);
+          renderLocationChips();
+          handleFiltersChanged();
+          const existing = (typeof getProfile === 'function' ? getProfile() : null) || {};
+          const next = Object.assign({}, existing, { location: filterLocations.join(', ') });
+          if (typeof saveProfile === 'function') saveProfile(next);
+        }
+      });
+    }
   }
 
   // ── Inline profile fields (role, company, focus) ──

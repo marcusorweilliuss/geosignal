@@ -43,11 +43,13 @@
              placeholder="Search..." autocomplete="off" />
     </div>
 
-    <!-- 1. Country / city — first thing the user sees -->
+    <!-- 1. Country / city — first thing the user sees.
+         Chips input: add multiple countries with Enter or comma. -->
     <div class="sidebar-section sidebar-section-primary">
       <div class="sidebar-section-label">Where are you based?</div>
       <input type="text" id="sidebar-locations-input" class="sidebar-search-input" style="padding-left:12px;"
-             placeholder="e.g. Singapore, Lagos, London..." autocomplete="off" />
+             placeholder="Add country (Enter to add)..." autocomplete="off" />
+      <div class="sidebar-keyword-chips" id="sidebar-location-chips"></div>
     </div>
 
     <!-- 2. Choose your news sources — primary, prominent -->
