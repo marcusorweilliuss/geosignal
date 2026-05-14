@@ -9,6 +9,7 @@ const { SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT, classifyA
 const { queryArticles, upsertManyArticles, updateThumbnail } = require('./db');
 const { runFullIngest, googleNewsLiveSearch, liveFetchManyQueries } = require('./ingest');
 const { enrichWithOgImages } = require('./og-fetcher');
+const { isJunkArticle } = require('./quality-filters');
 
 // Glue words that aren't useful as keyword tokens. Used by both the
 // user-intent boost (so "the" doesn't match every article) and the
@@ -997,6 +998,15 @@ app.get('/api/news', async (req, res) => {
       excludeSources: excludeArr,
       limit: 2500
     });
+    // Read-time junk filter — drops articles that pre-dated the
+    // quality-filter additions and are still sitting in the corpus
+    // (landing pages, product spam, social URLs). The write-time
+    // filter only blocks NEW ingests; existing rows need this.
+    const beforeFilter = allArticles.length;
+    allArticles = allArticles.filter(a => !isJunkArticle(a));
+    if (beforeFilter - allArticles.length > 0) {
+      console.log(`Read-time junk filter dropped ${beforeFilter - allArticles.length} articles`);
+    }
     if (strictKeywordMode) {
       console.log(`Strict-keyword mode active for [${allUserTerms.slice(0,8).join(', ')}…]: ${allArticles.length} articles match in corpus`);
     }
@@ -1491,7 +1501,7 @@ app.get('/api/news', async (req, res) => {
     // pool, and tag each tail article broadened=true. Pagination
     // walks through the strict pool first, then the broadened tail.
     try {
-      const broader = queryArticles({
+      let broader = queryArticles({
         regionSlugs: ['__all__'],
         // Use a wider lookback for the tail — recent + older content
         // alike. The strict pool already enforces the user's date
@@ -1502,6 +1512,8 @@ app.get('/api/news', async (req, res) => {
         excludeSources: excludeArr,
         limit: 3000
       });
+      // Apply read-time junk filter to the broadened tail too.
+      broader = broader.filter(a => !isJunkArticle(a));
       const seenUrls = new Set(unique.map(a => a.url));
       const seenTitleHashes = new Set(unique.map(a => (a.title || '').toLowerCase().trim()));
       const tail = [];

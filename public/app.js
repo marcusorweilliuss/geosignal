@@ -3208,9 +3208,13 @@ function renderFeed(articles, options) {
         renderOneCard(groupArticles[i]);
       }
       rendered = end;
-      // When we've drawn everything, drop the sentinel observer.
+      // Only disconnect the sentinel when we've drawn everything AND
+      // this group can't fetch more from the server. For the last
+      // group, we keep the observer alive so endless-scroll keeps
+      // firing remote fetches as the user reaches the bottom.
       if (rendered >= groupArticles.length && sentinelObserver) {
-        sentinelObserver.disconnect();
+        const canFetchMore = isLastGroup && _feedPagination && _feedPagination.hasMore;
+        if (!canFetchMore) sentinelObserver.disconnect();
       }
     };
 
@@ -3561,12 +3565,16 @@ function renderFeed(articles, options) {
       // Only the LAST group fetches more from the server. Earlier
       // groups stop rendering once they've drawn all their assigned
       // articles — the user keeps scrolling and hits the next group.
-      if (!isLastGroup) return;
-      if (!_feedPagination
-          || _feedPagination.fetching
-          || _feedPagination.exhausted
-          || !_feedPagination.hasMore) return;
+      if (!isLastGroup) {
+        console.log('[paginate] sentinel hit on non-last group; skipping fetch');
+        return;
+      }
+      if (!_feedPagination) { console.log('[paginate] no pagination state'); return; }
+      if (_feedPagination.fetching) { console.log('[paginate] already fetching'); return; }
+      if (_feedPagination.exhausted) { console.log('[paginate] exhausted'); return; }
+      if (!_feedPagination.hasMore) { console.log('[paginate] hasMore=false'); return; }
       _feedPagination.fetching = true;
+      console.log('[paginate] fetching offset=' + _feedPagination.nextOffset);
       try {
         const params = new URLSearchParams(_feedPagination.params);
         params.set('offset', String(_feedPagination.nextOffset));
@@ -3574,16 +3582,21 @@ function renderFeed(articles, options) {
         if (!res.ok) throw new Error('http ' + res.status);
         const data = await res.json();
         const more = Array.isArray(data.articles) ? data.articles : [];
+        console.log('[paginate] got ' + more.length + ' more articles, hasMore=' + data.hasMore);
         if (more.length === 0) {
           _feedPagination.exhausted = true;
           return;
         }
         currentArticles = currentArticles.concat(more);
-        // Append paginated articles to whichever group this is — for
-        // the broadened "More you might like" group this just keeps
-        // growing the endless tail.
         groupArticles.push(...more);
         renderNextBatch();
+        // Live-update the feed-count label so the user sees the
+        // total grow as they scroll.
+        if (feedCount) {
+          feedCount.textContent = currentArticles.length === 1
+            ? '1 article'
+            : currentArticles.length + ' articles';
+        }
         _feedPagination.nextOffset = data.nextOffset;
         _feedPagination.hasMore = !!data.hasMore;
         if (!data.hasMore) _feedPagination.exhausted = true;
