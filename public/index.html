@@ -43,9 +43,58 @@
              placeholder="Search..." autocomplete="off" />
     </div>
 
-    <!-- Regions — compact multi-select pills -->
-    <div class="sidebar-section">
-      <div class="sidebar-section-label">Regions</div>
+    <!-- 1. Country / city — first thing the user sees -->
+    <div class="sidebar-section sidebar-section-primary">
+      <div class="sidebar-section-label">Where are you based?</div>
+      <input type="text" id="sidebar-locations-input" class="sidebar-search-input" style="padding-left:12px;"
+             placeholder="e.g. Singapore, Lagos, London..." autocomplete="off" />
+    </div>
+
+    <!-- 2. Choose your news sources — primary, prominent -->
+    <div class="sidebar-section sidebar-section-sources">
+      <button type="button" class="sidebar-choose-sources-btn" id="sidebar-manage-sources-btn">
+        <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="8" cy="8" r="6.5"/>
+          <path d="M8 5v6M5 8h6"/>
+        </svg>
+        <div>
+          <strong>Choose your news sources</strong>
+          <small>Pick outlets to include or exclude</small>
+        </div>
+      </button>
+      <details class="sidebar-details">
+        <summary>Source types</summary>
+        <div class="sidebar-pills">
+          <button class="sidebar-pill active" data-source-type="Mainstream news">Mainstream</button>
+          <button class="sidebar-pill active" data-source-type="Think tanks &amp; academic">Think Tanks</button>
+          <button class="sidebar-pill active" data-source-type="Independent journalism">Independent</button>
+          <button class="sidebar-pill" data-source-type="Official statements">Official</button>
+        </div>
+      </details>
+    </div>
+
+    <!-- 3. Identity — role + company, edited inline (no separate panel) -->
+    <details class="sidebar-section sidebar-details">
+      <summary class="sidebar-section-label">About you</summary>
+      <input type="text" id="sidebar-role-input" class="sidebar-search-input" style="padding-left:12px;margin-top:6px;"
+             placeholder="Your role (e.g. Founder, Analyst)" autocomplete="off" />
+      <input type="text" id="sidebar-company-input" class="sidebar-search-input" style="padding-left:12px;margin-top:6px;"
+             placeholder="Company (optional)" autocomplete="organization" />
+      <input type="text" id="sidebar-focus-input" class="sidebar-search-input" style="padding-left:12px;margin-top:6px;"
+             placeholder="Focus areas (optional, e.g. ESG, supply chain)" autocomplete="off" />
+    </details>
+
+    <!-- 4. Keywords — compact chip input, collapsed by default -->
+    <details class="sidebar-section sidebar-details" open>
+      <summary class="sidebar-section-label">Keywords</summary>
+      <input type="text" id="sidebar-keywords-input" class="sidebar-search-input" style="padding-left:12px;margin-top:6px;"
+             placeholder="Add keyword..." autocomplete="off" />
+      <div class="sidebar-keyword-chips" id="sidebar-keyword-chips"></div>
+    </details>
+
+    <!-- 5. Regions — collapsible -->
+    <details class="sidebar-section sidebar-details">
+      <summary class="sidebar-section-label">Regions</summary>
       <div class="sidebar-pills" id="sidebar-region-pills">
         <button class="sidebar-pill active" data-value="Global">Global</button>
         <button class="sidebar-pill active" data-value="North America">N. America</button>
@@ -59,11 +108,11 @@
         <button class="sidebar-pill active" data-value="Central Asia &amp; Caucasus">C. Asia</button>
         <button class="sidebar-pill active" data-value="Oceania">Oceania</button>
       </div>
-    </div>
+    </details>
 
-    <!-- Sectors — compact multi-select -->
-    <div class="sidebar-section">
-      <div class="sidebar-section-label">Sectors</div>
+    <!-- 6. Sectors — collapsible -->
+    <details class="sidebar-section sidebar-details">
+      <summary class="sidebar-section-label">Sectors</summary>
       <div class="sidebar-pills sidebar-sector-pills" id="sidebar-sector-pills">
         <button class="sidebar-pill active" data-value="Geopolitics &amp; International Relations">Geopolitics</button>
         <button class="sidebar-pill active" data-value="Economics &amp; Trade">Economics</button>
@@ -84,40 +133,11 @@
       <input type="text" id="sidebar-sector-other" class="sidebar-search-input" style="margin-top:6px;padding-left:12px;"
              placeholder="Other (type + Enter)..." autocomplete="off" />
       <div class="sidebar-keyword-chips" id="sidebar-sector-other-chips"></div>
-    </div>
+    </details>
 
-    <!-- City / country -->
-    <div class="sidebar-section">
-      <div class="sidebar-section-label">City / country</div>
-      <input type="text" id="sidebar-locations-input" class="sidebar-search-input" style="padding-left:12px;"
-             placeholder="e.g. Singapore, Lagos..." autocomplete="off" />
-    </div>
-
-    <!-- Choose your news sources — promoted to a primary filter -->
-    <div class="sidebar-section sidebar-section-sources">
-      <div class="sidebar-section-label">Choose your news sources</div>
-      <button type="button" class="sidebar-choose-sources-btn" id="sidebar-manage-sources-btn">
-        <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="8" cy="8" r="6.5"/>
-          <path d="M8 5v6M5 8h6"/>
-        </svg>
-        <div>
-          <strong>Choose your news sources</strong>
-          <small>Pick outlets to include or exclude</small>
-        </div>
-      </button>
-      <div class="sidebar-section-sub-label">Source types</div>
-      <div class="sidebar-pills">
-        <button class="sidebar-pill active" data-source-type="Mainstream news">Mainstream</button>
-        <button class="sidebar-pill active" data-source-type="Think tanks &amp; academic">Think Tanks</button>
-        <button class="sidebar-pill active" data-source-type="Independent journalism">Independent</button>
-        <button class="sidebar-pill" data-source-type="Official statements">Official</button>
-      </div>
-    </div>
-
-    <!-- Date range -->
-    <div class="sidebar-section">
-      <div class="sidebar-section-label">Date range</div>
+    <!-- 7. Date range — collapsible -->
+    <details class="sidebar-section sidebar-details">
+      <summary class="sidebar-section-label">Date range</summary>
       <div class="sidebar-pills" id="sidebar-date-range">
         <button class="sidebar-pill active" data-value="24">24h</button>
         <button class="sidebar-pill" data-value="72">3 days</button>
@@ -125,15 +145,7 @@
         <button class="sidebar-pill" data-value="336">2 weeks</button>
         <button class="sidebar-pill" data-value="720">Month</button>
       </div>
-    </div>
-
-    <!-- Keywords — compact chip input -->
-    <div class="sidebar-section">
-      <div class="sidebar-section-label">Keywords</div>
-      <input type="text" id="sidebar-keywords-input" class="sidebar-search-input" style="padding-left:12px;"
-             placeholder="Add keyword..." autocomplete="off" />
-      <div class="sidebar-keyword-chips" id="sidebar-keyword-chips"></div>
-    </div>
+    </details>
 
     <!-- Apply + Clear -->
     <div class="sidebar-actions">
@@ -142,9 +154,9 @@
           <path d="M2 8.5a6 6 0 1 1 1.3 3.8"/>
           <path d="M1.5 4v3.5H5"/>
         </svg>
-        Apply filters
+        Apply
       </button>
-      <button class="sidebar-clear-btn" id="sidebar-clear-btn" type="button">Clear all</button>
+      <button class="sidebar-clear-btn" id="sidebar-clear-btn" type="button">Clear</button>
     </div>
   </aside>
 

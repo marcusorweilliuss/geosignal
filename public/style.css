@@ -5253,6 +5253,65 @@ footer span {
   .annotate-feature-banner-body strong { font-size: 15.5px; }
 }
 
+/* ── Sidebar collapsible sections ───────────────────────────────
+   Each non-primary section uses native <details>/<summary> so the
+   sidebar starts compact and the user opens only what they need.
+   Primary actions (Country, Sources) stay always-visible. */
+.sidebar-details > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 0;
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  user-select: none;
+  transition: color 0.15s;
+}
+.sidebar-details > summary::-webkit-details-marker { display: none; }
+.sidebar-details > summary::after {
+  content: '+';
+  font-size: 16px;
+  line-height: 1;
+  color: var(--text-tertiary);
+  transition: transform 0.15s;
+}
+.sidebar-details[open] > summary::after { content: '−'; }
+.sidebar-details > summary:hover { color: var(--accent); }
+.sidebar-details > summary:hover::after { color: var(--accent); }
+.sidebar-details[open] > summary { color: var(--accent); margin-bottom: 4px; }
+
+/* Primary sections (Country, Sources) stand apart — accent border
+   so they read as the most-important controls at the top. */
+.sidebar-section-primary {
+  background: rgba(15, 110, 86, 0.04);
+  margin: 4px -8px 12px;
+  padding: 10px 12px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--accent-soft);
+}
+.sidebar-section-primary .sidebar-section-label {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: var(--accent) !important;
+  letter-spacing: 0.4px !important;
+  margin-bottom: 6px;
+}
+
+/* Action row tightened — fits on one row at all sidebar widths. */
+.sidebar-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+}
+.sidebar-actions .sidebar-apply-btn { flex: 1; }
+
 /* ── Thumbnail placeholder tiles ─────────────────────────────────
    Every card has a thumbnail. When the article has no image we
    render a colored tile labelled with region/sector. 8 tones,

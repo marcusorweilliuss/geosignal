@@ -1928,13 +1928,18 @@ handleFiltersChanged();
         '<button type="button">&times;</button></span>'
       ).join('');
     }
-    // Push country/location from profile into the sidebar location input.
+    // Push profile values into the sidebar inputs so the sidebar
+    // is the single editable surface — role / company / focus /
+    // country auto-fill after wizard or profile save.
+    const prof = (typeof getProfile === 'function' ? getProfile() : null) || {};
     const sidebarLoc = document.getElementById('sidebar-locations-input');
-    if (sidebarLoc) {
-      const prof = (typeof getProfile === 'function' ? getProfile() : null) || {};
-      const loc = prof.location || '';
-      if (loc && !sidebarLoc.value) sidebarLoc.value = loc;
-    }
+    if (sidebarLoc && prof.location && !sidebarLoc.value) sidebarLoc.value = prof.location;
+    const sidebarRole = document.getElementById('sidebar-role-input');
+    if (sidebarRole && prof.role && !sidebarRole.value) sidebarRole.value = prof.role;
+    const sidebarCompany = document.getElementById('sidebar-company-input');
+    if (sidebarCompany && prof.company && !sidebarCompany.value) sidebarCompany.value = prof.company;
+    const sidebarFocus = document.getElementById('sidebar-focus-input');
+    if (sidebarFocus && prof.focus && !sidebarFocus.value) sidebarFocus.value = prof.focus;
   };
 
   // Initial sync from main → sidebar
@@ -2065,6 +2070,43 @@ handleFiltersChanged();
       handleFiltersChanged();
     });
   }
+
+  // ── Inline profile fields (role, company, focus) ──
+  // The slide-in profile panel is gone. Profile edits happen
+  // directly in the sidebar so there's one editable surface.
+  const sidebarRoleEl    = document.getElementById('sidebar-role-input');
+  const sidebarCompanyEl = document.getElementById('sidebar-company-input');
+  const sidebarFocusEl   = document.getElementById('sidebar-focus-input');
+  // Prefill from existing profile.
+  (function prefillSidebarProfile() {
+    const p = (typeof getProfile === 'function' ? getProfile() : null) || {};
+    if (sidebarRoleEl)    sidebarRoleEl.value = p.role || '';
+    if (sidebarCompanyEl) sidebarCompanyEl.value = p.company || '';
+    if (sidebarFocusEl)   sidebarFocusEl.value = p.focus || '';
+  })();
+  // Save on blur so we don't fire on every keystroke.
+  let _profileSaveDeferred;
+  const persistInlineProfile = () => {
+    clearTimeout(_profileSaveDeferred);
+    _profileSaveDeferred = setTimeout(() => {
+      const existing = (typeof getProfile === 'function' ? getProfile() : null) || {};
+      const next = Object.assign({}, existing, {
+        role: sidebarRoleEl ? sidebarRoleEl.value.trim() : (existing.role || ''),
+        company: sidebarCompanyEl ? sidebarCompanyEl.value.trim() : (existing.company || ''),
+        focus: sidebarFocusEl ? sidebarFocusEl.value.trim() : (existing.focus || ''),
+        industries: Array.isArray(existing.industries) ? existing.industries : [],
+        customSectors: Array.isArray(existing.customSectors) ? existing.customSectors : [],
+        keywords: Array.isArray(existing.keywords) ? existing.keywords : [],
+        location: existing.location || ''
+      });
+      if (typeof saveProfile === 'function') saveProfile(next);
+    }, 400);
+  };
+  [sidebarRoleEl, sidebarCompanyEl, sidebarFocusEl].forEach(el => {
+    if (!el) return;
+    el.addEventListener('blur', persistInlineProfile);
+    el.addEventListener('change', persistInlineProfile);
+  });
 
   // ── Wire sidebar "Other" sector input ──
   const sidebarSectorOther = document.getElementById('sidebar-sector-other');

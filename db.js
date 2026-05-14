@@ -151,6 +151,22 @@ function upsertArticle(article) {
   return true;
 }
 
+// Update just the thumbnail for an existing article. Used by the
+// lazy og:image enrichment so subsequent requests have the image
+// without re-fetching.
+const updateThumbnailStmt = db.prepare(`
+  UPDATE articles SET thumbnail = ? WHERE url = ?
+`);
+function updateThumbnail(url, thumbnail) {
+  if (!url || !thumbnail) return false;
+  try {
+    updateThumbnailStmt.run(thumbnail, url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function upsertManyArticles(articles) {
   const tx = db.transaction((items) => {
     let inserted = 0;
@@ -276,6 +292,7 @@ module.exports = {
   db,
   upsertArticle,
   upsertManyArticles,
+  updateThumbnail,
   queryArticles,
   pruneOlderThan,
   stats
