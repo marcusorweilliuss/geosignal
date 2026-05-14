@@ -5294,34 +5294,45 @@ footer span {
 .thumb-tone-6 { background: linear-gradient(135deg, #305472, #4B7AA0); }
 .thumb-tone-7 { background: linear-gradient(135deg, #5A2A6B, #813F9C); }
 
-/* Card preview — 3-bullet summary visible on every card */
-.card-tldr-bullets {
-  list-style: none;
-  padding: 0;
+/* Collapsible card summary — uses the article's own description.
+   Hidden behind a "Show summary" disclosure so the feed stays
+   scannable. No auto-generated bullets. */
+.card-summary {
   margin: 8px 0 2px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.card-tldr-bullets li {
-  position: relative;
-  padding-left: 18px;
-  font-size: calc(14.5px * var(--text-scale));
-  line-height: 1.45;
-  color: var(--text-secondary);
   font-family: var(--sans);
 }
-.card-tldr-bullets li::before {
-  content: '';
-  position: absolute;
-  left: 4px;
-  top: 8px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
+.card-summary > summary {
+  list-style: none;
+  cursor: pointer;
+  font-size: calc(12px * var(--text-scale));
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--accent);
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
 }
-.card-tldr.loading .card-tldr-bullets { opacity: 0.4; }
+.card-summary > summary::-webkit-details-marker { display: none; }
+.card-summary > summary::before {
+  content: '+';
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 700;
+  width: 14px;
+  text-align: center;
+  color: var(--accent);
+}
+.card-summary[open] > summary::before { content: '−'; }
+.card-summary[open] > summary { margin-bottom: 6px; }
+.card-summary-text {
+  margin: 0;
+  font-size: calc(14.5px * var(--text-scale));
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
 
 /* ── Recommended-for-you rail inside expanded briefings ───────── */
 .briefing.briefing-with-recs {

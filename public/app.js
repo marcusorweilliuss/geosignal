@@ -803,7 +803,8 @@ savedBtn.addEventListener('click', () => {
     if (currentArticles.length > 0) {
       updateDispatchHeader(currentArticles);
       renderFeed(currentArticles);
-      generateTldrs(currentArticles);
+      // generateTldrs() removed — card preview now uses the article's
+      // own description (collapsible), not an LLM-generated bullet list.
     } else {
       fetchStories();
     }
@@ -2153,6 +2154,25 @@ function hashStringCheap(s) {
   return h;
 }
 
+// Trim a string to at most N sentences AND M characters, keeping
+// whole-sentence boundaries when possible. Used for the card
+// preview text — short enough to scan, never cut mid-word.
+function truncateToSentences(s, maxSentences, maxChars) {
+  if (!s) return '';
+  s = String(s).trim();
+  if (s.length <= maxChars && (s.match(/[.!?](?:\s|$)/g) || []).length <= maxSentences) {
+    return s;
+  }
+  const sentRe = /[^.!?]+(?:[.!?]+|$)/g;
+  const sentences = (s.match(sentRe) || []).map(x => x.trim()).filter(Boolean);
+  const kept = sentences.slice(0, maxSentences).join(' ').trim();
+  if (kept.length <= maxChars) return kept;
+  // Hard cap on char length, cut at last word boundary.
+  const sliced = kept.slice(0, maxChars);
+  const lastSpace = sliced.lastIndexOf(' ');
+  return (lastSpace > 40 ? sliced.slice(0, lastSpace) : sliced).replace(/[,;:\-]\s*$/, '') + '…';
+}
+
 // Strip markdown emphasis marks (**bold**, __bold__, *italic*) that the AI
 // sometimes emits despite being told to use plain text
 function stripMd(str) {
@@ -2472,7 +2492,6 @@ async function runWebSearch(query) {
     feedTimestamp.textContent = formatTimestamp();
     updateDispatchHeader(currentArticles);
     renderFeed(currentArticles, { coverageNote: data.coverageNote });
-    generateTldrs(currentArticles);
     markFiltersApplied();
     showRefreshConfirmation();
   } catch (err) {
@@ -2615,7 +2634,6 @@ async function fetchStories() {
 
     updateDispatchHeader(currentArticles);
     renderFeed(currentArticles, { coverageNote: data.coverageNote || data.broadenedNotice });
-    generateTldrs(currentArticles);
 
     // Filter state is now "applied" — clear the pending indicator and
     // snapshot the state that produced these results.
@@ -3025,7 +3043,25 @@ function renderFeed(articles, options) {
     feed.appendChild(section);
     const cardsGrid = section.querySelector('.feed-section-cards');
 
-    groupArticles.forEach(article => {
+    // Lazy render: paint the first 24 cards immediately, then paint
+    // additional batches of 24 as the user scrolls near the bottom.
+    // Avoids one giant DOM commit when the API returns 80+ articles.
+    const BATCH = 24;
+    let rendered = 0;
+    const renderNextBatch = () => {
+      const end = Math.min(rendered + BATCH, groupArticles.length);
+      for (let i = rendered; i < end; i++) {
+        renderOneCard(groupArticles[i]);
+      }
+      rendered = end;
+      // When we've drawn everything, drop the sentinel observer.
+      if (rendered >= groupArticles.length && sentinelObserver) {
+        sentinelObserver.disconnect();
+      }
+    };
+
+    let sentinelObserver = null;
+    const renderOneCard = (article) => {
       const index = globalIndex++;
       const card = document.createElement('article');
 
@@ -3041,7 +3077,17 @@ function renderFeed(articles, options) {
       card.setAttribute('tabindex', '0');
       card.dataset.cardIndex = index;
 
-      const tldrFallback = article.description ? escapeHtml(cleanFallback(article.description)) : '';
+      // Card preview = the article's own description, trimmed to ~1-2
+      // short sentences. No LLM autogeneration; this is collapsible
+      // behind a "Show summary" disclosure so the feed stays scannable.
+      const summaryRaw = article.description ? cleanFallback(article.description) : '';
+      const summaryShort = truncateToSentences(summaryRaw, 2, 220);
+      const summaryHtml = summaryShort
+        ? '<details class="card-summary">' +
+            '<summary>Show summary</summary>' +
+            '<p class="card-summary-text">' + escapeHtml(summaryShort) + '</p>' +
+          '</details>'
+        : '';
       const officialBadge = article.isOfficial ? '<span class="card-official-badge">Official</span>' : '';
       const regionPill = article.region ? '<span class="card-region">' + escapeHtml(article.region) + '</span>' : '';
       const countryPill = (article.country && article.country !== article.region)
@@ -3111,19 +3157,13 @@ function renderFeed(articles, options) {
 
       // Every card MUST show a thumbnail. If the article has one,
       // use it; otherwise render a deterministic colored placeholder
-      // tile labelled with the region or sector. The placeholder is
+      // tile labelled with the publication name. The placeholder is
       // pure CSS — no broken-img icon, no empty space.
-      const placeholderLabel = escapeHtml(
-        (article.region && article.region !== 'Global' && article.region) ||
-        (article.country && article.country) ||
-        (article.articleType && article.articleType) ||
-        article.source ||
-        'News'
-      );
+      const placeholderLabel = escapeHtml(article.source || 'News');
       const placeholderClass = 'thumb-placeholder thumb-tone-' + (
-        // 8 buckets so different topics produce different colors but
-        // the same topic always picks the same color.
-        Math.abs(hashStringCheap(article.region || article.source || article.title || '')) % 8
+        // 8 buckets, hashed off the source name so the same outlet
+        // always picks the same color.
+        Math.abs(hashStringCheap(article.source || article.title || '')) % 8
       );
       const thumbnailHtml = article.thumbnail
         ? '<div class="card-thumb"><img src="' + escapeHtml(article.thumbnail) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentElement.outerHTML = \'<div class=&quot;card-thumb ' + placeholderClass + '&quot;><span>' + placeholderLabel + '</span></div>\'" /></div>'
@@ -3154,7 +3194,7 @@ function renderFeed(articles, options) {
             (tierLabel ? '<span class="card-dot card-tier-meta"></span><span class="card-tier-meta"' + sourceAttr + '>' + escapeHtml(tierLabel) + '</span>' : '') +
           '</div>' +
           matchReasonHtml +
-          '<div class="card-tldr loading" data-index="' + index + '">' + tldrFallback + '</div>';
+          summaryHtml;
       } else {
         // Regular: thumbnail on the right as a square, body on the left
         card.innerHTML =
@@ -3169,14 +3209,12 @@ function renderFeed(articles, options) {
               '<span>' + timeAgo(article.publishedAt) + '</span>' +
               (tierLabel ? '<span class="card-dot card-tier-meta"></span><span class="card-tier-meta">' + escapeHtml(tierLabel) + '</span>' : '') +
             '</div>' +
-            '<div class="card-tldr loading" data-index="' + index + '">' + tldrFallback + '</div>' +
+            summaryHtml +
           '</div>' +
           thumbnailHtml;
       }
 
-      const tldrEl = card.querySelector('.card-tldr');
       const articleId = article.url || article.title;
-      tldrElementsById.set(articleId, tldrEl);
 
       if (readCards.has(articleId)) {
         card.classList.add('card-read');
@@ -3347,7 +3385,27 @@ function renderFeed(articles, options) {
       });
 
       cardsGrid.appendChild(card);
-    });
+    };
+    // end renderOneCard
+
+    // Initial paint.
+    renderNextBatch();
+
+    // Sentinel + observer for lazy-loading more cards as the user
+    // scrolls. The sentinel sits after the cards grid; when it
+    // enters the viewport, render the next batch.
+    if (groupArticles.length > rendered) {
+      const sentinel = document.createElement('div');
+      sentinel.className = 'feed-scroll-sentinel';
+      sentinel.setAttribute('aria-hidden', 'true');
+      section.appendChild(sentinel);
+      sentinelObserver = new IntersectionObserver(entries => {
+        for (const e of entries) {
+          if (e.isIntersecting) renderNextBatch();
+        }
+      }, { rootMargin: '600px 0px' });
+      sentinelObserver.observe(sentinel);
+    }
   });
 }
 

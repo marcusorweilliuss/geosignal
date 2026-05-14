@@ -534,6 +534,15 @@ const regionSlugMap = {
   'Oceania': 'oceania'
 };
 
+// Reverse lookup: corpus stores articles with slugs like 'middle-east'.
+// When we surface them to the client we want the display label.
+const regionDisplayBySlug = Object.fromEntries(
+  Object.entries(regionSlugMap).map(([disp, slug]) => [slug, disp])
+);
+function regionSlugToDisplay(slug) {
+  return regionDisplayBySlug[String(slug || '').toLowerCase()] || '';
+}
+
 // ── LLM-first article selection + ranking (Test mode) ──────────
 // Takes a full candidate pool plus user context, asks Groq to pick
 // and rank the top N by genuine relevance. Returns a subset of the
@@ -739,7 +748,8 @@ Return ONLY this JSON (no prose, no code fences):
 {"top": [id, id, id, ...]}
 
 OUTPUT:
-- Return UP TO ${Math.min(topN, pool.length)} IDs — fewer is fine and PREFERRED if only a handful are truly relevant.
+- Return ALL genuinely relevant IDs, up to ${Math.min(topN, pool.length)}. Don't stop at 8 or 10 if 30+ articles legitimately match the reader's interests — the user wants a real feed, not a curated handful.
+- Reject articles that don't match the reader's interests, but include everything that does.
 - Order by relevance (most relevant first).
 - Each ID is between 0 and ${pool.length - 1}, and each appears at most once.
 - No prose, no code fences — only the JSON object.`;
@@ -1361,7 +1371,7 @@ app.get('/api/news', async (req, res) => {
             includeSources: includeSources ? includeSources.split(',') : [],
             excludeSources: excludeSources ? excludeSources.split(',') : []
           },
-          topN: 40
+          topN: 80
         });
         if (Array.isArray(llmRanked) && llmRanked.length > 0) {
           unique = llmRanked;
@@ -1441,7 +1451,7 @@ app.get('/api/news', async (req, res) => {
     // Map to card format. Strip HTML server-side so descriptions arrive
     // as clean text — prevents truncation from cutting mid-entity on
     // the client and keeps the payload lean.
-    const articles = unique.slice(0, 40).map(article => {
+    const articles = unique.slice(0, 100).map(article => {
       // Truncate description to the first sentence so the fallback TL;DR
       // is always a complete thought, never a mid-sentence cut.
       let desc = stripHtml(article.description || '');
@@ -1458,7 +1468,15 @@ app.get('/api/news', async (req, res) => {
         description: desc,
         content: body,
         url: article.url,
-        region: region || 'Global',
+        // Use the article's own region, NOT the display label the
+        // client sent (which can be e.g. "11 regions" when the user
+        // has all regions on). Fall back to the user's first picked
+        // region, then 'Global'.
+        region: (article.region && typeof article.region === 'string'
+                 ? regionSlugToDisplay(article.region) || article.region
+                 : null)
+                || (regionList[0] && regionList[0] !== 'Global' ? regionList[0] : '')
+                || 'Global',
         isOfficial: article.sourceTier === 'government-official',
         score: article.score,
         thumbnail: article.thumbnail || '',
