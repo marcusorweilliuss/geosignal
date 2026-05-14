@@ -5253,6 +5253,197 @@ footer span {
   .annotate-feature-banner-body strong { font-size: 15.5px; }
 }
 
+/* ── Thumbnail placeholder tiles ─────────────────────────────────
+   Every card has a thumbnail. When the article has no image we
+   render a colored tile labelled with region/sector. 8 tones,
+   deterministic per topic via hashStringCheap on the client. */
+.card-thumb {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.thumb-placeholder {
+  position: relative;
+  color: rgba(255, 255, 255, 0.92);
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 0 18px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+.thumb-placeholder span { display: inline-block; max-width: 100%; line-height: 1.2; }
+.thumb-tone-0 { background: linear-gradient(135deg, #0F6E56, #1A8B6E); }
+.thumb-tone-1 { background: linear-gradient(135deg, #6B4E71, #8C6991); }
+.thumb-tone-2 { background: linear-gradient(135deg, #B54534, #D26A4A); }
+.thumb-tone-3 { background: linear-gradient(135deg, #B8860B, #D9A227); }
+.thumb-tone-4 { background: linear-gradient(135deg, #C4622D, #E0824A); }
+.thumb-tone-5 { background: linear-gradient(135deg, #4F7942, #6A9658); }
+.thumb-tone-6 { background: linear-gradient(135deg, #305472, #4B7AA0); }
+.thumb-tone-7 { background: linear-gradient(135deg, #5A2A6B, #813F9C); }
+
+/* Card preview — 3-bullet summary visible on every card */
+.card-tldr-bullets {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.card-tldr-bullets li {
+  position: relative;
+  padding-left: 18px;
+  font-size: calc(14.5px * var(--text-scale));
+  line-height: 1.45;
+  color: var(--text-secondary);
+  font-family: var(--sans);
+}
+.card-tldr-bullets li::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.card-tldr.loading .card-tldr-bullets { opacity: 0.4; }
+
+/* ── Recommended-for-you rail inside expanded briefings ───────── */
+.briefing.briefing-with-recs {
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+}
+.briefing-with-recs .briefing-main {
+  flex: 1;
+  min-width: 0; /* allow flex shrink so the brief column wraps */
+}
+.briefing-recs-rail {
+  flex: 0 0 260px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 14px 16px;
+  background: var(--bg-card);
+  align-self: stretch;
+  position: sticky;
+  top: 16px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+.briefing-recs-label {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 12px;
+}
+.briefing-recs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.briefing-recs-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 2px;
+}
+.briefing-rec-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+.briefing-rec-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+  border-color: var(--border-hover);
+}
+.briefing-rec-thumb {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.briefing-rec-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.briefing-rec-thumb.thumb-placeholder {
+  font-size: 13px;
+}
+.briefing-rec-body {
+  padding: 10px 12px 12px;
+}
+.briefing-rec-title {
+  font-family: var(--serif);
+  font-size: 14.5px;
+  line-height: 1.35;
+  color: var(--text-primary);
+  font-weight: 600;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.briefing-rec-meta {
+  margin-top: 6px;
+  font-family: var(--sans);
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+}
+@media (max-width: 960px) {
+  .briefing.briefing-with-recs {
+    flex-direction: column;
+  }
+  .briefing-recs-rail {
+    flex: none;
+    width: 100%;
+    position: static;
+    max-height: none;
+    order: 2;
+  }
+  .briefing-with-recs .briefing-main { order: 1; }
+}
+
+/* Coverage note ribbon — shown when auto-broaden kicks in. */
+.feed-coverage-note {
+  margin: 0 0 18px;
+  padding: 12px 16px;
+  background: rgba(184, 134, 11, 0.08);
+  border: 1px solid rgba(184, 134, 11, 0.25);
+  border-left: 4px solid #B8860B;
+  border-radius: 8px;
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
 /* ── Global text-size bump ──────────────────────────────────────
    Bumps the root font scale so card titles, feed text, briefing
    text, and labels all read larger. Cards already use rem-relative

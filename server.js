@@ -434,7 +434,7 @@ const groqCaches = {
 
 // Bump this whenever TL;DR parsing logic changes to invalidate cached entries
 // from previous versions that may have wrong summaries under right keys
-const TLDR_CACHE_VERSION = 'v2-indexed';
+const TLDR_CACHE_VERSION = 'v3-3bullets';
 const BRIEFING_CACHE_VERSION = 'v7-bullets-cited-no-escape';
 
 function cacheGet(bucket, key) {
@@ -992,17 +992,40 @@ app.get('/api/news', async (req, res) => {
       ? parsedProfile.keywords.filter(Boolean)
       : [];
     const totalSectorCount0 = Object.keys(SECTOR_KEYWORDS || {}).length;
+    const totalRegionCount = Object.keys(regionSlugMap).length;
     const narrowedSectors = (activeSectors.length > 0 && activeSectors.length < totalSectorCount0)
       ? activeSectors.slice(0, 2)
       : [];
+    const narrowedRegions = (regionList.length > 0 && regionList.length < totalRegionCount)
+      ? regionList
+      : [];
 
-    // Build the live-query list in priority order: search bar first
-    // (highest intent), then profile keywords (durable interests),
-    // then sidebar keywords (session interests), then location/sector
-    // refinements. We pull every user keyword (not a top-N slice)
-    // because cutting off at 4 means a beta tester with "Stock prices,
-    // Good news, Happy news, Cute animals, Cryptocurrency, Bitcoin"
-    // never gets the relevant ones live-fetched. Dedup happens in
+    // Region-specific keyword + source primers. When the user narrows
+    // to a particular region, we fire live queries built from these
+    // primers so the corpus pulls in coverage from that region's
+    // dominant outlets even if our standing ingest hasn't refreshed.
+    const REGION_QUERY_PRIMERS = {
+      'Southeast Asia':           ['Singapore Malaysia Indonesia news', 'ASEAN Vietnam Thailand Philippines', 'Straits Times CNA Bangkok Post Nikkei Asia'],
+      'South Asia':               ['India Pakistan Bangladesh news', 'Delhi Mumbai Karachi Dhaka', 'Times of India Dawn The Hindu'],
+      'East Asia':                ['China Japan Korea news', 'Beijing Tokyo Seoul Taipei', 'South China Morning Post Nikkei Korea Herald'],
+      'Middle East':              ['Iran Israel Saudi Arabia UAE news', 'Tehran Riyadh Dubai Jerusalem', 'Al Jazeera Al Arabiya Haaretz'],
+      'Europe':                   ['EU politics Brussels news', 'Germany France UK Italy Spain', 'Politico Europe FT Le Monde Der Spiegel'],
+      'Africa':                   ['Nigeria South Africa Kenya Egypt news', 'Lagos Nairobi Johannesburg Cairo', 'Africa News Mail Guardian Daily Maverick'],
+      'Latin America':            ['Mexico Brazil Argentina Colombia news', 'Sao Paulo Mexico City Buenos Aires', 'Folha Reforma Clarin'],
+      'North America':            ['US Canada politics economy', 'Washington New York Toronto', 'NYT WSJ Washington Post Globe and Mail'],
+      'Central Asia & Caucasus':  ['Kazakhstan Uzbekistan Georgia Azerbaijan news', 'Almaty Tashkent Tbilisi Baku', 'Eurasianet Caspian RFE/RL Caucasus'],
+      'Oceania':                  ['Australia New Zealand Pacific news', 'Sydney Melbourne Auckland Wellington', 'Sydney Morning Herald ABC RNZ'],
+      'Global':                   []
+    };
+    const regionPrimerQueries = [];
+    for (const r of narrowedRegions) {
+      const primers = REGION_QUERY_PRIMERS[r];
+      if (Array.isArray(primers)) regionPrimerQueries.push(...primers);
+    }
+
+    // Build the live-query list in priority order: search bar (highest
+    // intent) → profile keywords → sidebar keywords → location terms →
+    // narrowed sectors → narrowed-region primers. Dedup happens inside
     // liveFetchManyQueries.
     const liveQueries = [];
     if (search && search.trim().length > 1) liveQueries.push(search.trim());
@@ -1010,6 +1033,7 @@ app.get('/api/news', async (req, res) => {
     liveQueries.push(...keywordTerms);
     if (locationTerms.length) liveQueries.push(locationTerms.slice(0, 2).join(' '));
     liveQueries.push(...narrowedSectors);
+    liveQueries.push(...regionPrimerQueries);
 
     if (liveQueries.length) {
       try {
@@ -1445,7 +1469,70 @@ app.get('/api/news', async (req, res) => {
       };
     });
 
-    res.json({ articles, governmentCaveat: GOVERNMENT_CAVEAT });
+    // Auto-broaden: when the user has narrowed regions / sectors AND
+    // the final feed is thin (< 5 articles), drop those narrow filters
+    // for a follow-up pull and label the response so the client can
+    // surface "Showing broader results — limited coverage for your
+    // exact filters."
+    let coverageNote = null;
+    if (articles.length < 5 && (narrowedRegions.length || narrowedSectors.length || locationTerms.length)) {
+      try {
+        const broader = queryArticles({
+          regionSlugs: ['__all__'],
+          sinceMs: cutoff,
+          q: strictKeywordMode ? allUserTerms.join(' ') : null,
+          includeSources: includeArr,
+          excludeSources: excludeArr,
+          limit: 1500
+        });
+        // Score, dedupe-by-title, sort, take top 40.
+        const seenTitles = new Set(articles.map(a => (a.title || '').toLowerCase().trim()));
+        const extras = [];
+        for (const a of broader) {
+          const key = (a.title || '').toLowerCase().trim();
+          if (!key || seenTitles.has(key)) continue;
+          seenTitles.add(key);
+          a.score = scoringSlugs.reduce((best, slug) => {
+            const s = scoreArticle(a, slug, userProfile, activeSectors);
+            return s > best ? s : best;
+          }, -Infinity);
+          if (!isFinite(a.score)) a.score = 0;
+          extras.push(a);
+        }
+        extras.sort((x, y) => (y.score || 0) - (x.score || 0));
+        const broadenedCards = extras.slice(0, 40 - articles.length).map(article => {
+          let desc = stripHtml(article.description || '');
+          if (desc.length > 180) {
+            const end = desc.slice(0, 220).search(/[.!?](?:\s|$)/);
+            desc = end >= 40 ? desc.slice(0, end + 1) : desc.slice(0, 180).replace(/\s\S*$/, '') + '…';
+          }
+          return {
+            title: article.title, source: article.source, sourceTier: article.sourceTier,
+            publishedAt: article.publishedAt, description: desc,
+            content: stripHtml(article.content || article.description || '').slice(0, 600),
+            url: article.url, region: article.region || 'Global',
+            isOfficial: article.sourceTier === 'government-official',
+            score: article.score, thumbnail: article.thumbnail || '',
+            articleType: article.articleType || 'News', country: article.country || '',
+            sourceDescription: getSourceDescription(article.source),
+            matchReason: '', broadened: true
+          };
+        });
+        articles.push(...broadenedCards);
+        if (broadenedCards.length > 0) {
+          const labelBits = [];
+          if (narrowedRegions.length) labelBits.push('regions');
+          if (narrowedSectors.length) labelBits.push('sectors');
+          if (locationTerms.length) labelBits.push('locations');
+          coverageNote = `Showing broader results — limited coverage for your exact ${labelBits.join(' / ')}.`;
+          console.log(`Auto-broaden: added ${broadenedCards.length} broader articles. ${coverageNote}`);
+        }
+      } catch (e) {
+        console.log('Auto-broaden failed:', e.message);
+      }
+    }
+
+    res.json({ articles, governmentCaveat: GOVERNMENT_CAVEAT, coverageNote });
   } catch (err) {
     console.error('News fetch error:', err.stack || err.message || err);
     // Last-resort fallback: return whatever we can from the corpus
@@ -1558,58 +1645,163 @@ app.post('/api/tldr', async (req, res) => {
       return `[${i}] "${a.title}"${officialNote} — ${a.description || 'No description'}`;
     }).join('\n');
 
-    const prompt = `You are a senior geopolitical intelligence analyst writing single-line briefing summaries for decision-makers.
+    const prompt = `You are a senior geopolitical intelligence analyst writing 3-bullet card previews for decision-makers.
 
-RULES:
-- ONE sentence per article. No exceptions. Never two sentences.
-- Maximum 30 words. Cut ruthlessly.
-- Lead with the most important fact or consequence, not background.
-- Be specific: use country names, actor names, numbers, concrete outcomes.
-- Do NOT say "amid tensions" or "raises concerns" — say what actually happened or will happen.
-- For articles marked [OFFICIAL GOVERNMENT SOURCE], prepend "OFFICIAL:" and frame as a government claim.
-- If the headline is vague, still extract the core signal and state it clearly.
+For each article, summarise in EXACTLY 3 bullet points. Each bullet is ONE sentence maximum. Cover:
+  1) What happened (the core event),
+  2) Why it happened or what led to it,
+  3) Why it matters or what happens next.
+Be specific — name actors, countries, and dates. No vague language. No filler. No "amid tensions" or "raises concerns".
+For articles marked [OFFICIAL GOVERNMENT SOURCE], the first bullet must start with "OFFICIAL:" and frame as a government claim.
 
 Articles:
 ${articleList}
 
-Respond with ONLY a JSON OBJECT where each key is the article index and each value is that article's one-sentence summary. Example for three articles: {"0": "Summary for article 0.", "1": "OFFICIAL: Summary for article 1.", "2": "Summary for article 2."}
-You MUST include every index from 0 to ${uncachedArticles.length - 1}. Do not skip any. Do not reorder.
-No other text, no markdown, no prose. Just the JSON object.`;
+Respond with ONLY a JSON OBJECT where each key is the article index and each value is an ARRAY of exactly 3 strings — the three bullets in order. Example for two articles:
+{"0": ["What happened sentence.", "Why it happened sentence.", "Why it matters sentence."], "1": ["OFFICIAL: ...", "...", "..."]}
+
+You MUST include every index from 0 to ${uncachedArticles.length - 1}. Each value MUST be an array of exactly 3 short sentences. Do not skip indices. Do not reorder. No prose, no markdown, no code fences — only the JSON object.`;
 
     const chatCompletion = await groqChat(
       [{ role: 'user', content: prompt }],
-      { temperature: 0.3, max_tokens: 2500 }
+      { temperature: 0.3, max_tokens: 4000 }
     );
 
     const raw = chatCompletion.choices[0]?.message?.content || '{}';
     let freshMap = {};
     try {
-      // Extract the JSON object from the response
       const jsonMatch = raw.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        freshMap = JSON.parse(jsonMatch[0]);
-      }
+      if (jsonMatch) freshMap = JSON.parse(jsonMatch[0]);
     } catch {
       freshMap = {};
     }
 
-    // Map fresh results back by key (index) — robust to reordering
+    // Map fresh results back by index. The new format is an array of 3
+    // bullets per article; we keep tolerant fallback for legacy string
+    // values so cached entries from the old single-sentence format
+    // still render.
     Object.keys(freshMap).forEach(key => {
       const localIdx = parseInt(key, 10);
-      const text = freshMap[key];
-      if (isNaN(localIdx) || !text) return;
+      const value = freshMap[key];
+      if (isNaN(localIdx) || !value) return;
       const originalIndex = uncachedIndices[localIdx];
       const article = uncachedArticles[localIdx];
       if (originalIndex === undefined || !article) return;
-      summaries[originalIndex] = text;
+      const bullets = Array.isArray(value)
+        ? value.map(b => String(b || '').trim()).filter(Boolean).slice(0, 3)
+        : (typeof value === 'string' ? [value] : []);
+      if (!bullets.length) return;
+      summaries[originalIndex] = bullets;
       const cacheKey = TLDR_CACHE_VERSION + '::' + (article.url || article.title);
-      cacheSet('tldr', cacheKey, text);
+      cacheSet('tldr', cacheKey, bullets);
     });
 
     res.json({ summaries });
   } catch (err) {
     console.error('TL;DR generation error:', err);
     res.status(500).json({ error: 'Failed to generate summaries', summaries: [] });
+  }
+});
+
+// ── Session-aware article recommendations ───────────────────────
+// Takes a snapshot of the user's last few opened articles plus the
+// current pool of articles visible in their feed, asks the LLM to
+// pick 3 articles from the pool that connect most to what the user
+// has been reading. Excludes anything they've already seen.
+app.post('/api/recommendations', async (req, res) => {
+  try {
+    const recent = Array.isArray(req.body?.recentArticles) ? req.body.recentArticles : [];
+    const pool = Array.isArray(req.body?.currentPool) ? req.body.currentPool : [];
+    const seenSet = new Set((Array.isArray(req.body?.alreadySeen) ? req.body.alreadySeen : []).map(s => String(s)));
+
+    const candidates = pool.filter(a => a && a.url && !seenSet.has(a.url));
+    if (candidates.length === 0) return res.json({ recommendations: [] });
+
+    // No reading history yet → fall back to top-of-feed snippet so
+    // the panel still has something to show on a fresh session.
+    if (recent.length === 0) {
+      return res.json({ recommendations: candidates.slice(0, 3) });
+    }
+
+    const recentLines = recent.slice(-5).map((a, i) =>
+      `[R${i}] "${(a.title || '').slice(0, 140)}" — ${a.region || ''} ${a.source || ''}`
+    ).join('\n');
+
+    const poolLines = candidates.slice(0, 80).map((a, i) =>
+      `[${i}] "${(a.title || '').slice(0, 140)}" — ${a.region || ''} ${a.source || ''}`
+    ).join('\n');
+
+    const prompt = `You are a news curator. The user just opened an article. Pick 3 articles from the pool below that BEST connect to what they have been reading this session — same sector, region, keyword theme, or story thread.
+
+ARTICLES THE USER HAS OPENED THIS SESSION (most recent last):
+${recentLines}
+
+CANDIDATE POOL (each line starts with [id]):
+${poolLines}
+
+Return ONLY this JSON (no prose, no code fences):
+{"ids": [id, id, id]}
+
+- Return EXACTLY 3 ids, ordered by relevance (best first).
+- Each id is a number between 0 and ${candidates.length - 1}.
+- Each id appears at most once.
+- Prefer articles that share a specific actor, country, sector, or theme with the recent reading — not generic adjacency.`;
+
+    let recIds = null;
+    const t0 = Date.now();
+    try {
+      const completion = await groqChat(
+        [{ role: 'user', content: prompt }],
+        { temperature: 0.2, max_tokens: 200 }
+      );
+      const raw = completion?.choices?.[0]?.message?.content || '';
+      const cleaned = stripCodeFences(raw);
+      const m = cleaned.match(/\{[\s\S]*\}/);
+      if (m) {
+        const parsed = JSON.parse(m[0]);
+        if (Array.isArray(parsed.ids)) {
+          const seen = new Set();
+          recIds = parsed.ids
+            .map(n => parseInt(n, 10))
+            .filter(n => !isNaN(n) && n >= 0 && n < candidates.length && !seen.has(n) && seen.add(n))
+            .slice(0, 3);
+        }
+      }
+    } catch (err) {
+      console.log('Recommendations: Groq failed (' + err.message + ')');
+    }
+
+    if ((!recIds || recIds.length < 3) && PERPLEXITY_API_KEY) {
+      try {
+        const completion = await perplexityChat(
+          [{ role: 'user', content: prompt }],
+          { temperature: 0.2, max_tokens: 200 }
+        );
+        const raw = completion?.choices?.[0]?.message?.content || '';
+        const cleaned = stripCodeFences(raw);
+        const m = cleaned.match(/\{[\s\S]*\}/);
+        if (m) {
+          const parsed = JSON.parse(m[0]);
+          if (Array.isArray(parsed.ids)) {
+            const seen = new Set();
+            recIds = parsed.ids
+              .map(n => parseInt(n, 10))
+              .filter(n => !isNaN(n) && n >= 0 && n < candidates.length && !seen.has(n) && seen.add(n))
+              .slice(0, 3);
+          }
+        }
+      } catch {}
+    }
+
+    // Final fallback — just give 3 candidates so the panel always
+    // shows something.
+    if (!recIds || recIds.length === 0) recIds = [0, 1, 2].filter(i => i < candidates.length);
+
+    console.log(`Recommendations: picked ${recIds.length}/${candidates.length} in ${Date.now() - t0}ms`);
+    res.json({ recommendations: recIds.map(i => candidates[i]) });
+  } catch (err) {
+    console.error('Recommendations error:', err.message);
+    res.status(500).json({ recommendations: [] });
   }
 });
 

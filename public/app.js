@@ -2142,6 +2142,17 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
 
+// Quick deterministic 32-bit string hash. Used to pick a consistent
+// placeholder thumbnail color per topic/region.
+function hashStringCheap(s) {
+  let h = 0;
+  if (!s) return 0;
+  for (let i = 0; i < s.length; i++) {
+    h = (h * 31 + s.charCodeAt(i)) | 0;
+  }
+  return h;
+}
+
 // Strip markdown emphasis marks (**bold**, __bold__, *italic*) that the AI
 // sometimes emits despite being told to use plain text
 function stripMd(str) {
@@ -2460,7 +2471,7 @@ async function runWebSearch(query) {
     feedCount.textContent = (data.articles.length === 1 ? '1 article' : data.articles.length + ' articles') + ' · web search';
     feedTimestamp.textContent = formatTimestamp();
     updateDispatchHeader(currentArticles);
-    renderFeed(currentArticles);
+    renderFeed(currentArticles, { coverageNote: data.coverageNote });
     generateTldrs(currentArticles);
     markFiltersApplied();
     showRefreshConfirmation();
@@ -2603,15 +2614,7 @@ async function fetchStories() {
     feedTimestamp.textContent = formatTimestamp();
 
     updateDispatchHeader(currentArticles);
-    renderFeed(currentArticles);
-    // If the server had to broaden the filters to find enough results,
-    // surface a one-line notice above the first card.
-    if (data.broadenedNotice) {
-      const notice = document.createElement('div');
-      notice.className = 'broadened-notice';
-      notice.textContent = data.broadenedNotice;
-      feed.insertBefore(notice, feed.firstChild);
-    }
+    renderFeed(currentArticles, { coverageNote: data.coverageNote || data.broadenedNotice });
     generateTldrs(currentArticles);
 
     // Filter state is now "applied" — clear the pending indicator and
@@ -2783,10 +2786,14 @@ async function generateTldrs(articles) {
         const id = article.url || article.title;
         const el = tldrElementsById.get(id);
         if (!el) return;
-        let cleaned = stripMd(summary).trim();
-        if (cleaned && !/[.!?]$/.test(cleaned)) cleaned += '.';
         el.classList.remove('loading');
-        el.textContent = cleaned;
+        const bullets = Array.isArray(summary)
+          ? summary.map(s => stripMd(String(s || '')).trim()).filter(Boolean).slice(0, 3)
+          : (typeof summary === 'string' ? [stripMd(summary).trim()] : []);
+        if (bullets.length === 0) return;
+        el.innerHTML = '<ul class="card-tldr-bullets">' +
+          bullets.map(b => '<li>' + escapeHtml(b) + '</li>').join('') +
+          '</ul>';
       });
     }
   } catch (err) {
@@ -2940,6 +2947,22 @@ function parseImpact(text) {
 // Track which cards the user has expanded (for "read" state)
 const readCards = new Set();
 
+// Ordered list of articles the user has opened this session — most
+// recent last. Used to ask the LLM for "Recommended for you" picks
+// related to whatever the user has been reading. Capped at 10 so
+// the list doesn't grow forever.
+const sessionReadingOrder = [];
+function recordSessionRead(article) {
+  if (!article || !article.url) return;
+  const last = sessionReadingOrder[sessionReadingOrder.length - 1];
+  if (last && last.url === article.url) return;
+  sessionReadingOrder.push({
+    title: article.title, source: article.source, region: article.region,
+    url: article.url
+  });
+  if (sessionReadingOrder.length > 10) sessionReadingOrder.shift();
+}
+
 // Group articles by recency for visual hierarchy
 function groupArticlesByTime(articles) {
   const now = Date.now();
@@ -2965,26 +2988,28 @@ function groupArticlesByTime(articles) {
   return groups;
 }
 
-function renderFeed(articles) {
+function renderFeed(articles, options) {
   feed.innerHTML = '';
   tldrElementsById = new Map();
+
+  const coverageNote = (options && options.coverageNote) || '';
+  if (coverageNote) {
+    const noteEl = document.createElement('div');
+    noteEl.className = 'feed-coverage-note';
+    noteEl.textContent = coverageNote;
+    feed.appendChild(noteEl);
+  }
 
   const groups = groupArticlesByTime(articles);
   let globalIndex = 0;
 
-  // No "Lead Story" / featured article — every card renders the same.
-  // The first card in the relevance-sorted list is naturally the
-  // highest-scoring one anyway; making it bigger and labelling it
-  // "Lead Story" misled users when our scoring was off.
+  // No featured article, no "For You" / "Breaking" / "Earlier"
+  // section labels — one continuous unified feed of identical cards
+  // sorted by relevance. The previous time-bucket layout buried
+  // user-relevant articles under hot-but-irrelevant breaking news.
   const featuredArticle = null;
-
-  // Render the feed as ONE relevance-sorted list. We used to split
-  // into Breaking / Today / Earlier buckets, but that pushed time-
-  // sensitive but irrelevant articles ("Trump Iran proposal — 9 min
-  // ago") above the user's actual interests (a crypto article from
-  // 6 hours ago). Score already factors in recency; trust it.
   const groupLabels = [
-    { key: 'all', label: 'For you', hint: 'Sorted by relevance to your interests' }
+    { key: 'all', label: '', hint: '' }
   ];
   groups.all = [...articles].sort((a, b) => (b.score || 0) - (a.score || 0));
 
@@ -2992,19 +3017,11 @@ function renderFeed(articles) {
     const groupArticles = groups[key];
     if (groupArticles.length === 0) return;
 
-    // Section header with editorial ornament
+    // No section header — just the cards grid. We still wrap in a
+    // .feed-section div so existing CSS selectors keep working.
     const section = document.createElement('div');
-    section.className = 'feed-section';
-    const countTip = groupArticles.length === 1
-      ? '1 article'
-      : groupArticles.length + ' articles, ' + hint.toLowerCase();
-    section.innerHTML =
-      '<div class="feed-section-header" title="' + escapeHtml(countTip) + '">' +
-        '<span class="feed-section-label">' + label + '</span>' +
-        '<span class="feed-section-count">' + groupArticles.length + '</span>' +
-        '<span class="section-rule"></span>' +
-      '</div>' +
-      '<div class="feed-section-cards"></div>';
+    section.className = 'feed-section feed-section-unified';
+    section.innerHTML = '<div class="feed-section-cards"></div>';
     feed.appendChild(section);
     const cardsGrid = section.querySelector('.feed-section-cards');
 
@@ -3092,11 +3109,28 @@ function renderFeed(articles) {
 
       const eyebrow = isFeatured ? '<div class="card-eyebrow">Lead Story</div>' : '';
 
+      // Every card MUST show a thumbnail. If the article has one,
+      // use it; otherwise render a deterministic colored placeholder
+      // tile labelled with the region or sector. The placeholder is
+      // pure CSS — no broken-img icon, no empty space.
+      const placeholderLabel = escapeHtml(
+        (article.region && article.region !== 'Global' && article.region) ||
+        (article.country && article.country) ||
+        (article.articleType && article.articleType) ||
+        article.source ||
+        'News'
+      );
+      const placeholderClass = 'thumb-placeholder thumb-tone-' + (
+        // 8 buckets so different topics produce different colors but
+        // the same topic always picks the same color.
+        Math.abs(hashStringCheap(article.region || article.source || article.title || '')) % 8
+      );
       const thumbnailHtml = article.thumbnail
-        ? '<div class="card-thumb"><img src="' + escapeHtml(article.thumbnail) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.closest(\'.card\').classList.add(\'no-thumb\');this.parentElement.remove()" /></div>'
-        : '';
+        ? '<div class="card-thumb"><img src="' + escapeHtml(article.thumbnail) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentElement.outerHTML = \'<div class=&quot;card-thumb ' + placeholderClass + '&quot;><span>' + placeholderLabel + '</span></div>\'" /></div>'
+        : '<div class="card-thumb ' + placeholderClass + '"><span>' + placeholderLabel + '</span></div>';
 
-      if (article.thumbnail) card.classList.add('has-thumb');
+      // Always treat as has-thumb so card layout is consistent.
+      card.classList.add('has-thumb');
 
 
       const matchReasonHtml = article.matchReason
@@ -3165,12 +3199,30 @@ function renderFeed(articles) {
         const wasUnread = !readCards.has(articleId);
         card.classList.add('card-expanded', 'card-read');
         readCards.add(articleId);
+        recordSessionRead(article);
         if (wasUnread) recordBriefingOpened();
         gsTracker.articleOpened(article);
         const expandedAt = Date.now();
 
         briefingEl = document.createElement('div');
-        briefingEl.className = 'briefing';
+        briefingEl.className = 'briefing briefing-with-recs';
+
+        // Left rail: "Recommended for you" panel. Filled async from
+        // /api/recommendations once we have a session reading history.
+        const recsRail = document.createElement('aside');
+        recsRail.className = 'briefing-recs-rail';
+        recsRail.innerHTML =
+          '<div class="briefing-recs-label">Recommended for you</div>' +
+          '<div class="briefing-recs-list">' +
+            '<div class="briefing-recs-loading">' +
+              '<div class="skeleton-shimmer skeleton-line medium"></div>' +
+              '<div class="skeleton-shimmer skeleton-line short"></div>' +
+              '<div class="skeleton-shimmer skeleton-line medium"></div>' +
+            '</div>' +
+          '</div>';
+
+        const briefingMain = document.createElement('div');
+        briefingMain.className = 'briefing-main';
 
         const briefingContent = document.createElement('div');
         briefingContent.innerHTML =
@@ -3192,9 +3244,14 @@ function renderFeed(articles) {
           '</button>' +
           '<div class="more-section-body" data-section-body="impact"></div>';
 
-        briefingEl.appendChild(briefingContent);
-        briefingEl.appendChild(moreSections);
+        briefingMain.appendChild(briefingContent);
+        briefingMain.appendChild(moreSections);
+        briefingEl.appendChild(recsRail);
+        briefingEl.appendChild(briefingMain);
         card.appendChild(briefingEl);
+
+        // Fire recommendation fetch in parallel with the briefing.
+        fetchRecommendationsFor(article, recsRail).catch(() => {});
 
         // Track which sections have been loaded so we don't refetch
         const loaded = { impact: false };
@@ -3295,6 +3352,66 @@ function renderFeed(articles) {
 }
 
 // ── Briefing Fetch ──────────────────────────────────────────────
+
+// Fills the left-rail "Recommended for you" panel inside an expanded
+// briefing. Sends the user's session reading history + the current
+// pool to the server; renders 3 small cards on return. Failures
+// hide the panel silently rather than showing an error.
+async function fetchRecommendationsFor(currentArticle, railEl) {
+  if (!railEl) return;
+  const listEl = railEl.querySelector('.briefing-recs-list');
+  if (!listEl) return;
+
+  // Don't include the article being read in the pool.
+  const seen = Array.from(readCards);
+  const currentUrl = currentArticle && currentArticle.url;
+  if (currentUrl && !seen.includes(currentUrl)) seen.push(currentUrl);
+
+  // Slim down the pool we send — title + url + region + source is all
+  // the LLM needs.
+  const slimPool = (currentArticles || []).map(a => ({
+    title: a.title, source: a.source, region: a.region, url: a.url
+  }));
+
+  try {
+    const res = await fetch('/api/recommendations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        recentArticles: sessionReadingOrder,
+        currentPool: slimPool,
+        alreadySeen: seen
+      })
+    });
+    if (!res.ok) throw new Error('http ' + res.status);
+    const data = await res.json();
+    const recs = Array.isArray(data.recommendations) ? data.recommendations : [];
+    if (recs.length === 0) {
+      railEl.style.display = 'none';
+      return;
+    }
+    listEl.innerHTML = recs.map(r => {
+      const title = escapeHtml((r.title || '').slice(0, 110));
+      const source = escapeHtml(r.source || '');
+      const region = escapeHtml(r.region || '');
+      const url = escapeHtml(r.url || '');
+      const tone = Math.abs(hashStringCheap(r.region || r.source || r.title || '')) % 8;
+      const label = escapeHtml((r.region && r.region !== 'Global' && r.region) || r.source || 'News');
+      const thumb = r.thumbnail
+        ? `<div class="briefing-rec-thumb"><img src="${escapeHtml(r.thumbnail)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentElement.outerHTML='<div class=\\'briefing-rec-thumb thumb-placeholder thumb-tone-${tone}\\'><span>${label}</span></div>'"></div>`
+        : `<div class="briefing-rec-thumb thumb-placeholder thumb-tone-${tone}"><span>${label}</span></div>`;
+      return `<a class="briefing-rec-card" href="${url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">
+        ${thumb}
+        <div class="briefing-rec-body">
+          <div class="briefing-rec-title">${title}</div>
+          <div class="briefing-rec-meta">${source}${region ? ' · ' + region : ''}</div>
+        </div>
+      </a>`;
+    }).join('');
+  } catch (err) {
+    railEl.style.display = 'none';
+  }
+}
 
 async function fetchBriefing(article, container) {
   try {
