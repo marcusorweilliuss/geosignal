@@ -1857,13 +1857,11 @@ app.post('/api/chat', async (req, res) => {
       return res.status(503).json({ error: 'Chat is unavailable (Perplexity not configured)' });
     }
 
-    const systemPrompt = "You are a research assistant helping the reader understand a news story. The reader has already read the article and is asking a follow-up question. Use real-time web search to answer. Be specific and factual: named actors, dates, numbers, places. Never hedge with 'some say' or 'it could be argued'. Cite sources with [n] markers inline. If the answer isn't knowable, say so plainly instead of making it up.";
+    const baseSystem = "You are a research assistant helping the reader understand a news story. The reader has already read the article and is asking a follow-up question. Use real-time web search to answer. Be specific and factual: named actors, dates, numbers, places. Never hedge with 'some say' or 'it could be argued'. Cite sources with [n] markers inline. If the answer isn't knowable, say so plainly instead of making it up.";
 
-    // Trim history to last 6 turns to keep the prompt bounded.
-    const recentHistory = Array.isArray(history)
-      ? history.slice(-6).filter(m => m && m.role && m.content)
-      : [];
-
+    // Put the article context in the system message — that way the
+    // user/assistant turns can alternate strictly, which Perplexity's
+    // chat completions API requires.
     const articleContext =
       `THE ARTICLE THE READER IS ASKING ABOUT:\n` +
       `Title: ${article.title}\n` +
@@ -1877,17 +1875,40 @@ app.post('/api/chat', async (req, res) => {
           ? `Article summary: ${String(article.description).slice(0, 800)}\n`
           : '');
 
-    const messages = [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: articleContext + '\nReader question: ' + q }
-    ];
-    // Replay prior turns AFTER the article context so the model
-    // anchors on the article first.
-    for (const m of recentHistory) {
-      const role = m.role === 'assistant' ? 'assistant' : 'user';
-      messages.push({ role, content: String(m.content).slice(0, 2000) });
+    const systemPrompt = baseSystem + '\n\n' + articleContext;
+
+    // Build the conversation. Perplexity requires strict alternation
+    // after the system message: user → assistant → user → assistant…
+    // Take the last ~6 history entries, enforce alternation by
+    // dropping anything that breaks it, and drop the trailing user
+    // turn if it duplicates the current question (the client pushes
+    // the question to history before sending — to avoid double-asks).
+    const rawHistory = Array.isArray(history)
+      ? history.slice(-6).filter(m => m && m.role && m.content)
+      : [];
+    const cleanHistory = [];
+    let expectRole = 'user';
+    for (const m of rawHistory) {
+      if (m.role !== expectRole) continue; // skip out-of-order turns
+      cleanHistory.push(m);
+      expectRole = expectRole === 'user' ? 'assistant' : 'user';
     }
-    // The current question last so it's the most recent thing.
+    // Drop trailing user that matches the current question.
+    while (cleanHistory.length
+        && cleanHistory[cleanHistory.length - 1].role === 'user'
+        && String(cleanHistory[cleanHistory.length - 1].content).trim() === q) {
+      cleanHistory.pop();
+    }
+    // Drop any leftover trailing user with no following assistant —
+    // we'll re-add the current question ourselves below.
+    if (cleanHistory.length && cleanHistory[cleanHistory.length - 1].role === 'user') {
+      cleanHistory.pop();
+    }
+
+    const messages = [{ role: 'system', content: systemPrompt }];
+    for (const m of cleanHistory) {
+      messages.push({ role: m.role, content: String(m.content).slice(0, 2000) });
+    }
     messages.push({ role: 'user', content: q });
 
     const completion = await perplexityChat(messages, { temperature: 0.2, max_tokens: 700 });
