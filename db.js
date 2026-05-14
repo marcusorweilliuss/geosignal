@@ -21,6 +21,42 @@ const db = new Database(path.join(DATA_DIR, 'articles.db'));
 db.pragma('journal_mode = WAL');
 db.pragma('synchronous = NORMAL');
 
+// User-keyed profile storage. Backs server-side profile persistence
+// for signed-in users; anonymous users keep using localStorage.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS user_profiles (
+    user_id    TEXT PRIMARY KEY,
+    profile    TEXT NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+`);
+const getProfileStmt = db.prepare(`SELECT profile FROM user_profiles WHERE user_id = ?`);
+const upsertProfileStmt = db.prepare(`
+  INSERT INTO user_profiles (user_id, profile, updated_at)
+  VALUES (@user_id, @profile, @updated_at)
+  ON CONFLICT(user_id) DO UPDATE SET
+    profile    = excluded.profile,
+    updated_at = excluded.updated_at
+`);
+
+function getUserProfile(userId) {
+  if (!userId) return null;
+  const row = getProfileStmt.get(userId);
+  if (!row) return null;
+  try { return JSON.parse(row.profile); }
+  catch { return null; }
+}
+
+function saveUserProfile(userId, profile) {
+  if (!userId) return false;
+  upsertProfileStmt.run({
+    user_id: userId,
+    profile: JSON.stringify(profile || {}),
+    updated_at: Date.now()
+  });
+  return true;
+}
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS articles (
     url               TEXT PRIMARY KEY,
@@ -295,5 +331,7 @@ module.exports = {
   updateThumbnail,
   queryArticles,
   pruneOlderThan,
-  stats
+  stats,
+  getUserProfile,
+  saveUserProfile
 };

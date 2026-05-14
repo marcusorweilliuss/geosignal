@@ -1,3 +1,139 @@
+// ── Authentication (Clerk) ──────────────────────────────────────
+// Optional sign-in via Clerk. When CLERK keys are configured server-
+// side, /api/auth/config returns the publishable key and we lazy-
+// load Clerk JS, mount the sign-in UI, and start syncing profile to
+// the server. When disabled, the Sign In button stays hidden and the
+// app behaves exactly as before (localStorage profile only).
+window.__gsAuth = (() => {
+  let clerk = null;
+  let isSignedIn = false;
+  let pendingProfile = null;
+
+  async function getToken() {
+    try {
+      if (!clerk || !clerk.session) return null;
+      return await clerk.session.getToken();
+    } catch { return null; }
+  }
+
+  async function pushProfileToServer(profile) {
+    const token = await getToken();
+    if (!token) return false;
+    try {
+      const res = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ profile })
+      });
+      return res.ok;
+    } catch { return false; }
+  }
+
+  async function pullProfileFromServer() {
+    const token = await getToken();
+    if (!token) return null;
+    try {
+      const res = await fetch('/api/profile', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data.profile || null;
+    } catch { return null; }
+  }
+
+  async function onSignInChange() {
+    isSignedIn = !!(clerk && clerk.user);
+    window.__gsAuth.isSignedIn = isSignedIn;
+    const authBtn = document.getElementById('auth-btn');
+    if (authBtn) authBtn.style.display = isSignedIn ? 'none' : '';
+    if (isSignedIn) {
+      // First sign-in: pull server profile if present, otherwise
+      // push the user's local profile up so it lives on the server.
+      const serverProfile = await pullProfileFromServer();
+      if (serverProfile) {
+        localStorage.setItem('geosignal-profile', JSON.stringify(serverProfile));
+        if (typeof location !== 'undefined') location.reload();
+      } else {
+        const local = localStorage.getItem('geosignal-profile');
+        if (local) {
+          try { await pushProfileToServer(JSON.parse(local)); } catch {}
+        }
+      }
+    }
+  }
+
+  async function init() {
+    let config;
+    try {
+      const r = await fetch('/api/auth/config');
+      config = await r.json();
+    } catch { return; }
+    if (!config.enabled || !config.publishableKey) return;
+
+    // Lazy-load Clerk JS from a public CDN. Simpler than the
+    // account-specific subdomain pattern; works for any Clerk app.
+    await new Promise((resolve, reject) => {
+      if (window.Clerk) return resolve();
+      const s = document.createElement('script');
+      s.async = true;
+      s.crossOrigin = 'anonymous';
+      s.src = 'https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js';
+      s.onload = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+
+    // Initialise Clerk with the publishable key. The browser bundle
+    // exposes a Clerk constructor on window.
+    if (!window.Clerk) {
+      console.warn('Clerk JS failed to load');
+      return;
+    }
+    try {
+      clerk = (typeof window.Clerk === 'function')
+        ? new window.Clerk(config.publishableKey)
+        : window.Clerk;
+      if (!clerk.publishableKey) clerk.publishableKey = config.publishableKey;
+      await clerk.load();
+    } catch (err) {
+      console.warn('Clerk load failed:', err.message);
+      return;
+    }
+
+    // Wire the Sign In button: open the Clerk hosted sign-in modal.
+    const authBtn = document.getElementById('auth-btn');
+    if (authBtn) {
+      authBtn.style.display = '';
+      authBtn.addEventListener('click', () => {
+        if (clerk.user) {
+          clerk.openUserProfile();
+        } else {
+          clerk.openSignIn({ redirectUrl: window.location.href });
+        }
+      });
+    }
+
+    // Mount Clerk's UserButton (avatar + sign-out menu) when signed in.
+    const userBtnMount = document.getElementById('user-button-mount');
+    if (userBtnMount) {
+      clerk.mountUserButton(userBtnMount, { afterSignOutUrl: '/' });
+    }
+
+    // Listen for auth state changes.
+    clerk.addListener(onSignInChange);
+    await onSignInChange();
+  }
+
+  return { init, isSignedIn, pushProfileToServer, pullProfileFromServer };
+})();
+
+// Kick off auth init in the background — non-blocking.
+window.__gsAuth.init().catch(err => console.warn('Auth init failed:', err.message));
+
 // ── Behavioural pattern tracker ─────────────────────────────────
 // Silently logs user interaction events to localStorage so patterns
 // can be analysed for feed re-ranking and the "Your reading patterns"
@@ -366,6 +502,12 @@ function saveProfile(profile) {
   localStorage.removeItem('geosignal_banner_dismissed');
   updateProfileButton();
   hideBanner();
+  // If the user is signed in via Clerk, also persist to the server
+  // so the profile syncs across devices. Anonymous users stay in
+  // localStorage only.
+  if (window.__gsAuth && window.__gsAuth.isSignedIn) {
+    window.__gsAuth.pushProfileToServer(normalized).catch(() => {});
+  }
 }
 
 function clearProfile() {

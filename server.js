@@ -6,10 +6,11 @@ const Parser = require('rss-parser');
 
 const { SOURCES, getSourcesForRegion, scoreArticle, GOVERNMENT_CAVEAT, classifyArticleType, extractPrimaryCountry, getSourceDescription, SECTOR_KEYWORDS, getAllSourcesForBrowser, getSourceBias, getTierCategory } = require('./sources');
 
-const { queryArticles, upsertManyArticles, updateThumbnail } = require('./db');
+const { queryArticles, upsertManyArticles, updateThumbnail, getUserProfile, saveUserProfile } = require('./db');
 const { runFullIngest, googleNewsLiveSearch, liveFetchManyQueries } = require('./ingest');
 const { enrichWithOgImages } = require('./og-fetcher');
 const { isJunkArticle } = require('./quality-filters');
+const { attachUserId, isClerkEnabled, getPublishableKey } = require('./auth');
 
 // Glue words that aren't useful as keyword tokens. Used by both the
 // user-intent boost (so "the" doesn't match every article) and the
@@ -94,6 +95,37 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.static('public'));
+// Attach Clerk user_id to req when a valid session token is present.
+// No-op when CLERK_SECRET_KEY is unset — the app stays anonymous.
+app.use(attachUserId);
+
+// Expose Clerk frontend config to the page bootstrap script. Returns
+// just the publishable key + an enabled flag; nothing sensitive.
+app.get('/api/auth/config', (_req, res) => {
+  res.json({
+    enabled: isClerkEnabled(),
+    publishableKey: getPublishableKey()
+  });
+});
+
+// User profile API — backs cross-device profile sync when the user
+// is signed in. Anonymous requests return 401 and the client falls
+// back to localStorage.
+app.get('/api/profile', (req, res) => {
+  if (!req.userId) return res.status(401).json({ error: 'Not signed in' });
+  const profile = getUserProfile(req.userId);
+  res.json({ profile: profile || null });
+});
+
+app.put('/api/profile', (req, res) => {
+  if (!req.userId) return res.status(401).json({ error: 'Not signed in' });
+  const profile = (req.body && req.body.profile) || null;
+  if (!profile || typeof profile !== 'object') {
+    return res.status(400).json({ error: 'Missing or invalid profile body' });
+  }
+  saveUserProfile(req.userId, profile);
+  res.json({ ok: true });
+});
 
 const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
 const GROQ_FALLBACK_MODEL = process.env.GROQ_FALLBACK_MODEL || 'llama-3.1-8b-instant';
@@ -1537,6 +1569,51 @@ app.get('/api/news', async (req, res) => {
       unique = unique.concat(tail.slice(0, 1500));
     } catch (e) {
       console.log('Endless-tail broaden failed:', e.message);
+    }
+
+    // ── Round-robin region balancer ─────────────────────────────
+    // When the user has a BROAD feed (no keywords, no search, no
+    // narrowed regions/sectors), the corpus is over-weighted toward
+    // regions that happen to have more RSS sources — historically
+    // India and Singapore. Interleave the top of the pool across
+    // regions so the first page is genuinely diverse instead of
+    // dominated by whichever region has the most articles.
+    //
+    // Triggers when no user intent is detected. The strict-keyword
+    // mode and narrowed filters bypass this — those reflect explicit
+    // user intent and shouldn't be balanced away.
+    const isBroadFeed = !hasExplicitInterest && narrowedRegions.length === 0
+      && narrowedSectors.length === 0 && locationTerms.length === 0;
+    if (isBroadFeed && unique.length > 30) {
+      const byRegion = new Map();
+      for (const a of unique) {
+        const r = a.region || 'global';
+        if (!byRegion.has(r)) byRegion.set(r, []);
+        byRegion.get(r).push(a);
+      }
+      // Sort each bucket by score, descending — best article from
+      // each region rotates to the top.
+      for (const arr of byRegion.values()) {
+        arr.sort((x, y) => (y.score || 0) - (x.score || 0));
+      }
+      const interleaved = [];
+      const buckets = [...byRegion.values()];
+      let i = 0;
+      // Keep round-robin until every bucket is drained. Most buckets
+      // run out long before others; the longer ones fill the tail.
+      while (interleaved.length < unique.length) {
+        let drewAny = false;
+        for (const bucket of buckets) {
+          if (i < bucket.length) {
+            interleaved.push(bucket[i]);
+            drewAny = true;
+          }
+        }
+        if (!drewAny) break;
+        i++;
+      }
+      console.log(`Broad-feed balancer: interleaved ${buckets.length} regions, ${interleaved.length} articles`);
+      unique = interleaved;
     }
 
     const totalRanked = unique.length;

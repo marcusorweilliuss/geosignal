@@ -7,6 +7,7 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "@clerk/backend": "^3.4.7",
     "better-sqlite3": "^12.9.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
