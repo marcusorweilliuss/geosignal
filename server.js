@@ -731,15 +731,15 @@ ${behavioralPatterns ? `BEHAVIORAL PATTERNS (from this user's reading history):
 ${(behavioralPatterns.likedTitles || []).length ? '- Articles they LIKED (show more like these): ' + behavioralPatterns.likedTitles.slice(-5).join(' | ') : ''}
 ${(behavioralPatterns.dislikedTitles || []).length ? '- Articles they DISLIKED (show fewer like these): ' + behavioralPatterns.dislikedTitles.slice(-5).join(' | ') : ''}
 Liked article patterns boost similar content. Disliked patterns deprioritize similar content. Explicit filters always take priority.
-` : ''}HARD RANKING RULES:
-- QUALITY OVER QUANTITY. Return only articles that genuinely match the reader's interests. If only 8 of the 300 are truly relevant, return 8 — DO NOT pad with tangential articles to hit a target count. A short relevant feed beats a long irrelevant one.
-- An article must have a SPECIFIC, NAMED hit on the reader's country, region, sector, company, profile keywords, or filter keywords. "Could affect the broader industry" is not a hit. "Mentions India" is not a hit if the reader's regions don't include India and India isn't in their keywords.
-- Do NOT manufacture connections. If you can't justify in one sentence WHY this article matches the reader's stated interests, exclude it.
+` : ''}RANKING RULES:
+- Be GENEROUS by default. Return AS MANY articles as legitimately match the reader's interests, up to the target count. The user has typed explicit keywords/topics — articles relevant to ANY of those keywords belong in the feed.
+- A relevance hit is ANY of: title or body mentions a user keyword, the article topic clearly relates to a stated sector, the country/region matches a user-selected region. Don't be hyper-strict — "Singapore economy" matches "Singapore"; "Bitcoin ETF" matches "crypto".
+- Only EXCLUDE articles that have NOTHING to do with any of the reader's stated interests — not articles that are loosely connected.
 - Do NOT invent ties to the reader's employer / university unless the article specifically references them.
-- Recency is ONLY a tiebreaker between two equally-relevant articles — never elevates a recent-but-irrelevant article above an older-but-relevant one.
-- Avoid duplicates on the same story from different outlets — pick the strongest single version.
-- Source diversity: cap any single outlet at 3 articles in the response.
-- Topic diversity: don't return 5 articles back-to-back on the same sub-topic. Interleave.
+- Recency is a tiebreaker — newer wins when two articles have similar relevance — but never elevates a recent-but-irrelevant article above a relevant older one.
+- Avoid near-duplicates on the same story from different outlets — pick the strongest single version.
+- Source diversity: try to cap any single outlet at ~3 articles in the response, but don't drop relevant articles just to hit this.
+- Topic diversity: avoid 5 articles back-to-back on the same sub-topic. Interleave when possible.
 
 CANDIDATE ARTICLES (each line starts with [id]):
 ${lines}
@@ -1341,7 +1341,18 @@ app.get('/api/news', async (req, res) => {
     // Falls back silently to deterministic scoring on any failure.
     let llmRankedUsed = false;
     let llmRankedAt = 0;
-    if (testMode) {
+    // Skip the LLM rerank when the user has provided no explicit
+    // interest signal (no search, no sidebar keywords, no profile
+    // keywords). Without a target to filter against the rerank
+    // tends to be over-conservative and trims a healthy 60-article
+    // pool down to 5-8 cards. Deterministic scoring already factors
+    // in region match + recency + source tier, which is what the
+    // user wants in that "broad feed" mode.
+    const hasExplicitInterest = (searchTerms && searchTerms.length > 0)
+      || (keywordTerms && keywordTerms.length > 0)
+      || (profileKeywordsList && profileKeywordsList.length > 0);
+
+    if (testMode && hasExplicitInterest) {
       // Check for a cached LLM ranking that's still fresh (10 min TTL).
       // Key: hash of user filters + profile + search query. Means
       // repeated Apply/Refresh within 10 min is instant.
@@ -1384,11 +1395,22 @@ app.get('/api/news', async (req, res) => {
           topN: 80
         });
         if (Array.isArray(llmRanked) && llmRanked.length > 0) {
-          unique = llmRanked;
+          // Backfill: if the LLM returned thin (<30 articles) but the
+          // candidate pool had way more, top up with the next-best
+          // deterministic-scored articles so the feed has substance
+          // even when the LLM is conservative.
+          const TARGET_MIN = 30;
+          let merged = llmRanked;
+          if (llmRanked.length < TARGET_MIN && candidatePool.length > llmRanked.length) {
+            const includedUrls = new Set(llmRanked.map(a => a.url));
+            const extras = candidatePool.filter(a => !includedUrls.has(a.url));
+            merged = llmRanked.concat(extras.slice(0, TARGET_MIN - llmRanked.length));
+            console.log(`LLM rerank returned ${llmRanked.length}, backfilled to ${merged.length} from candidate pool`);
+          }
+          unique = merged;
           llmRankedUsed = true;
           llmRankedAt = Date.now();
-          // Cache this ranking for 10 minutes
-          cacheSet('crossSector', llmCacheKey, { articles: llmRanked, rankedAt: llmRankedAt });
+          cacheSet('crossSector', llmCacheKey, { articles: merged, rankedAt: llmRankedAt });
         }
       } // end else (not cached)
     }
