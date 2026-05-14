@@ -1206,14 +1206,19 @@ header.app-header {
    Centre    = grey,
    Centre-Right = light blue, Far Right = dark blue,
    State Media = amber, Non-partisan = green. */
-.bias-chip { border: 1px solid transparent; }
-.bias-chip.bias-far-left       { background: #7F1D1D; color: #FFFFFF; }
-.bias-chip.bias-centre-left    { background: #EF4444; color: #FFFFFF; }
-.bias-chip.bias-centre         { background: #6B7280; color: #FFFFFF; }
-.bias-chip.bias-centre-right   { background: #60A5FA; color: #1E3A8A; }
-.bias-chip.bias-far-right      { background: #1E3A8A; color: #FFFFFF; }
-.bias-chip.bias-state-media    { background: #D97706; color: #FFFFFF; }
-.bias-chip.bias-non-partisan   { background: #065F46; color: #FFFFFF; }
+/* Political-orientation chip colors.
+   Avoid red/blue tribal coding — red especially signals bias to many
+   readers and is loaded across cultures. We use a neutral cool-warm
+   gradient (deep teal -> stone -> dusty amber) so "left" and "right"
+   read as positions on a spectrum, not as endorsements/attacks. */
+.bias-chip { border: 1px solid transparent; font-weight: 500; }
+.bias-chip.bias-far-left       { background: #134E4A; color: #FFFFFF; }  /* deep teal */
+.bias-chip.bias-centre-left    { background: #5B7A77; color: #FFFFFF; }  /* muted teal-grey */
+.bias-chip.bias-centre         { background: #78716C; color: #FFFFFF; }  /* warm stone */
+.bias-chip.bias-centre-right   { background: #A8896C; color: #FFFFFF; }  /* dusty amber-grey */
+.bias-chip.bias-far-right      { background: #78350F; color: #FFFFFF; }  /* deep umber */
+.bias-chip.bias-state-media    { background: #4B3F2F; color: #FFFFFF; }  /* dark olive-brown */
+.bias-chip.bias-non-partisan   { background: #065F46; color: #FFFFFF; }  /* forest green — non-partisan stays distinct */
 .bias-chip.bias-unknown        { background: #E5E7EB; color: #374151; border-color: #D1D5DB; }
 
 .source-row-desc {
@@ -2522,8 +2527,14 @@ select:focus {
 }
 
 .cross-sector-body {
-  padding: 6px 28px 26px;
+  padding: 16px 28px 26px;
   border-top: 1px solid var(--border);
+  /* Lay the patterns side-by-side as columns so the section doesn't
+     monopolise vertical space at the top of the feed. Falls back to
+     a single column on narrow viewports. */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
 }
 
 .cross-sector-bubble.collapsed .cross-sector-body {
@@ -2576,16 +2587,16 @@ select:focus {
   border-top-color: var(--accent);
 }
 
+/* Each pattern is a column-card inside the cross-sector grid. Bottom
+   border / margin removed because the grid gap separates them now. */
 .cross-sector-pattern {
-  margin-bottom: 22px;
-  padding-bottom: 22px;
-  border-bottom: 1px solid var(--border);
-}
-
-.cross-sector-pattern:last-child {
-  margin-bottom: 0;
-  padding-bottom: 0;
-  border-bottom: none;
+  padding: 14px 16px;
+  background: var(--bg-secondary, var(--bg-card));
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .cross-sector-pattern-header {

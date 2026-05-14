@@ -1631,10 +1631,23 @@ function renderSourceBrowserList(searchTerm) {
     </div>`;
   };
 
+  // Capture which region groups are currently expanded BEFORE we
+  // blow away the DOM — otherwise re-rendering on every include/
+  // exclude click would collapse every section the user just opened,
+  // forcing them to re-expand to keep picking sources from the same
+  // region.
+  const previouslyOpen = new Set(
+    Array.from(sourceBrowserBody.querySelectorAll('.source-region-group.open'))
+      .map(el => el.dataset.region)
+      .filter(Boolean)
+  );
+
   const html = orderedRegions.map(region => {
     const items = byRegion[region];
-    const expanded = q || region === 'Custom'; // open automatically on search / custom section
-    return `<div class="source-region-group ${expanded ? 'open' : ''}">
+    // Open if: search active, custom section, or user had it open
+    // before this re-render.
+    const expanded = q || region === 'Custom' || previouslyOpen.has(region);
+    return `<div class="source-region-group ${expanded ? 'open' : ''}" data-region="${escapeHtml(region)}">
       <div class="source-region-header" data-region-toggle>
         <span>${escapeHtml(region)}</span>
         <span class="source-region-count">${items.length}</span>
@@ -2164,7 +2177,7 @@ handleFiltersChanged();
           });
           sidebarKeywordsInput.value = '';
           renderKeywordChips();
-          syncMainToSidebar();
+          window.__syncSidebarFromMain();
           handleFiltersChanged();
         }
       }
@@ -2180,7 +2193,7 @@ handleFiltersChanged();
       if (!isNaN(idx)) {
         filterKeywords.splice(idx, 1);
         renderKeywordChips();
-        syncMainToSidebar();
+        window.__syncSidebarFromMain();
         handleFiltersChanged();
       }
     });
@@ -2207,7 +2220,7 @@ handleFiltersChanged();
       filterKeywords = [];
       if (sidebarKeywordsInput) sidebarKeywordsInput.value = '';
       syncSidebarToMain();
-      syncMainToSidebar();
+      window.__syncSidebarFromMain();
     });
   }
 
@@ -2245,12 +2258,27 @@ handleFiltersChanged();
     });
   }
 
-  // ── Wire sidebar locations input → main locations ──
+  // ── Wire sidebar locations input → main locations + profile ──
   const sidebarLocations = document.getElementById('sidebar-locations-input');
   if (sidebarLocations) {
+    // Prefill from profile so the sidebar shows what was previously
+    // saved (e.g. by the wizard) instead of always starting empty.
+    const p0 = (typeof getProfile === 'function' ? getProfile() : null) || {};
+    if (p0.location && !sidebarLocations.value) sidebarLocations.value = p0.location;
+    if (locationsInput && sidebarLocations.value && !locationsInput.value) {
+      locationsInput.value = sidebarLocations.value;
+    }
     sidebarLocations.addEventListener('input', () => {
       if (locationsInput) locationsInput.value = sidebarLocations.value;
       handleFiltersChanged();
+    });
+    // Persist to profile on blur so ranking + recall across sessions
+    // know where the user is based — previously the value lived only
+    // in the input element and was lost on refresh.
+    sidebarLocations.addEventListener('blur', () => {
+      const existing = (typeof getProfile === 'function' ? getProfile() : null) || {};
+      const next = Object.assign({}, existing, { location: sidebarLocations.value.trim() });
+      if (typeof saveProfile === 'function') saveProfile(next);
     });
   }
 
@@ -2273,6 +2301,7 @@ handleFiltersChanged();
     clearTimeout(_profileSaveDeferred);
     _profileSaveDeferred = setTimeout(() => {
       const existing = (typeof getProfile === 'function' ? getProfile() : null) || {};
+      const sidebarLocEl = document.getElementById('sidebar-locations-input');
       const next = Object.assign({}, existing, {
         role: sidebarRoleEl ? sidebarRoleEl.value.trim() : (existing.role || ''),
         company: sidebarCompanyEl ? sidebarCompanyEl.value.trim() : (existing.company || ''),
@@ -2280,7 +2309,9 @@ handleFiltersChanged();
         industries: Array.isArray(existing.industries) ? existing.industries : [],
         customSectors: Array.isArray(existing.customSectors) ? existing.customSectors : [],
         keywords: Array.isArray(existing.keywords) ? existing.keywords : [],
-        location: existing.location || ''
+        // Sidebar location is the canonical source — use its current
+        // value, not the stale snapshot from existing profile.
+        location: sidebarLocEl ? sidebarLocEl.value.trim() : (existing.location || '')
       });
       if (typeof saveProfile === 'function') saveProfile(next);
     }, 400);
