@@ -1346,11 +1346,55 @@ app.get('/api/news', async (req, res) => {
         const titleLower = (a.title || '').toLowerCase();
         const descLower = (a.description || '').toLowerCase();
         let kwBoost = 0;
+        let anyHit = false;
         for (const term of keywordTerms) {
-          if (titleLower.includes(term)) kwBoost += 20;
-          else if (descLower.includes(term)) kwBoost += 8;
+          if (titleLower.includes(term)) { kwBoost += 25; anyHit = true; }
+          else if (descLower.includes(term)) { kwBoost += 10; anyHit = true; }
         }
-        a.score += Math.min(kwBoost, 50);
+        a.score += Math.min(kwBoost, 70);
+        // When user has explicit keywords, HEAVILY demote articles
+        // that don't match any keyword in title or description. The
+        // user typed those keywords to filter — articles ignoring all
+        // of them shouldn't ride other signals to the top of the feed.
+        // (Don't go below 0 — sort still works; just falls to the
+        // back of the queue.)
+        if (!anyHit) {
+          a.score = Math.max(0, a.score - 60);
+          a._offKeyword = true;
+        }
+      }
+    });
+    // Off-sector / off-vibe headline demotion.
+    // The user picks sectors like "Tech & AI / Policy / Legal" but
+    // the feed surfaces football tournaments and tourism pieces —
+    // because there's no Sports/Travel/Lifestyle sector in our list,
+    // those articles get auto-classified into whatever sector their
+    // geographic keywords overlap with (ASEAN, Philippines → falsely
+    // tagged Geopolitics). Detect these by title shape and demote
+    // unless the user explicitly opted into them (rare).
+    const NEGATIVE_TITLE_PATTERNS = [
+      // Sports
+      /\b(?:championship|tournament|semi[-\s]?finals?|quarter[-\s]?finals?|finals?|group\s+[a-d]|league|matchday|goal|hat[-\s]?trick|kickoff|playoffs?|preseason|olympics?|world\s+cup)\b/i,
+      /\b(?:football|soccer|cricket|basketball|baseball|tennis|golf|rugby|hockey|formula\s+1|nfl|nba|mlb|epl|laliga|bundesliga|f1|fifa|uefa|sea\s+games|asian\s+games)\b/i,
+      // Travel / tourism / hospitality (only catches very travel-y shapes)
+      /\b(?:open\s+skies|low[-\s]?cost\s+(?:flights?|airlines?)|tourism\s+(?:recovery|growth|board)|cruise\s+(?:line|ship)|hotel\s+(?:chain|opening|launch))\b/i,
+      // Lifestyle / horoscope / celeb
+      /\b(?:horoscope|zodiac|red\s+carpet|met\s+gala|celebrity\s+gossip)\b/i,
+    ];
+    const activeSectorsLower = new Set((activeSectors || []).map(s => String(s).toLowerCase()));
+    const userOptedInSports = activeSectorsLower.has('sports') || activeSectorsLower.has('sport');
+    const userOptedInTravel = activeSectorsLower.has('travel') || activeSectorsLower.has('tourism');
+    unique.forEach(a => {
+      const t = a.title || '';
+      for (const pat of NEGATIVE_TITLE_PATTERNS) {
+        if (pat.test(t)) {
+          // Sports patterns are first; allow if user opted in.
+          if ((pat === NEGATIVE_TITLE_PATTERNS[0] || pat === NEGATIVE_TITLE_PATTERNS[1]) && userOptedInSports) break;
+          if (pat === NEGATIVE_TITLE_PATTERNS[2] && userOptedInTravel) break;
+          a.score = Math.max(0, (a.score || 0) - 80);
+          a._offSector = true;
+          break;
+        }
       }
     });
     // Remove junk articles (score -1)

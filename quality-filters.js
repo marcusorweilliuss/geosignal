@@ -184,7 +184,38 @@ const AGGREGATOR_TITLE_PATTERNS = [
   // "<topic> Research - <Org>" or "<region> Program - <Org>".
   /\b(?:research|programs?|initiatives?|publications?)\s*[-—–|]\s*(?:[A-Z][\w'’]+\s*){1,5}(?:Center|Institute|Foundation|Council|University|Programme?|Project|Initiative|Lab)\b/i,
   /\brecent\s+publications?\b/i,                    // common landing-page heading
+  // Daily-briefing / newsletter-roundup landing pages from major
+  // outlets. Catches "Morning Briefing: Top stories from The Straits
+  // Times on May 14", "Evening Update: Today's headlines from ...".
+  /^\s*(?:morning|evening|daily|weekly|saturday|sunday|weekend|midweek)\s+(?:briefing|update|recap|roundup|wrap|brief|digest|edition|read|news)\s*[:\-–—]/i,
+  /\btoday'?s\s+(?:headlines?|stories|news|briefing|top\s+stories?|dispatch|edition)\b/i,
+  /^(?:this\s+week|this\s+morning|this\s+evening)\s+in\s+[A-Z]/i,  // "This Week in Tech"
+  /^\s*(?:top|latest|breaking)\s+(?:news|stories|headlines?)(?:\s+(?:news|stories|headlines?))?\s+(?:from|in|across)\s+[A-Z]/i, // "Top News Headlines from..." / "Top News Headlines In Cambodia..."
+  /^\s*(?:headlines?|top\s+stories?|in\s+brief)\s+(?:from|in|across)\s+[A-Z]/i,
 ];
+
+// Title is JUST a publisher / product/section name with no actual
+// news content. Catches "Deloitte Insights", "Stimson Center",
+// "Reuters Wire", "Politico Pro", etc. Title length capped so real
+// "Stimson: <foo>" headlines aren't dropped.
+const TITLE_IS_BRAND_ONLY = /^([A-Z][\w&'’]+(?:\s+[A-Z][\w&'’]+){0,4})\s+(?:Insights|Newsroom|Wire|Pro|Hub|Today|Daily|Brief|Network|Live|Watch|Magazine|Report|Online|Now|Digest)\s*$/;
+
+// Source-name strings that, if used as the article's `source` field,
+// indicate the URL slipped past the host blocklist (Perplexity often
+// labels a real URL with a junk source string).
+const BLOCKED_SOURCE_STRINGS = new Set([
+  'facebook.com', 'facebook', 'fb.com',
+  'twitter.com', 'twitter', 'x.com',
+  'instagram.com', 'instagram',
+  'tiktok.com', 'tiktok',
+  'reddit.com', 'reddit',
+  'youtube.com', 'youtube',
+  'linkedin.com', 'linkedin',
+  'wikipedia.org', 'wikipedia',
+  'apify', 'feedspot', 'rss feedspot', 'omny fm', 'libguides mskcc',
+  'pinterest.com', 'pinterest',
+  'tumblr.com', 'tumblr',
+]);
 
 function looksLikeLandingPage(article) {
   if (!article) return false;
@@ -209,6 +240,11 @@ function looksLikeLandingPage(article) {
   for (const re of AGGREGATOR_TITLE_PATTERNS) {
     if (re.test(title)) return true;
   }
+  // Title is JUST a brand + product suffix (no actual headline content).
+  if (title.length < 50 && TITLE_IS_BRAND_ONLY.test(title.trim())) return true;
+  // Source name itself is junk (Perplexity often labels a real URL
+  // with a placeholder source like "facebook.com" / "twitter.com").
+  if (source && BLOCKED_SOURCE_STRINGS.has(source.trim().toLowerCase())) return true;
   return false;
 }
 

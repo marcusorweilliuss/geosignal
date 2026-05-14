@@ -3827,27 +3827,27 @@ function renderFeed(articles, options) {
 
       const eyebrow = isFeatured ? '<div class="card-eyebrow">Lead Story</div>' : '';
 
-      // Thumbnails are now strictly optional. If the article has one
-      // that survives the trust check below, we render it. If not, the
-      // card shows no image at all (the title carries the card).
-      // Trust check: drop thumbnails whose host doesn't match the
-      // article URL's host — that's how we caught the soccer image
-      // attached to a Vietnam IP story (wrong og:image at the source).
+      // Show whatever thumbnail the publisher provided unless it's
+      // from a known-bad host. Previous policy required the image's
+      // registrable domain to match the article's, but most modern
+      // publishers serve images from CDN subdomains (gannett-cdn.com,
+      // static01.nyt.com, i0.wp.com, *-cdn.com) that don't match.
+      // That was rejecting ~80% of legitimate images.
+      const BAD_IMAGE_HOSTS = [
+        'gravatar.com',            // generic avatar placeholders
+        'facebook.com', 'fbcdn.net',
+        'twitter.com', 'twimg.com', 'pbs.twimg.com',
+        'youtube.com', 'ytimg.com',
+        'doubleclick.net', 'googleadservices.com', 'googlesyndication.com',
+        'google-analytics.com', 'googletagmanager.com',
+        'scorecardresearch.com', 'quantserve.com',
+      ];
       let trustedThumb = '';
       if (article.thumbnail && typeof article.thumbnail === 'string') {
         try {
-          const imgHost = new URL(article.thumbnail).hostname.replace(/^www\./, '');
-          const artHost = article.url ? new URL(article.url).hostname.replace(/^www\./, '') : '';
-          // Allow if hosts share a top-level domain (covers CDN subdomains
-          // like img.publisher.com vs publisher.com).
-          const sameRoot = artHost && (
-            imgHost === artHost ||
-            imgHost.endsWith('.' + artHost) ||
-            artHost.endsWith('.' + imgHost) ||
-            // Common shared registrable domain (foo.com vs cdn.foo.com)
-            imgHost.split('.').slice(-2).join('.') === artHost.split('.').slice(-2).join('.')
-          );
-          if (sameRoot) trustedThumb = article.thumbnail;
+          const imgHost = new URL(article.thumbnail).hostname.replace(/^www\./, '').toLowerCase();
+          const blocked = BAD_IMAGE_HOSTS.some(b => imgHost === b || imgHost.endsWith('.' + b));
+          if (!blocked) trustedThumb = article.thumbnail;
         } catch {}
       }
       const thumbnailHtml = trustedThumb
