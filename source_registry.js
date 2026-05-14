@@ -50,8 +50,28 @@ function normalizeName(name) {
 }
 
 let META_BY_NAME = new Map();
+let META_BY_HOST = new Map();    // registrable-domain string -> meta (for URL-based lookups)
 let TOPIC_INDEX = {};            // topic_name -> [{ name, region, bias, weight, feed_url }, ...]
 let loaded = false;
+
+function registrableDomain(hostname) {
+  if (!hostname) return '';
+  const h = hostname.replace(/^www\./, '').toLowerCase();
+  // For most domains, take the last two segments. For known multi-part
+  // TLDs (.co.uk, .com.au, .co.jp etc.), take the last three.
+  const parts = h.split('.');
+  const lastTwo = parts.slice(-2).join('.');
+  const lastThree = parts.slice(-3).join('.');
+  const multiPartTlds = new Set([
+    'co.uk', 'co.jp', 'co.kr', 'co.in', 'co.za', 'co.nz', 'co.id', 'co.il',
+    'com.au', 'com.br', 'com.cn', 'com.hk', 'com.mx', 'com.my', 'com.ph', 'com.sg', 'com.tr', 'com.tw',
+    'com.ar', 'com.co', 'com.eg', 'com.pk', 'com.pe', 'com.ng', 'com.kw', 'com.lb', 'com.vn',
+    'org.uk', 'org.au', 'gov.uk', 'gov.au', 'gov.in', 'gov.za', 'gov.sg',
+    'net.au', 'net.uk',
+  ]);
+  if (parts.length >= 3 && multiPartTlds.has(lastTwo)) return lastThree;
+  return lastTwo;
+}
 
 function load() {
   if (loaded) return;
@@ -67,6 +87,16 @@ function load() {
         META_BY_NAME.set(key, meta);
         n++;
       }
+      // Also index by registrable domain so the ingest layer can map
+      // a Perplexity-returned URL back to the outlet's official
+      // display name instead of slugifying the hostname.
+      try {
+        if (meta.feed_url) {
+          const host = new URL(meta.feed_url).hostname;
+          const dom = registrableDomain(host);
+          if (dom && !META_BY_HOST.has(dom)) META_BY_HOST.set(dom, meta);
+        }
+      } catch {}
     }
     console.log(`[source_registry] loaded ${n} sources from ${path.basename(REGISTRY_PATH)}`);
   } catch (err) {
@@ -89,6 +119,253 @@ function getMetaByName(name) {
   if (!loaded) load();
   if (!name) return null;
   return META_BY_NAME.get(normalizeName(name)) || null;
+}
+
+// Pretty-name resolver: given a URL, return the human-friendly display
+// name for that outlet. Used by the Perplexity-fed ingest path so we
+// don't end up with "Straitstimes" / "Insideclimatenews" / "Nytimes"
+// in the feed.
+//
+// Resolution order:
+//   1. Registry lookup by registrable domain — if the outlet is in
+//      sources_v3.json, return its meta.name (correctly formatted).
+//   2. Curated KNOWN_OUTLETS map for top-tier sources NOT in registry.
+//   3. Smart compound-word splitter — greedy match against newspaper-
+//      suffix tokens ("times", "post", "news", "herald", etc.).
+//   4. Plain title-case fallback.
+
+// Top-tier outlets that may not be in the registry yet but need
+// correct display names if Perplexity surfaces them.
+const KNOWN_OUTLETS = {
+  'nytimes.com':         'The New York Times',
+  'washingtonpost.com':  'The Washington Post',
+  'wsj.com':             'The Wall Street Journal',
+  'ft.com':              'Financial Times',
+  'economist.com':       'The Economist',
+  'bbc.com':             'BBC News',
+  'bbc.co.uk':           'BBC News',
+  'cnn.com':             'CNN',
+  'npr.org':             'NPR',
+  'pbs.org':             'PBS',
+  'reuters.com':         'Reuters',
+  'apnews.com':          'Associated Press',
+  'bloomberg.com':       'Bloomberg',
+  'aljazeera.com':       'Al Jazeera',
+  'aljazeera.net':       'Al Jazeera',
+  'theguardian.com':     'The Guardian',
+  'theatlantic.com':     'The Atlantic',
+  'newyorker.com':       'The New Yorker',
+  'vox.com':             'Vox',
+  'axios.com':           'Axios',
+  'politico.com':        'Politico',
+  'politico.eu':         'Politico Europe',
+  'foreignpolicy.com':   'Foreign Policy',
+  'foreignaffairs.com':  'Foreign Affairs',
+  'spiegel.de':          'Der Spiegel',
+  'lemonde.fr':          'Le Monde',
+  'liberation.fr':       'Libération',
+  'lefigaro.fr':         'Le Figaro',
+  'sueddeutsche.de':     'Süddeutsche Zeitung',
+  'zeit.de':             'Die Zeit',
+  'faz.net':             'Frankfurter Allgemeine Zeitung',
+  'elpais.com':          'El País',
+  'elmundo.es':          'El Mundo',
+  'lanacion.com.ar':     'La Nación',
+  'clarin.com':          'Clarín',
+  'folha.uol.com.br':    'Folha de S.Paulo',
+  'oglobo.globo.com':    'O Globo',
+  'globo.com':           'O Globo',
+  'eluniversal.com.mx':  'El Universal',
+  'reforma.com':         'Reforma',
+  'rappler.com':         'Rappler',
+  'inquirer.net':        'Philippine Daily Inquirer',
+  'straitstimes.com':    'The Straits Times',
+  'channelnewsasia.com': 'Channel News Asia',
+  'thehindu.com':        'The Hindu',
+  'hindustantimes.com':  'Hindustan Times',
+  'timesofindia.indiatimes.com': 'Times of India',
+  'indiatimes.com':      'Times of India',
+  'thejakartapost.com':  'The Jakarta Post',
+  'bangkokpost.com':     'Bangkok Post',
+  'thestar.com.my':      'The Star',
+  'mainichi.jp':         'The Mainichi',
+  'japantimes.co.jp':    'The Japan Times',
+  'asahi.com':           'The Asahi Shimbun',
+  'yomiuri.co.jp':       'The Yomiuri Shimbun',
+  'koreatimes.co.kr':    'The Korea Times',
+  'koreaherald.com':     'The Korea Herald',
+  'scmp.com':            'South China Morning Post',
+  'taipeitimes.com':     'Taipei Times',
+  'abc.net.au':          'ABC News (Australia)',
+  'theage.com.au':       'The Age',
+  'smh.com.au':          'Sydney Morning Herald',
+  'stuff.co.nz':         'Stuff',
+  'rnz.co.nz':           'RNZ',
+  'dawn.com':            'Dawn',
+  'thenews.com.pk':      'The News International',
+  'tribune.com.pk':      'The Express Tribune',
+  'haaretz.com':         'Haaretz',
+  'timesofisrael.com':   'The Times of Israel',
+  'jpost.com':           'The Jerusalem Post',
+  'mailguardian.co.za':  'Mail & Guardian',
+  'mg.co.za':            'Mail & Guardian',
+  'news24.com':          'News24',
+  'theeastafrican.co.ke': 'The East African',
+  'punchng.com':         'The Punch',
+  'vanguardngr.com':     'Vanguard',
+  'guardian.ng':         'The Guardian Nigeria',
+  'thecitizen.co.tz':    'The Citizen',
+  'standardmedia.co.ke': 'The Standard',
+  'nation.africa':       'Nation',
+  'allafrica.com':       'AllAfrica',
+  'insideclimatenews.org': 'Inside Climate News',
+  'climatechangenews.com': 'Climate Home News',
+  'carbonbrief.org':     'Carbon Brief',
+  'grist.org':           'Grist',
+  'mongabay.com':        'Mongabay',
+  'desmog.com':          'DeSmog',
+  'wired.com':           'Wired',
+  'theverge.com':        'The Verge',
+  'arstechnica.com':     'Ars Technica',
+  'techcrunch.com':      'TechCrunch',
+  'restofworld.org':     'Rest of World',
+  'technologyreview.com': 'MIT Technology Review',
+  'spectrum.ieee.org':   'IEEE Spectrum',
+  'thediplomat.com':     'The Diplomat',
+  'breakingdefense.com': 'Breaking Defense',
+  'defensenews.com':     'Defense News',
+  'defenseone.com':      'Defense One',
+  'warontherocks.com':   'War on the Rocks',
+  'lawfaremedia.org':    'Lawfare',
+  'lawfareblog.com':     'Lawfare',
+  'justsecurity.org':    'Just Security',
+  'thebulletin.org':     'Bulletin of the Atomic Scientists',
+  'project-syndicate.org': 'Project Syndicate',
+  'rferl.org':           'Radio Free Europe / Radio Liberty',
+  'rfa.org':             'Radio Free Asia',
+  'dw.com':              'DW',
+  'france24.com':        'France 24',
+  'euronews.com':        'Euronews',
+  'euobserver.com':      'EUobserver',
+  'euractiv.com':        'Euractiv',
+  'irishtimes.com':      'The Irish Times',
+  'rte.ie':              'RTÉ',
+  'swissinfo.ch':        'SwissInfo',
+  'nzz.ch':              'Neue Zürcher Zeitung',
+  'thelocal.de':         'The Local',
+  'sifted.eu':           'Sifted',
+  'newscientist.com':    'New Scientist',
+  'nature.com':          'Nature',
+  'science.org':         'Science',
+  'thelancet.com':       'The Lancet',
+  'statnews.com':        'STAT News',
+  'kff.org':             'KFF',
+  'hrw.org':             'Human Rights Watch',
+  'amnesty.org':         'Amnesty International',
+  'crisisgroup.org':     'International Crisis Group',
+  'rand.org':            'RAND Corporation',
+  'brookings.edu':       'Brookings Institution',
+  'csis.org':            'Center for Strategic and International Studies',
+  'cfr.org':             'Council on Foreign Relations',
+  'carnegieendowment.org': 'Carnegie Endowment',
+  'iiss.org':            'IISS',
+  'chathamhouse.org':    'Chatham House',
+  'atlanticcouncil.org': 'Atlantic Council',
+  'stimson.org':         'Stimson Center',
+  'piie.com':            'Peterson Institute',
+  'eu-startups.com':     'EU-Startups',
+  'caspianpost.com':     'Caspian Post',
+  'moneyweb.co.za':      'Moneyweb',
+  'african.business':    'African Business Magazine',
+};
+
+// Common news-suffix tokens used by the smart fallback splitter.
+// The splitter looks for these at the END of an unbroken brand string
+// (e.g. "straitstimes" → suffix "times" → split as "straits" + "times").
+const SUFFIX_TOKENS = [
+  'times', 'post', 'news', 'herald', 'tribune', 'standard', 'guardian',
+  'express', 'mail', 'today', 'daily', 'weekly', 'monthly', 'world',
+  'international', 'global', 'wire', 'wires', 'press', 'review',
+  'magazine', 'journal', 'chronicle', 'observer', 'telegraph',
+  'gazette', 'bulletin', 'reporter', 'media', 'digest', 'voice',
+  'record', 'inquirer', 'monitor', 'sentinel', 'beacon', 'star',
+  'sun', 'globe', 'mirror', 'echo', 'online', 'now', 'morning',
+  'evening', 'business', 'finance', 'markets', 'technology', 'tech',
+  'climate', 'energy', 'science', 'health', 'defence', 'defense',
+];
+// Prefix tokens that often start a brand string before another word.
+const PREFIX_TOKENS = [
+  'the', 'inside', 'foreign', 'national', 'international', 'global',
+  'world', 'business', 'financial', 'climate', 'tech', 'science',
+  'first', 'new', 'all', 'pan', 'east', 'west', 'north', 'south',
+  'middle', 'asia', 'africa', 'europe', 'india', 'china', 'japan',
+  'korea', 'arab', 'gulf', 'pacific', 'atlantic', 'caspian',
+];
+
+function smartSplit(brand) {
+  // Already has separators — done.
+  if (/[\s\-]/.test(brand)) return brand;
+  const lc = brand.toLowerCase();
+  // Try suffix split: find a known suffix at the end.
+  for (const suffix of SUFFIX_TOKENS) {
+    if (lc.endsWith(suffix) && lc.length > suffix.length + 2) {
+      const prefix = lc.slice(0, -suffix.length);
+      return smartSplit(prefix) + ' ' + suffix;
+    }
+  }
+  // Try prefix split: find a known prefix at the start.
+  for (const prefix of PREFIX_TOKENS) {
+    if (lc.startsWith(prefix) && lc.length > prefix.length + 2) {
+      const rest = lc.slice(prefix.length);
+      return prefix + ' ' + smartSplit(rest);
+    }
+  }
+  return brand;
+}
+
+function titleCase(s) {
+  // Acronyms (BBC, CNN, NPR, AFP, etc.) stay uppercase — heuristic:
+  // 3-4 chars and looks like consonant-heavy. Otherwise title case
+  // each token, preserving lowercase connectors (of, the, in, and).
+  const connectors = new Set(['of', 'the', 'in', 'and', 'on', 'a', 'an', 'de', 'la', 'le', 'el', 'das', 'der', 'die']);
+  return s
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w, i) => {
+      const lw = w.toLowerCase();
+      if (i > 0 && connectors.has(lw)) return lw;
+      if (w.length <= 4 && /^[bcdfghjklmnpqrstvwxz]{2,}/i.test(w)) return w.toUpperCase();
+      return lw.charAt(0).toUpperCase() + lw.slice(1);
+    })
+    .join(' ');
+}
+
+function prettyNameForUrl(url) {
+  if (!loaded) load();
+  if (!url) return '';
+  try {
+    const u = new URL(url);
+    const host = u.hostname.replace(/^www\./, '').toLowerCase();
+    // 1. Exact host match in KNOWN_OUTLETS
+    if (KNOWN_OUTLETS[host]) return KNOWN_OUTLETS[host];
+    // 2. Registrable-domain match in KNOWN_OUTLETS
+    const dom = registrableDomain(host);
+    if (KNOWN_OUTLETS[dom]) return KNOWN_OUTLETS[dom];
+    // 3. Registry lookup
+    if (META_BY_HOST.has(dom)) return META_BY_HOST.get(dom).name;
+    if (META_BY_HOST.has(host)) return META_BY_HOST.get(host).name;
+    // 4. Smart split + title-case fallback
+    let brand = dom;
+    // Strip the TLD (last segment).
+    brand = brand.replace(/\.[a-z]{2,4}(\.[a-z]{2})?$/i, '');
+    // Replace separators with spaces.
+    brand = brand.replace(/[._-]/g, ' ').trim();
+    // If still one unbroken word, run the smart splitter.
+    if (!/\s/.test(brand)) brand = smartSplit(brand);
+    return titleCase(brand);
+  } catch {
+    return '';
+  }
 }
 
 // 0..10 numeric weight from the expansion file (or backfilled from
@@ -199,4 +476,5 @@ function getTopicBoost(meta, activeSectors) {
 module.exports = {
   getMetaByName, getTopicBoost, SECTOR_TO_TOPICS, normalizeName,
   getWeight, getSourcesForTopic, topicForQuery, QUERY_TO_TOPIC,
+  prettyNameForUrl,
 };

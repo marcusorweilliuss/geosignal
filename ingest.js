@@ -26,21 +26,16 @@ const { isNonNewsUrl, looksLikeProductSpam, isJunkArticle } = require('./quality
 const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
 const PERPLEXITY_MODEL = process.env.PERPLEXITY_MODEL || 'sonar';
 
+// Registry-driven pretty-name resolver. First looks up the URL host
+// against the source registry (sources_v3.json) and KNOWN_OUTLETS
+// for top-tier publishers; falls back to a smart compound-word
+// splitter for unknown hostnames ("straitstimes" → "Straits Times",
+// "insideclimatenews" → "Inside Climate News"). Lives in
+// source_registry.js so the same logic can be reused elsewhere.
+const { prettyNameForUrl } = require('./source_registry');
+
 function prettySourceFromUrl(url) {
-  if (!url) return '';
-  try {
-    const u = new URL(url);
-    let host = u.hostname.replace(/^www\./, '');
-    // Trim a trailing TLD pair like ".com" / ".co.uk" — keep the brand.
-    host = host.replace(/\.(com|org|net|gov|co|news|io|info)(\.[a-z]{2})?$/i, '');
-    return host
-      .split(/[.\-]/)
-      .filter(Boolean)
-      .map(p => p.charAt(0).toUpperCase() + p.slice(1))
-      .join(' ');
-  } catch {
-    return '';
-  }
+  return prettyNameForUrl(url);
 }
 
 // Quality filters (isNonNewsUrl, looksLikeProductSpam, isJunkArticle)
