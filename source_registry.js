@@ -28,12 +28,17 @@
 const fs = require('fs');
 const path = require('path');
 
-// Prefer the merged-expansion v2 file. Fall back to the older v1
-// (sources_rebalanced_extended.json) if v2 hasn't been generated yet
-// — keeps the app running through partial deployments.
-const REGISTRY_PATH = fs.existsSync(path.join(__dirname, 'sources_v2.json'))
-  ? path.join(__dirname, 'sources_v2.json')
-  : path.join(__dirname, 'sources_rebalanced_extended.json');
+// Registry resolution order: v3 (post-Perplexity discovery) -> v2
+// (post-expansion-file merge) -> v1 (sources_rebalanced_extended).
+// Each layer is a strict superset of the previous, so falling through
+// just means an older snapshot — the app keeps running.
+const REGISTRY_PATH = (() => {
+  for (const f of ['sources_v3.json', 'sources_v2.json', 'sources_rebalanced_extended.json']) {
+    const p = path.join(__dirname, f);
+    if (fs.existsSync(p)) return p;
+  }
+  return path.join(__dirname, 'sources_rebalanced_extended.json');
+})();
 const TOPIC_INDEX_PATH = path.join(__dirname, 'topic_index_v2.json');
 
 function normalizeName(name) {
