@@ -1535,6 +1535,17 @@ app.get('/api/news', async (req, res) => {
           a.score -= 300;
         }
       }
+      // ── Search-intent override ──
+      // A non-empty search query is the user's explicit current
+      // intent. Profile filters (location chips, keyword chips,
+      // selected region) are background settings. When the user types
+      // something into search, they want THAT THING — not the
+      // intersection of THAT THING with their saved filters. Skip
+      // the off-location / off-keyword penalties when search is set
+      // so a "Irish news" search isn't demoted into oblivion by a
+      // Mexico-chip + AI-keyword saved profile.
+      const hasSearchIntent = !!(search && search.trim().length > 1);
+
       // Location boost — typed cities/countries float up. Stronger
       // boost (location chips are explicit, high-intent user input);
       // mild penalty for off-location content so the same explicit
@@ -1551,11 +1562,9 @@ app.get('/api/news', async (req, res) => {
           else if (fullLower.includes(term)) { anyLocHit = true; }
         }
         a.score += Math.min(locBoost, 100);
-        // Off-location demotion when user explicitly typed locations.
-        // Mild so an article that's globally relevant can still rank;
-        // strong enough that "Mexico AI bill" beats "California AI bill"
-        // for a user with Mexico chip.
-        if (!anyLocHit) {
+        // Off-location demotion ONLY when no search query is active.
+        // Search query overrides the saved location preference.
+        if (!anyLocHit && !hasSearchIntent) {
           a.score = Math.max(0, a.score - 35);
           a._offLocation = true;
         }
@@ -1593,12 +1602,9 @@ app.get('/api/news', async (req, res) => {
         }
         a.score += Math.min(kwBoost, 70);
         // When user has explicit keywords, HEAVILY demote articles
-        // that don't match any keyword in title or description. The
-        // user typed those keywords to filter — articles ignoring all
-        // of them shouldn't ride other signals to the top of the feed.
-        // (Don't go below 0 — sort still works; just falls to the
-        // back of the queue.)
-        if (!anyHit) {
+        // that don't match any keyword — UNLESS the user typed a
+        // search query (search-intent overrides saved-keyword filter).
+        if (!anyHit && !hasSearchIntent) {
           a.score = Math.max(0, a.score - 60);
           a._offKeyword = true;
         }
@@ -2217,7 +2223,12 @@ app.get('/api/news', async (req, res) => {
     // a publisher region OR subject region that isn't in their pick.
     // Articles with neither (no region info at all) are allowed
     // through — they're often topical/think-tank/wire pieces.
-    if (narrowedRegions.length > 0) {
+    //
+    // EXCEPTION: If the user typed a search query, their explicit
+    // intent overrides the saved region selection. "Irish news" when
+    // saved region = LatAm should still return Irish content.
+    const hasSearchIntent = !!(search && String(search).trim().length > 1);
+    if (narrowedRegions.length > 0 && !hasSearchIntent) {
       const allowedRegions = new Set(narrowedRegions.map(r => r.toLowerCase()));
       const allowedSlugs = new Set(
         narrowedRegions.map(r => regionSlugMap[r]).filter(Boolean).map(s => s.toLowerCase())
@@ -2228,13 +2239,14 @@ app.get('/api/news', async (req, res) => {
           (a.region || '').toLowerCase(),
           (a.subjectRegion || '').toLowerCase(),
         ].filter(Boolean);
-        // If we don't know the article's region at all, allow it.
         if (candidates.length === 0) return true;
         return candidates.some(c => allowedRegions.has(c) || allowedSlugs.has(c));
       });
       if (cleanArticles.length !== beforeRegionFilter) {
         console.log(`Hard region filter dropped ${beforeRegionFilter - cleanArticles.length} off-region articles`);
       }
+    } else if (narrowedRegions.length > 0 && hasSearchIntent) {
+      console.log(`Hard region filter SKIPPED — user has search query "${String(search).slice(0, 40)}", treating as intent override`);
     }
     if (cleanArticles.length !== articles.length) {
       console.log(`Final junk-filter dropped ${articles.length - cleanArticles.length} articles before response`);
