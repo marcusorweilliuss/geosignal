@@ -1096,11 +1096,45 @@ app.get('/api/news', async (req, res) => {
     }
 
     // Build the live-query list in priority order: search bar (highest
-    // intent) → profile keywords → sidebar keywords → location terms →
-    // narrowed sectors → narrowed-region primers. Dedup happens inside
-    // liveFetchManyQueries.
+    // intent) → cross-product (location × keyword) → profile keywords →
+    // sidebar keywords → location terms → narrowed sectors → primers.
+    // Dedup happens inside liveFetchManyQueries.
+    //
+    // CRITICAL: The cross-product queries are what actually surface
+    // "Mexico AI regulation" / "Tijuana climate policy" content. Plain
+    // "Artificial Intelligence" queried alone just returns generic
+    // global AI news — the LLM had no signal to find content at the
+    // intersection of the user's location and their topical interests.
     const liveQueries = [];
     if (search && search.trim().length > 1) liveQueries.push(search.trim());
+
+    // Cross-product of (each location chip) × (each user keyword).
+    // Capped at 8 combinations to keep API cost bounded. Goes BEFORE
+    // bare keyword queries so the LLM hits regional intersections
+    // first, and bare topics only fill remaining slots.
+    const crossProductQueries = [];
+    if (locationTerms.length > 0 && keywordTerms.length > 0) {
+      const locTop = locationTerms.slice(0, 3); // top 3 locations
+      const kwTop = keywordTerms.slice(0, 4);   // top 4 keywords
+      for (const loc of locTop) {
+        for (const kw of kwTop) {
+          if (crossProductQueries.length >= 8) break;
+          crossProductQueries.push(`${loc} ${kw}`);
+        }
+      }
+    }
+    // Also pair locations with narrowed sectors when no keywords (so a
+    // user with just region+sector still gets focused results).
+    if (locationTerms.length > 0 && keywordTerms.length === 0 && narrowedSectors.length > 0) {
+      for (const loc of locationTerms.slice(0, 2)) {
+        for (const sec of narrowedSectors.slice(0, 3)) {
+          if (crossProductQueries.length >= 6) break;
+          crossProductQueries.push(`${loc} ${sec}`);
+        }
+      }
+    }
+    liveQueries.push(...crossProductQueries);
+
     liveQueries.push(...profileKeywordsList);
     liveQueries.push(...keywordTerms);
     if (locationTerms.length) liveQueries.push(locationTerms.slice(0, 2).join(' '));
