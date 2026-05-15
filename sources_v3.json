@@ -28141,5 +28141,321 @@
       "human_rights_conflict": 0.5,
       "culture_society": 0.5
     }
+  },
+  "mckinsey_company": {
+    "name": "McKinsey & Company",
+    "feed_url": "https://www.mckinsey.com/insights/rss",
+    "regions": [
+      "GLOBAL"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "ideology": "center",
+    "independence": "independent",
+    "tier": 1,
+    "weight": 8,
+    "bias": "non-partisan",
+    "credibility_score": 0.93,
+    "topic_strengths": {
+      "politics_domestic": 0.7,
+      "politics_foreign": 0.9,
+      "business_markets": 0.5,
+      "science_tech": 0.5,
+      "climate_energy": 0.6,
+      "human_rights_conflict": 0.7,
+      "culture_society": 0.4
+    }
+  },
+  "geopolitical_futures": {
+    "name": "Geopolitical Futures",
+    "feed_url": "https://geopoliticalfutures.com/feed/",
+    "regions": [
+      "GLOBAL"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "ideology": "center",
+    "independence": "independent",
+    "tier": 2,
+    "weight": 7,
+    "bias": "non-partisan",
+    "credibility_score": 0.93,
+    "topic_strengths": {
+      "politics_domestic": 0.7,
+      "politics_foreign": 0.9,
+      "business_markets": 0.5,
+      "science_tech": 0.5,
+      "climate_energy": 0.6,
+      "human_rights_conflict": 0.7,
+      "culture_society": 0.4
+    }
+  },
+  "electronic_frontier_foundation": {
+    "name": "Electronic Frontier Foundation",
+    "feed_url": "https://www.eff.org/rss/updates.xml",
+    "regions": [
+      "GLOBAL"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "ideology": "center",
+    "independence": "independent",
+    "tier": 2,
+    "weight": 7,
+    "bias": "center",
+    "credibility_score": 0.83,
+    "topic_strengths": {
+      "politics_domestic": 0.7,
+      "politics_foreign": 0.7,
+      "human_rights_conflict": 0.8,
+      "science_tech": 0.6,
+      "culture_society": 0.5,
+      "climate_energy": 0.5
+    }
+  },
+  "imf_blog": {
+    "name": "IMF Blog",
+    "feed_url": "https://www.imf.org/en/Blogs/rss",
+    "regions": [
+      "GLOBAL"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "ideology": "center",
+    "independence": "independent",
+    "tier": 1,
+    "weight": 8,
+    "bias": "non-partisan",
+    "credibility_score": 0.93,
+    "topic_strengths": {
+      "politics_domestic": 0.7,
+      "politics_foreign": 0.9,
+      "business_markets": 0.5,
+      "science_tech": 0.5,
+      "climate_energy": 0.6,
+      "human_rights_conflict": 0.7,
+      "culture_society": 0.4
+    }
+  },
+  "wto_news": {
+    "name": "WTO News",
+    "feed_url": "https://www.wto.org/english/news_e/news_rss_feed_e.xml",
+    "regions": [
+      "GLOBAL"
+    ],
+    "countries": [
+      "Switzerland"
+    ],
+    "category": "government-official",
+    "source_type": "government-official",
+    "ideology": "center",
+    "independence": "mixed",
+    "tier": 2,
+    "weight": 6,
+    "bias": "center",
+    "credibility_score": 0.9,
+    "topic_strengths": {
+      "politics_domestic": 0.4,
+      "politics_foreign": 0.4,
+      "business_markets": 0.3
+    }
+  },
+  "climateworks_foundation": {
+    "name": "ClimateWorks Foundation",
+    "feed_url": "https://www.climateworks.org/feed/",
+    "regions": [
+      "GLOBAL"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "ideology": "center",
+    "independence": "independent",
+    "tier": 2,
+    "weight": 6,
+    "bias": "non-partisan",
+    "credibility_score": 0.93,
+    "topic_strengths": {
+      "politics_domestic": 0.7,
+      "politics_foreign": 0.9,
+      "business_markets": 0.5,
+      "science_tech": 0.5,
+      "climate_energy": 0.6,
+      "human_rights_conflict": 0.7,
+      "culture_society": 0.4
+    }
+  },
+  "future_of_life_institute": {
+    "name": "Future of Life Institute",
+    "feed_url": "https://futureoflife.org/feed/",
+    "regions": [
+      "GLOBAL"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "ideology": "center",
+    "independence": "independent",
+    "tier": 2,
+    "weight": 6,
+    "bias": "non-partisan",
+    "credibility_score": 0.93,
+    "topic_strengths": {
+      "politics_domestic": 0.7,
+      "politics_foreign": 0.9,
+      "business_markets": 0.5,
+      "science_tech": 0.5,
+      "climate_energy": 0.6,
+      "human_rights_conflict": 0.7,
+      "culture_society": 0.4
+    }
+  },
+  "schroders_insights": {
+    "name": "Schroders Insights",
+    "feed_url": "https://www.schroders.com/en/insights/feed/",
+    "regions": [
+      "GLOBAL"
+    ],
+    "countries": [
+      "United Kingdom"
+    ],
+    "category": "business",
+    "source_type": "business",
+    "ideology": "center",
+    "independence": "mixed",
+    "tier": 2,
+    "weight": 6,
+    "bias": "center",
+    "credibility_score": 0.83,
+    "topic_strengths": {
+      "politics_domestic": 0.5,
+      "business_markets": 0.95,
+      "climate_energy": 0.5,
+      "science_tech": 0.4,
+      "human_rights_conflict": 0.2
+    }
+  },
+  "ai_now_institute": {
+    "name": "AI Now Institute",
+    "feed_url": "https://ainowinstitute.org/feed/",
+    "regions": [
+      "GLOBAL"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "ideology": "center",
+    "independence": "independent",
+    "tier": 2,
+    "weight": 7,
+    "bias": "non-partisan",
+    "credibility_score": 0.93,
+    "topic_strengths": {
+      "politics_domestic": 0.7,
+      "politics_foreign": 0.9,
+      "business_markets": 0.5,
+      "science_tech": 0.5,
+      "climate_energy": 0.6,
+      "human_rights_conflict": 0.7,
+      "culture_society": 0.4
+    }
+  },
+  "pwc_insights": {
+    "name": "PwC Insights",
+    "feed_url": "https://www.pwc.com/gx/en/about.feed.html",
+    "regions": [
+      "GLOBAL"
+    ],
+    "countries": [
+      "United Kingdom"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "ideology": "center",
+    "independence": "independent",
+    "tier": 2,
+    "weight": 6,
+    "bias": "non-partisan",
+    "credibility_score": 0.93,
+    "topic_strengths": {
+      "politics_domestic": 0.7,
+      "politics_foreign": 0.9,
+      "business_markets": 0.5,
+      "science_tech": 0.5,
+      "climate_energy": 0.6,
+      "human_rights_conflict": 0.7,
+      "culture_society": 0.4
+    }
+  },
+  "mandiant_threat_research": {
+    "name": "Mandiant Threat Research",
+    "feed_url": "https://www.mandiant.com/resources/blog/rss.xml",
+    "regions": [
+      "GLOBAL"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "ideology": "center",
+    "independence": "independent",
+    "tier": 2,
+    "weight": 6,
+    "bias": "center",
+    "credibility_score": 0.83,
+    "topic_strengths": {
+      "politics_domestic": 0.7,
+      "politics_foreign": 0.7,
+      "human_rights_conflict": 0.8,
+      "science_tech": 0.6,
+      "culture_society": 0.5,
+      "climate_energy": 0.5
+    }
+  },
+  "citizen_lab": {
+    "name": "Citizen Lab",
+    "feed_url": "https://citizenlab.ca/feed/",
+    "regions": [
+      "GLOBAL"
+    ],
+    "countries": [
+      "Canada"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "ideology": "center",
+    "independence": "independent",
+    "tier": 1,
+    "weight": 8,
+    "bias": "non-partisan",
+    "credibility_score": 1.0,
+    "topic_strengths": {
+      "politics_domestic": 0.7,
+      "politics_foreign": 0.9,
+      "business_markets": 0.5,
+      "science_tech": 0.5,
+      "climate_energy": 0.6,
+      "human_rights_conflict": 0.7,
+      "culture_society": 0.4
+    }
   }
 }

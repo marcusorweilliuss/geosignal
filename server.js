@@ -1108,28 +1108,62 @@ app.get('/api/news', async (req, res) => {
     const liveQueries = [];
     if (search && search.trim().length > 1) liveQueries.push(search.trim());
 
-    // Cross-product of (each location chip) × (each user keyword).
-    // Capped at 8 combinations to keep API cost bounded. Goes BEFORE
-    // bare keyword queries so the LLM hits regional intersections
-    // first, and bare topics only fill remaining slots.
-    const crossProductQueries = [];
-    if (locationTerms.length > 0 && keywordTerms.length > 0) {
-      const locTop = locationTerms.slice(0, 3); // top 3 locations
-      const kwTop = keywordTerms.slice(0, 4);   // top 4 keywords
-      for (const loc of locTop) {
-        for (const kw of kwTop) {
-          if (crossProductQueries.length >= 8) break;
-          crossProductQueries.push(`${loc} ${kw}`);
+    // ── Cross-product live queries ──
+    // The LIVE-SEARCH-FIRST strategy: we generate (location × topic)
+    // and (region-country × topic) tuples and send them to Perplexity
+    // BEFORE bare keyword queries. Plain "AI" alone returns generic
+    // global content; "Indonesia AI" / "Singapore AI" returns content
+    // at the user's actual intersection.
+    //
+    // Anchors: location chips first (most explicit), then expand each
+    // narrowed region into its key countries (so SE Asia auto-fires
+    // Singapore/Indonesia/Vietnam/Thailand even when the user didn't
+    // type a city). Caps keep API cost bounded.
+
+    // Region → key countries for cross-product anchoring. Pick the
+    // 4-5 most newsworthy English-coverage countries per region.
+    const REGION_TO_KEY_COUNTRIES = {
+      'Southeast Asia':           ['Singapore', 'Indonesia', 'Vietnam', 'Thailand', 'Philippines', 'Malaysia'],
+      'South Asia':               ['India', 'Pakistan', 'Bangladesh', 'Sri Lanka'],
+      'East Asia':                ['China', 'Japan', 'South Korea', 'Taiwan'],
+      'Middle East':              ['Saudi Arabia', 'UAE', 'Iran', 'Israel', 'Turkey', 'Egypt'],
+      'Europe':                   ['Germany', 'France', 'UK', 'Italy', 'Spain', 'Poland'],
+      'Africa':                   ['Nigeria', 'South Africa', 'Kenya', 'Ethiopia', 'Ghana'],
+      'Latin America':            ['Mexico', 'Brazil', 'Argentina', 'Colombia', 'Chile'],
+      'North America':            ['United States', 'Canada', 'Mexico'],
+      'Central Asia & Caucasus':  ['Kazakhstan', 'Uzbekistan', 'Georgia', 'Azerbaijan'],
+      'Oceania':                  ['Australia', 'New Zealand', 'Papua New Guinea'],
+    };
+
+    // Anchor set: location chips win (explicit user input). If none,
+    // fall back to expanding the selected regions into key countries.
+    let crossAnchors = locationTerms.slice(0, 4);
+    if (crossAnchors.length === 0 && narrowedRegions.length > 0) {
+      for (const r of narrowedRegions) {
+        const countries = REGION_TO_KEY_COUNTRIES[r] || [];
+        for (const c of countries) {
+          if (!crossAnchors.includes(c) && crossAnchors.length < 6) crossAnchors.push(c);
         }
       }
     }
-    // Also pair locations with narrowed sectors when no keywords (so a
-    // user with just region+sector still gets focused results).
-    if (locationTerms.length > 0 && keywordTerms.length === 0 && narrowedSectors.length > 0) {
-      for (const loc of locationTerms.slice(0, 2)) {
+
+    const crossProductQueries = [];
+    if (crossAnchors.length > 0 && keywordTerms.length > 0) {
+      const kwTop = keywordTerms.slice(0, 4);
+      for (const a of crossAnchors) {
+        for (const kw of kwTop) {
+          if (crossProductQueries.length >= 10) break;
+          crossProductQueries.push(`${a} ${kw}`);
+        }
+        if (crossProductQueries.length >= 10) break;
+      }
+    }
+    // No keywords, but sectors → pair anchors with sectors.
+    if (crossAnchors.length > 0 && keywordTerms.length === 0 && narrowedSectors.length > 0) {
+      for (const a of crossAnchors.slice(0, 3)) {
         for (const sec of narrowedSectors.slice(0, 3)) {
-          if (crossProductQueries.length >= 6) break;
-          crossProductQueries.push(`${loc} ${sec}`);
+          if (crossProductQueries.length >= 8) break;
+          crossProductQueries.push(`${a} ${sec}`);
         }
       }
     }
@@ -1189,22 +1223,77 @@ app.get('/api/news', async (req, res) => {
     ]);
     const hasLatAmRegion = narrowedRegions.some(r => r.toLowerCase() === 'latin america');
     const hasSpanishLocation = locationTerms.some(loc => SPANISH_COUNTRIES.has(loc.toLowerCase()));
-    if ((hasLatAmRegion || hasSpanishLocation) && crossProductQueries.length > 0) {
-      const spanishQueries = [];
-      const locTop = locationTerms.slice(0, 3);
+
+    // ── Portuguese expansion (Brazil) ──
+    const PORTUGUESE_KEYWORDS = {
+      'artificial intelligence': 'inteligência artificial',
+      'ai': 'inteligência artificial',
+      'regulations': 'regulação',
+      'tech regulations': 'regulação tecnológica',
+      'migration': 'migração',
+      'climate': 'mudança climática',
+      'climate change': 'mudança climática',
+      'protests': 'protestos',
+      'esg': 'ESG sustentabilidade',
+      'human rights': 'direitos humanos',
+      'cyber': 'cibersegurança',
+      'energy': 'energia',
+      'finance': 'finanças',
+      'health': 'saúde pública',
+      'policy': 'política pública',
+    };
+    const PORTUGUESE_COUNTRIES = new Set(['brazil', 'brasil', 'são paulo', 'sao paulo', 'rio de janeiro', 'rio', 'brasília', 'brasilia', 'portugal', 'lisbon', 'lisboa']);
+
+    // ── Bahasa Indonesia / Malay expansion ──
+    const BAHASA_KEYWORDS = {
+      'artificial intelligence': 'kecerdasan buatan',
+      'ai': 'kecerdasan buatan',
+      'regulations': 'regulasi',
+      'tech regulations': 'regulasi teknologi',
+      'migration': 'migrasi',
+      'climate': 'perubahan iklim',
+      'climate change': 'perubahan iklim',
+      'protests': 'protes demonstrasi',
+      'esg': 'ESG keberlanjutan',
+      'human rights': 'hak asasi manusia',
+      'cyber': 'siber keamanan',
+      'energy': 'energi',
+      'finance': 'keuangan',
+      'health': 'kesehatan',
+      'policy': 'kebijakan',
+    };
+    const BAHASA_COUNTRIES = new Set(['indonesia', 'jakarta', 'surabaya', 'bandung', 'medan', 'malaysia', 'kuala lumpur', 'penang']);
+
+    // Helper to build localized cross-products. Mirrors English anchors
+    // through a keyword translation map; location/country tokens stay
+    // as-is (Singapore, Jakarta, Brasília all read fine in any language).
+    const buildLocalized = (kwMap) => {
+      const out = [];
       const kwTop = keywordTerms.slice(0, 4);
-      for (const loc of locTop) {
-        // Use the location as-is (proper nouns translate cleanly enough)
+      for (const a of crossAnchors.slice(0, 3)) {
         for (const kw of kwTop) {
-          const esKw = SPANISH_KEYWORDS[kw.toLowerCase()] || kw;
-          spanishQueries.push(`${loc} ${esKw}`);
-          if (spanishQueries.length >= 6) break;
+          const localized = kwMap[kw.toLowerCase()] || kw;
+          out.push(`${a} ${localized}`);
+          if (out.length >= 6) break;
         }
-        if (spanishQueries.length >= 6) break;
+        if (out.length >= 6) break;
       }
-      // Prepend so Spanish queries get fetched in the same priority slot
-      // as English cross-products.
-      liveQueries.push(...spanishQueries);
+      return out;
+    };
+
+    if ((hasLatAmRegion || hasSpanishLocation) && crossProductQueries.length > 0) {
+      liveQueries.push(...buildLocalized(SPANISH_KEYWORDS));
+    }
+    const hasBrazilRegion = locationTerms.some(loc => PORTUGUESE_COUNTRIES.has(loc.toLowerCase()))
+      || narrowedRegions.some(r => r.toLowerCase() === 'latin america') && crossAnchors.some(a => /brazil|brasil/i.test(a));
+    if (hasBrazilRegion && crossProductQueries.length > 0) {
+      liveQueries.push(...buildLocalized(PORTUGUESE_KEYWORDS));
+    }
+    const hasBahasaCountry = locationTerms.some(loc => BAHASA_COUNTRIES.has(loc.toLowerCase()))
+      || (narrowedRegions.some(r => r.toLowerCase() === 'southeast asia')
+          && crossAnchors.some(a => /indonesia|malaysia|jakarta|kuala\s+lumpur/i.test(a)));
+    if (hasBahasaCountry && crossProductQueries.length > 0) {
+      liveQueries.push(...buildLocalized(BAHASA_KEYWORDS));
     }
 
     liveQueries.push(...profileKeywordsList);
