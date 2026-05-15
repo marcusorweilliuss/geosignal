@@ -541,14 +541,18 @@ async function ingestGoogleNews() {
 }
 
 // In-memory cache of recent live searches. Key by lowercased query.
-// 10-minute TTL — long enough to amortize the Google News round trip
-// across the dozens of concurrent users hitting /api/news; short enough
-// that fresh news still surfaces.
+// Narrow (multi-word, location×topic) queries are cached longer than
+// broad single-keyword ones, because narrow queries are expensive,
+// produce relatively stable results over short windows, and benefit
+// most from amortizing the cost across users.
 const liveSearchCache = new Map();
-// Cache live-search results for an hour. Google News blocks
-// shared-cloud IPs aggressively; aggressive caching means a single
-// lookup of "bitcoin" populates the corpus for everyone for an hour.
-const LIVE_SEARCH_TTL_MS = 60 * 60 * 1000;
+const LIVE_SEARCH_TTL_BROAD_MS  = 60 * 60 * 1000;        // 1h for broad
+const LIVE_SEARCH_TTL_NARROW_MS = 4 * 60 * 60 * 1000;    // 4h for narrow (>= 3 words)
+function cacheTtlFor(query) {
+  return (String(query || '').trim().split(/\s+/).length >= 3)
+    ? LIVE_SEARCH_TTL_NARROW_MS
+    : LIVE_SEARCH_TTL_BROAD_MS;
+}
 
 // Track every distinct query a real user has searched for. The next
 // bulk ingest cycle picks these up so they're already in the corpus
@@ -565,7 +569,7 @@ async function googleNewsLiveSearch(query, { regionSlug = '' } = {}) {
   seenQueries.add(key);
 
   const cached = liveSearchCache.get(key);
-  if (cached && (Date.now() - cached.t) < LIVE_SEARCH_TTL_MS) {
+  if (cached && (Date.now() - cached.t) < cacheTtlFor(query)) {
     return cached.articles;
   }
 

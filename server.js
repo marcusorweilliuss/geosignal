@@ -1135,6 +1135,78 @@ app.get('/api/news', async (req, res) => {
     }
     liveQueries.push(...crossProductQueries);
 
+    // ── Spanish-language expansion for LatAm queries ──
+    // Mexican / South American coverage of AI / tech regulation /
+    // climate / migration is overwhelmingly in Spanish. We're
+    // throwing away ~10x the available coverage if we only query in
+    // English. When the user's selected regions include LATIN-AMERICA
+    // OR their location chips include a Spanish-speaking country, mirror
+    // every cross-product query through a Spanish translation.
+    const SPANISH_KEYWORDS = {
+      'artificial intelligence': 'inteligencia artificial',
+      'ai': 'inteligencia artificial',
+      'regulations': 'regulación',
+      'tech regulations': 'regulación tecnológica',
+      'migration': 'migración',
+      'climate': 'cambio climático',
+      'climate change': 'cambio climático',
+      'protests': 'protestas',
+      'esg': 'ESG sostenibilidad',
+      'human rights': 'derechos humanos',
+      'cyber': 'ciberseguridad',
+      'energy': 'energía',
+      'finance': 'finanzas',
+      'health': 'salud pública',
+      'policy': 'política pública',
+      'legal': 'legal',
+      'geopolitics': 'geopolítica',
+      'science': 'ciencia',
+      'climate policy': 'política climática',
+      'tech & ai': 'tecnología e IA',
+      'public policy & governance': 'política pública',
+    };
+    const SPANISH_COUNTRIES = new Set([
+      'mexico', 'méxico', 'tijuana', 'cabo', 'guadalajara', 'monterrey',
+      'cdmx', 'puebla', 'oaxaca', 'cancun', 'cancún',
+      'argentina', 'buenos aires', 'cordoba', 'mendoza',
+      'chile', 'santiago', 'valparaiso',
+      'colombia', 'bogota', 'bogotá', 'medellin', 'cali',
+      'peru', 'perú', 'lima',
+      'venezuela', 'caracas',
+      'ecuador', 'quito', 'guayaquil',
+      'bolivia', 'la paz', 'sucre',
+      'uruguay', 'montevideo',
+      'paraguay', 'asuncion', 'asunción',
+      'cuba', 'havana',
+      'dominican republic', 'santo domingo',
+      'guatemala', 'guatemala city',
+      'honduras', 'tegucigalpa',
+      'el salvador',
+      'nicaragua', 'managua',
+      'costa rica', 'san jose',
+      'panama', 'panama city',
+      'spain', 'madrid', 'barcelona', 'sevilla',
+    ]);
+    const hasLatAmRegion = narrowedRegions.some(r => r.toLowerCase() === 'latin america');
+    const hasSpanishLocation = locationTerms.some(loc => SPANISH_COUNTRIES.has(loc.toLowerCase()));
+    if ((hasLatAmRegion || hasSpanishLocation) && crossProductQueries.length > 0) {
+      const spanishQueries = [];
+      const locTop = locationTerms.slice(0, 3);
+      const kwTop = keywordTerms.slice(0, 4);
+      for (const loc of locTop) {
+        // Use the location as-is (proper nouns translate cleanly enough)
+        for (const kw of kwTop) {
+          const esKw = SPANISH_KEYWORDS[kw.toLowerCase()] || kw;
+          spanishQueries.push(`${loc} ${esKw}`);
+          if (spanishQueries.length >= 6) break;
+        }
+        if (spanishQueries.length >= 6) break;
+      }
+      // Prepend so Spanish queries get fetched in the same priority slot
+      // as English cross-products.
+      liveQueries.push(...spanishQueries);
+    }
+
     liveQueries.push(...profileKeywordsList);
     liveQueries.push(...keywordTerms);
     if (locationTerms.length) liveQueries.push(locationTerms.slice(0, 2).join(' '));
@@ -1146,7 +1218,9 @@ app.get('/api/news', async (req, res) => {
         const t0 = Date.now();
         const { queries: ranQueries, articles: liveArticles } = await liveFetchManyQueries(
           liveQueries,
-          { regionSlug: regionSlugs[0] || 'global', perQueryLimit: 10, totalLimit: 12 }
+          // totalLimit raised so cross-product + Spanish queries actually
+          // get fetched. perQueryLimit unchanged.
+          { regionSlug: regionSlugs[0] || 'global', perQueryLimit: 10, totalLimit: 20 }
         );
         const took = Date.now() - t0;
         console.log(`Live Google News [${ranQueries.join(' | ')}]: ${liveArticles.length} articles in ${took}ms`);
@@ -1372,17 +1446,30 @@ app.get('/api/news', async (req, res) => {
           a.score -= 300;
         }
       }
-      // Location boost — typed cities/countries float up but never
-      // delete other articles. Title matches count more than body.
+      // Location boost — typed cities/countries float up. Stronger
+      // boost (location chips are explicit, high-intent user input);
+      // mild penalty for off-location content so the same explicit
+      // intent isn't drowned by louder generic content.
       if (locationTerms.length > 0) {
         const titleLower = (a.title || '').toLowerCase();
         const descLower = (a.description || '').toLowerCase();
+        const fullLower = titleLower + ' ' + descLower;
         let locBoost = 0;
+        let anyLocHit = false;
         for (const term of locationTerms) {
-          if (titleLower.includes(term)) locBoost += 25;
-          else if (descLower.includes(term)) locBoost += 8;
+          if (titleLower.includes(term)) { locBoost += 45; anyLocHit = true; }
+          else if (descLower.includes(term)) { locBoost += 18; anyLocHit = true; }
+          else if (fullLower.includes(term)) { anyLocHit = true; }
         }
-        a.score += Math.min(locBoost, 60);
+        a.score += Math.min(locBoost, 100);
+        // Off-location demotion when user explicitly typed locations.
+        // Mild so an article that's globally relevant can still rank;
+        // strong enough that "Mexico AI bill" beats "California AI bill"
+        // for a user with Mexico chip.
+        if (!anyLocHit) {
+          a.score = Math.max(0, a.score - 35);
+          a._offLocation = true;
+        }
       }
       if (keywordTerms.length > 0) {
         const titleLower = (a.title || '').toLowerCase();
