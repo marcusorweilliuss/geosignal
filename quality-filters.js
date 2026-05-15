@@ -54,6 +54,26 @@ const BLOCKED_HOST_SUBSTRINGS = [
   '.feedspot.',
   '.omny.fm',
   '.libsyn.',
+  // Corporate engineering / product blogs — self-promotional, not news
+  'github.blog',
+  'engineering.fb.com',
+  'engineering.meta.com',
+  'aws.amazon.com/blogs',
+  'blogs.aws.amazon.com',
+  'devblogs.microsoft.com',
+  'techcommunity.microsoft.com',
+  'cloud.google.com/blog',
+  'blog.google',
+  'openai.com/blog',
+  'anthropic.com/news',
+  'engineering.linkedin.com',
+  'medium.engineering',
+  'netflixtechblog.com',
+  'blog.cloudflare.com',
+  'developer.nvidia.com/blog',
+  'engineering.atspotify.com',
+  'spotify.engineering',
+  'eng.uber.com',
 ];
 
 // Path patterns that betray a non-article page even on legitimate
@@ -73,6 +93,13 @@ const NON_ARTICLE_PATH_PATTERNS = [
   /\/initiatives?\/[^\/]+\/?$/i,
   /\/issues?\/[^\/]+\/?$/i,
   /\/regions?\/[^\/]+\/?$/i,
+  // Corporate engineering / product blog path shapes (subset that's
+  // safe — generic /blog/ catches too many legit newspaper columnists).
+  /\/(?:engineering|tech)-?blog\//i,
+  /\/whats-?new\//i,
+  /\/changelog\//i,
+  /\/press-releases?\//i,      // Corporate press release sections
+  /\/newsroom\/[A-Z]/,         // "/newsroom/foo" announcement pages
 ];
 
 const PRODUCT_PATH_PATTERNS = [
@@ -217,6 +244,24 @@ const AGGREGATOR_TITLE_PATTERNS = [
   /^\s*daily\s+news\s+(?:on|from|in|across)\s+[A-Z]/i,
   // Index pages: "X.com news" landing
   /\b(?:news|stories|updates?)\s+\|\s+latest\b/i,
+  // Academic / university press releases + event announcements.
+  // Match "X University|College|School|Institute <event-verb>" anywhere
+  // in the title, not just at the start — lots of intermediate words.
+  /\b(?:university|college|school|institute)\s+of\s+\w+\s+(?:showcases?|hosts?|holds?|presents?|launches?|announces?|introduces?)\b/i,
+  /\b(?:university|college|school|institute)\s+(?:showcases?|hosts?|holds?|presents?|launches?|announces?|introduces?)\b/i,
+  /\b(?:annual|inaugural|biennial|quadrennial)\s+(?:conference|symposium|colloquium|forum|workshop|summit|gathering)\b/i,
+  /\b(?:public\s+policy|administration|governance|government|policy)\s+(?:&|and)\s+\w+\s+conference\b/i,
+  /\b(?:master['’]?s|bachelor['’]?s|mba|phd|doctoral|undergraduate)\s+(?:degree|programmes?|programs?)\b/i,
+  /\bonline\s+(?:public\s+policy|business|law|engineering|mba|master)/i,
+  /\bpublic\s+policy\s+(?:analysis\s+)?(?:challenge|competition|case\s+study)\b/i,
+  /\bstudents?\s+(?:address|tackle|present|win|launch)\b/i,
+  /\bcapstone\s+project\b/i,
+  /\b(?:local\s+government|public\s+policy)\s+(?:policy\s+and\s+practice|practice\s+and\s+policy|theory\s+and\s+practice|capacity\s+challenges)\b/i, // academic course titles
+  // Corporate product / feature launches when the title leads with
+  // "Introducing X" / "Announcing X" — these are self-promo posts,
+  // not journalism.
+  /^(?:introducing|announcing|launching|unveiling|releasing)\s+[A-Z]/i,
+  /\b(?:announces?|introduces?|launches?|unveils?|releases?|debuts?)\s+(?:new|next-?gen|advanced|comprehensive|integrated|legal\s+practice|plug-?ins?|tool|tools|feature|features|integration|integrations|api|sdk|platform)\b/i,
 ];
 
 // Title is JUST a publisher / product/section name with no actual

@@ -1247,16 +1247,22 @@ function scoreArticle(article, region, userProfile, activeSectors) {
   if (article.publishedAt) {
     const pubDate = new Date(article.publishedAt);
     const hoursAgo = (Date.now() - pubDate.getTime()) / (1000 * 60 * 60);
-    if (hoursAgo <= 1) score += 35;            // breaking-news window
-    else if (hoursAgo <= 3) score += 28;
-    else if (hoursAgo <= 6) score += 22;
-    else if (hoursAgo <= 12) score += 15;
-    else if (hoursAgo <= 24) score += 8;
-    else if (hoursAgo <= 48) score += 2;
-    else if (hoursAgo <= 72) {
-      if (article.sourceTier !== 'think-tank-academic') score -= 5;
-    } else {
-      if (article.sourceTier !== 'think-tank-academic') score -= 15;
+    // Recency boost — much steeper now so today's news clearly
+    // outranks last week's, and last month's content has to be
+    // genuinely high-signal to overcome the gap.
+    if (hoursAgo <= 1) score += 50;            // breaking-news window
+    else if (hoursAgo <= 3) score += 42;
+    else if (hoursAgo <= 6) score += 35;
+    else if (hoursAgo <= 12) score += 25;
+    else if (hoursAgo <= 24) score += 18;
+    else if (hoursAgo <= 48) score += 8;
+    else if (hoursAgo <= 72) score += 0;       // 3 days — neutral
+    else if (hoursAgo <= 168) {                 // 4-7 days — mild penalty
+      if (article.sourceTier !== 'think-tank-academic') score -= 10;
+    } else if (hoursAgo <= 720) {               // 8-30 days — bigger penalty
+      if (article.sourceTier !== 'think-tank-academic') score -= 25;
+    } else {                                     // 30+ days — heavy penalty
+      if (article.sourceTier !== 'think-tank-academic') score -= 45;
     }
   } else {
     // No timestamp — treat as mildly stale

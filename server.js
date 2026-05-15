@@ -1355,9 +1355,31 @@ app.get('/api/news', async (req, res) => {
         const descLower = (a.description || '').toLowerCase();
         let kwBoost = 0;
         let anyHit = false;
+        // Per-keyword disambiguation: some user keywords are polysemous
+        // ("Migration" matches bird migration / database migration /
+        // cloud migration). Reject the match when the surrounding
+        // context is the wrong sense.
+        const KEYWORD_NEGATIVE_CONTEXT = {
+          'migration': /\b(?:bird|wildlife|animal|monarch|butterfly|salmon|whale|fish|data|database|cloud|server|system|code|workload|image|docker|kubernetes|legacy|application|account|email|tool|wizard|guide|tutorial|developer|engineering)\b/i,
+          'climate': /\b(?:business\s+climate|investment\s+climate|economic\s+climate|political\s+climate|workplace\s+climate)\b/i,
+          'protests': /\b(?:bond\s+yields|stock\s+market|gym\s+protein)\b/i,
+        };
         for (const term of keywordTerms) {
-          if (titleLower.includes(term)) { kwBoost += 25; anyHit = true; }
-          else if (descLower.includes(term)) { kwBoost += 10; anyHit = true; }
+          const lcTerm = term.toLowerCase();
+          const negCtx = KEYWORD_NEGATIVE_CONTEXT[lcTerm];
+          const titleHit = titleLower.includes(term);
+          const descHit = descLower.includes(term);
+          if (titleHit || descHit) {
+            // Reject if the negative-context test fires on the full
+            // text — we want the policy/geopolitical sense, not the
+            // tech / wildlife / market sense.
+            if (negCtx) {
+              const fullText = titleLower + ' ' + descLower;
+              if (negCtx.test(fullText)) continue;
+            }
+            if (titleHit) { kwBoost += 25; anyHit = true; }
+            else { kwBoost += 10; anyHit = true; }
+          }
         }
         a.score += Math.min(kwBoost, 70);
         // When user has explicit keywords, HEAVILY demote articles
