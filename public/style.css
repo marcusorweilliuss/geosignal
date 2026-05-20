@@ -157,27 +157,34 @@ html {
 }
 
 .app-shell {
-  max-width: 1600px;     /* use more of wide screens; was 1280 */
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 32px 28px 80px; /* tighter outer gutter so cards have room */
-  padding-left: 248px;     /* sidebar is 220px + ~28px gap */
+  padding: 32px 28px 80px;
+  /* No left-padding reserve — sidebar is a drawer now, not a column. */
 }
 
-/* ── Left sidebar (primary sector navigation) ────────────────── */
+/* ── Left sidebar — now a slide-in drawer ──
+   Used to sit always-visible eating 220px of horizontal space; now
+   slides in from the left when the Settings button is clicked.
+   Main content gets the full width by default. */
 .app-sidebar {
   position: fixed;
   top: 0;
   left: 0;
   bottom: 0;
-  width: 220px;
-  padding: 24px 18px 20px;
+  width: 320px;
+  padding: 24px 22px 20px;
   background: var(--bg-card);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  z-index: 40;
+  z-index: 80;
   overflow-y: auto;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+  box-shadow: 8px 0 24px rgba(0,0,0,0.08);
 }
+.app-sidebar.open { transform: translateX(0); }
 
 /* Sidebar collapse toggle — sits at the top-right of the sidebar */
 .sidebar-collapse-btn {
@@ -204,42 +211,51 @@ html {
   border-color: var(--border-strong);
 }
 
-/* Collapsed sidebar — shrinks to 0, main content fills the space */
-.app-sidebar.collapsed {
-  width: 0;
-  padding: 0;
-  overflow: hidden;
-  border-right: none;
+/* Sidebar collapse states no longer needed — drawer pattern.
+   .open class on .app-sidebar slides it in; default is hidden. */
+
+.app-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 16px 0;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
 }
-.app-sidebar.collapsed .sidebar-collapse-btn {
-  display: none;
+.app-sidebar-heading {
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--text-primary);
+  margin: 0;
 }
-.app-sidebar.collapsed ~ .app-shell {
-  padding-left: 40px;
+.sidebar-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sidebar-close-btn:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  transform: rotate(90deg);
 }
 
 /* "Open sidebar" button — visible only when sidebar is collapsed */
-.sidebar-expand-btn {
-  display: none;
-  position: fixed;
-  top: 14px;
-  left: 14px;
-  z-index: 45;
-  width: 40px;
-  height: 40px;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-card);
-  border: 1px solid var(--border-strong);
-  border-radius: 10px;
-  color: var(--text-primary);
-  cursor: pointer;
-  box-shadow: var(--shadow-sm);
-  padding: 0;
-  transition: all 0.15s;
-}
-.sidebar-expand-btn:hover { background: var(--bg-secondary); }
-.sidebar-expand-btn.visible { display: inline-flex; }
+/* sidebar-expand-btn is obsolete in the drawer pattern — sidebar-toggle
+   handles both open and close. Keep the rule but force hidden. */
+.sidebar-expand-btn { display: none !important; }
 
 .app-sidebar-brand {
   display: flex;
@@ -595,15 +611,17 @@ html {
   margin: 8px 0 6px;
 }
 
-/* Sidebar mobile controls */
+/* Sidebar toggle button — always visible now (was mobile-only).
+   Opens the consolidated settings drawer. Floating top-left of the
+   viewport for low visual weight. */
 .sidebar-toggle {
-  display: none;
+  display: inline-flex;
   position: fixed;
   top: 14px;
   left: 14px;
   z-index: 60;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   background: var(--bg-card);
   border: 1px solid var(--border-strong);
@@ -613,8 +631,27 @@ html {
   align-items: center;
   justify-content: center;
   box-shadow: var(--shadow-sm);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
 }
-.sidebar-toggle:hover { background: var(--bg-secondary); }
+.sidebar-toggle:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.sidebar-toggle .sidebar-toggle-label {
+  display: none;
+  margin-left: 8px;
+}
+@media (min-width: 720px) {
+  .sidebar-toggle {
+    width: auto;
+    padding: 0 14px;
+    border-radius: 24px;
+  }
+  .sidebar-toggle .sidebar-toggle-label { display: inline; }
+}
 
 .sidebar-overlay {
   display: none;
@@ -622,23 +659,13 @@ html {
   inset: 0;
   background: rgba(28, 25, 23, 0.4);
   backdrop-filter: blur(4px);
-  z-index: 35;
+  z-index: 75;
 }
-
-@media (max-width: 960px) {
-  .sidebar-toggle { display: inline-flex; }
-  .app-shell { padding-left: 40px; }
-  .app-sidebar {
-    transform: translateX(-100%);
-    transition: transform 0.28s cubic-bezier(0.2, 0, 0, 1);
-    box-shadow: 12px 0 32px rgba(28, 25, 23, 0.12);
-  }
-  .app-sidebar.open { transform: translateX(0); }
-  .sidebar-overlay.visible { display: block; }
-}
+.sidebar-overlay.visible { display: block; }
 
 @media (max-width: 640px) {
   .app-shell { padding: 70px 16px 60px; }
+  .app-sidebar { width: 100%; }
 }
 
 /* Header — single-row banner matching the static pages.
@@ -1571,6 +1598,20 @@ header.app-header {
   height: 20px;
 }
 
+/* Primary CTA variant — used for "Sign up" so new visitors see a
+   clear action affordance among the other icon buttons. */
+.icon-btn.icon-btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.icon-btn.icon-btn-primary:hover {
+  background: var(--accent-hover, #0a5842);
+  color: #fff;
+  border-color: var(--accent-hover, #0a5842);
+}
+.icon-btn.icon-btn-primary svg { stroke: #fff; }
+
 .icon-btn-label {
   display: none;
   white-space: nowrap;
@@ -2075,9 +2116,19 @@ body.briefing-concise .briefing-content .briefing-bullets li:nth-child(n+3) {
   border-bottom-style: solid;
 }
 
-/* Control bar — search + filter button side by side */
-/* Control bar + expandable filter panel hidden — sidebar has all controls */
-.control-bar { display: none !important; }
+/* Control bar — prominent search + filter-summary at the top center.
+   Search is the user's most-explicit-intent input; it deserves
+   prime real estate now that the always-visible sidebar is gone. */
+.control-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 820px;
+  margin: 8px auto 24px;
+  padding: 0 4px;
+}
+/* The expandable inline-filter panel is gone — drawer handles
+   filters now. Keep it hidden to avoid duplicate controls. */
 .filters { display: none !important; }
 
 /* Search bar — warm editorial input */
@@ -3496,6 +3547,43 @@ select:focus {
 
 .card:hover .card-meta .card-tier-meta {
   opacity: 0.8;
+}
+
+/* Editorial-orientation chip next to source name. Visible by default
+   (it's user-relevant info, not chrome). Uses the neutral teal -> stone
+   -> umber palette from the bias-chip block above so left/right read
+   as positions on a spectrum, not endorsements/attacks. */
+.card-bias-meta {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #fff;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.card-bias-meta.bias-far-left       { background: #134E4A; }  /* deep teal */
+.card-bias-meta.bias-centre-left    { background: #5B7A77; }  /* muted teal-grey */
+.card-bias-meta.bias-centre         { background: #78716C; }  /* warm stone */
+.card-bias-meta.bias-centre-right   { background: #A8896C; }  /* dusty amber-grey */
+.card-bias-meta.bias-far-right      { background: #78350F; }  /* deep umber */
+.card-bias-meta.bias-state-media    { background: #4B3F2F; }
+.card-bias-meta.bias-non-partisan   { background: #065F46; }  /* forest green */
+.card-bias-meta.bias-unknown        { background: #E5E7EB; color: #374151; }
+
+.card-bias-dot {
+  width: 3px;
+  height: 3px;
+  background: var(--text-tertiary);
+  opacity: 0.5;
+  border-radius: 50%;
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0 2px;
 }
 
 /* TL;DR — pull-quote feel in serif italic with decorative mark */

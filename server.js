@@ -100,6 +100,44 @@ app.use(express.static('public'));
 // No-op when CLERK_SECRET_KEY is unset — the app stays anonymous.
 app.use(attachUserId);
 
+// ── Per-IP rate limit for the LLM-spending endpoints ──
+// Protects against a runaway client / abusive loop / dev test that
+// would burn through the Perplexity budget. In-memory sliding window
+// — fine for a single Render dyno. If scaling to multiple instances,
+// swap for Redis.
+const _rateLimitWindows = new Map(); // ip -> [timestamps]
+function rateLimit({ windowMs, maxRequests }) {
+  return (req, res, next) => {
+    const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+    if (!ip) return next();
+    const now = Date.now();
+    const cutoff = now - windowMs;
+    const stamps = (_rateLimitWindows.get(ip) || []).filter(t => t > cutoff);
+    if (stamps.length >= maxRequests) {
+      const retryAfter = Math.ceil((stamps[0] + windowMs - now) / 1000);
+      res.set('Retry-After', retryAfter);
+      return res.status(429).json({
+        error: 'Rate limit exceeded',
+        retryAfterSeconds: retryAfter,
+      });
+    }
+    stamps.push(now);
+    _rateLimitWindows.set(ip, stamps);
+    // Prune the map occasionally to avoid unbounded growth
+    if (_rateLimitWindows.size > 10000) {
+      for (const [k, v] of _rateLimitWindows.entries()) {
+        if (v[v.length - 1] < cutoff) _rateLimitWindows.delete(k);
+      }
+    }
+    next();
+  };
+}
+// Caps tuned for normal use: 30 feed loads / minute is more than any
+// real user does. Briefings / impact / cross-sector share a separate,
+// looser bucket since they're cheaper individually.
+const feedRateLimit = rateLimit({ windowMs: 60 * 1000, maxRequests: 30 });
+const llmRateLimit  = rateLimit({ windowMs: 60 * 1000, maxRequests: 60 });
+
 // Expose Clerk frontend config to the page bootstrap script. Returns
 // just the publishable key + an enabled flag; nothing sensitive.
 app.get('/api/auth/config', (_req, res) => {
@@ -920,7 +958,7 @@ function buildMatchReason(article, profile, expandedSearch, expandedProfileKw, s
 
 // ── Main News Endpoint (RSS-powered) ────────────────────────────
 
-app.get('/api/news', async (req, res) => {
+app.get('/api/news', feedRateLimit, async (req, res) => {
   try {
     const { region, regions, sectors, sourceTypes, profile: profileStr, search, articleTypes, locations, keywords, includeSources, excludeSources, readArticles } = req.query;
 
@@ -1105,6 +1143,30 @@ app.get('/api/news', async (req, res) => {
     // "Artificial Intelligence" queried alone just returns generic
     // global AI news — the LLM had no signal to find content at the
     // intersection of the user's location and their topical interests.
+    // ── Cost-control gates ──
+    // 1) Hard kill-switch via env var (emergency cost-spike protection).
+    // 2) Skip live search entirely when the user has NO narrow filters
+    //    set (default browse = corpus only, no Perplexity spend).
+    //    Live search only fires when the user has expressed intent via
+    //    region narrowing, keywords, locations, sectors, or search query.
+    const liveSearchKillSwitch = process.env.LIVE_SEARCH_DISABLED === 'true' ||
+                                  process.env.LIVE_SEARCH_DISABLED === '1';
+    const hasUserIntent =
+      (search && search.trim().length > 1) ||
+      narrowedRegions.length > 0 ||
+      narrowedSectors.length > 0 ||
+      locationTerms.length > 0 ||
+      keywordTerms.length > 0;
+    // If the user has an explicit include-whitelist set, the live
+    // search would just fetch arbitrary content that would then be
+    // dropped by the whitelist filter. Skip it entirely — saves
+    // Perplexity spend AND respects user intent strictly.
+    const hasIncludeWhitelist = includeSet && includeSet.size > 0;
+    const skipLiveSearch = liveSearchKillSwitch || !hasUserIntent || hasIncludeWhitelist;
+    if (liveSearchKillSwitch) console.log('Live search killed via env var');
+    else if (!hasUserIntent) console.log('Live search SKIPPED — broad-filter user, serving corpus only');
+    else if (hasIncludeWhitelist) console.log(`Live search SKIPPED — user has ${includeSet.size}-source whitelist, no need to fetch arbitrary content`);
+
     const liveQueries = [];
     if (search && search.trim().length > 1) liveQueries.push(search.trim());
 
@@ -1147,22 +1209,26 @@ app.get('/api/news', async (req, res) => {
       }
     }
 
+    // Cap cross-products at 6 (was 10). Each one costs ~$0.005-0.01.
+    // Reducing 10 -> 6 cuts ~40% of the live-search bill per request
+    // while keeping the most valuable intersections (top 2 anchors ×
+    // top 3 keywords).
     const crossProductQueries = [];
     if (crossAnchors.length > 0 && keywordTerms.length > 0) {
-      const kwTop = keywordTerms.slice(0, 4);
-      for (const a of crossAnchors) {
+      const anchorTop = crossAnchors.slice(0, 2);
+      const kwTop = keywordTerms.slice(0, 3);
+      for (const a of anchorTop) {
         for (const kw of kwTop) {
-          if (crossProductQueries.length >= 10) break;
+          if (crossProductQueries.length >= 6) break;
           crossProductQueries.push(`${a} ${kw}`);
         }
-        if (crossProductQueries.length >= 10) break;
+        if (crossProductQueries.length >= 6) break;
       }
     }
-    // No keywords, but sectors → pair anchors with sectors.
     if (crossAnchors.length > 0 && keywordTerms.length === 0 && narrowedSectors.length > 0) {
-      for (const a of crossAnchors.slice(0, 3)) {
+      for (const a of crossAnchors.slice(0, 2)) {
         for (const sec of narrowedSectors.slice(0, 3)) {
-          if (crossProductQueries.length >= 8) break;
+          if (crossProductQueries.length >= 5) break;
           crossProductQueries.push(`${a} ${sec}`);
         }
       }
@@ -1302,14 +1368,16 @@ app.get('/api/news', async (req, res) => {
     liveQueries.push(...narrowedSectors);
     liveQueries.push(...regionPrimerQueries);
 
-    if (liveQueries.length) {
+    if (liveQueries.length && !skipLiveSearch) {
       try {
         const t0 = Date.now();
         const { queries: ranQueries, articles: liveArticles } = await liveFetchManyQueries(
           liveQueries,
-          // totalLimit raised so cross-product + Spanish queries actually
-          // get fetched. perQueryLimit unchanged.
-          { regionSlug: regionSlugs[0] || 'global', perQueryLimit: 10, totalLimit: 20 }
+          // totalLimit dropped 20 -> 12 to cut Perplexity cost per
+          // request. Cross-product queries always fetch first (they're
+          // earliest in liveQueries) so the most valuable intersections
+          // still run; bare-keyword fallback queries get capped.
+          { regionSlug: regionSlugs[0] || 'global', perQueryLimit: 8, totalLimit: 12 }
         );
         const took = Date.now() - t0;
         console.log(`Live Google News [${ranQueries.join(' | ')}]: ${liveArticles.length} articles in ${took}ms`);
@@ -1383,11 +1451,26 @@ app.get('/api/news', async (req, res) => {
 
     // Source include/exclude — these ARE hard filters because the
     // user explicitly picked outlets in the Manage Sources panel.
+    //
+    // Include matching is prefix-aware: "Reuters" in the include set
+    // matches sources "Reuters", "Reuters Africa", "Reuters Top News"
+    // — otherwise users get an empty feed because the live-search
+    // path returns variant source names that don't match the canonical
+    // registry entry.
     if (includeSet && includeSet.size > 0) {
-      unique = unique.filter(a => includeSet.has(a.source));
+      const includeLowered = Array.from(includeSet).map(s => s.toLowerCase());
+      unique = unique.filter(a => {
+        const src = (a.source || '').toLowerCase();
+        if (!src) return false;
+        return includeLowered.some(inc => src === inc || src.startsWith(inc + ' ') || src.startsWith(inc + ':'));
+      });
     }
     if (excludeSet && excludeSet.size > 0) {
-      unique = unique.filter(a => !excludeSet.has(a.source));
+      const excludeLowered = Array.from(excludeSet).map(s => s.toLowerCase());
+      unique = unique.filter(a => {
+        const src = (a.source || '').toLowerCase();
+        return !excludeLowered.some(exc => src === exc || src.startsWith(exc + ' ') || src.startsWith(exc + ':'));
+      });
     }
 
     // Sector keywords are always treated as a boost. We build the
@@ -2042,6 +2125,21 @@ app.get('/api/news', async (req, res) => {
         country: article.country || '',
         subjectRegion: article.subjectRegion || '',
         primarySector: article.primarySector || '',
+        // Bias label from registry — falls through to a sourceTier-
+        // derived default for sources we don't have explicit bias for.
+        bias: (() => {
+          try {
+            const meta = require('./source_registry').getMetaByName(article.source);
+            if (meta && meta.bias) return meta.bias;
+          } catch {}
+          return ({
+            'independent-left':  'center-left',
+            'independent-right': 'center-right',
+            'independent-critical': 'non-partisan',
+            'think-tank-academic': 'non-partisan',
+            'government-official': 'state media',
+          })[article.sourceTier] || '';
+        })(),
         sourceDescription: getSourceDescription(article.source),
         matchReason: (() => { try { return buildMatchReason(article, userProfile, expandedSearchTerms, expandedProfileKeywords, activeSectors, regionList); } catch { return ''; } })(),
         broadened: !!article.broadened
@@ -2346,7 +2444,7 @@ Now do "${cleaned}":`;
 // Lets the user ask questions about a specific article and get a
 // web-grounded answer from Perplexity. Conversation history is
 // kept client-side and replayed on each call.
-app.post('/api/chat', async (req, res) => {
+app.post('/api/chat', llmRateLimit, async (req, res) => {
   try {
     const { article, question, history } = req.body || {};
     const q = String(question || '').trim();
@@ -2864,7 +2962,7 @@ WHY THIS MATTERS:
   return { briefing, citationMap };
 }
 
-app.post('/api/briefing', async (req, res) => {
+app.post('/api/briefing', llmRateLimit, async (req, res) => {
   try {
     const { title, source, description, content, isOfficial, url, region } = req.body;
 
@@ -3223,7 +3321,7 @@ HARD RULES:
   return { impact, relevance, citationMap };
 }
 
-app.post('/api/impact', async (req, res) => {
+app.post('/api/impact', llmRateLimit, async (req, res) => {
   try {
     const { title, source, description, content, profile, activeFilters, url, region } = req.body;
 
@@ -3498,7 +3596,7 @@ Term to explain: "${term}"`;
 // Detects causal chains, shared entities, second-order effects, and
 // contradictions across articles — personalized to the user's profile
 
-app.post('/api/cross-sector', async (req, res) => {
+app.post('/api/cross-sector', llmRateLimit, async (req, res) => {
   try {
     const { articles, profile, region } = req.body;
     if (!articles || articles.length < 3) {
@@ -3729,7 +3827,7 @@ CRITICAL RULES:
 // the client can call this endpoint to let Perplexity find recent
 // articles from the open web. Returns articles in the same shape
 // as /api/news so the existing render pipeline works unchanged.
-app.post('/api/web-search', async (req, res) => {
+app.post('/api/web-search', llmRateLimit, async (req, res) => {
   try {
     const { query } = req.body;
     if (!query || !query.trim()) {

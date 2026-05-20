@@ -49,7 +49,9 @@ window.__gsAuth = (() => {
     isSignedIn = !!(clerk && clerk.user);
     window.__gsAuth.isSignedIn = isSignedIn;
     const authBtn = document.getElementById('auth-btn');
+    const signupBtn = document.getElementById('signup-btn');
     if (authBtn) authBtn.style.display = isSignedIn ? 'none' : '';
+    if (signupBtn) signupBtn.style.display = isSignedIn ? 'none' : '';
     if (isSignedIn) {
       // First sign-in: pull server profile if present, otherwise
       // push the user's local profile up so it lives on the server.
@@ -72,7 +74,23 @@ window.__gsAuth = (() => {
       const r = await fetch('/api/auth/config');
       config = await r.json();
     } catch { return; }
-    if (!config.enabled || !config.publishableKey) return;
+    if (!config.enabled || !config.publishableKey) {
+      // Clerk keys aren't set. Keep the buttons visible but route
+      // clicks to a friendly message instead of failing silently —
+      // helps the operator notice setup is needed.
+      const showSetupHint = () => {
+        if (typeof showToast === 'function') {
+          showToast('Sign-up isn\'t available yet. The operator needs to add Clerk keys (see CLERK_SETUP.md).', { duration: 4500 });
+        } else {
+          alert('Sign-up isn\'t available yet. Please configure Clerk keys to enable accounts.');
+        }
+      };
+      const a = document.getElementById('auth-btn');
+      const s = document.getElementById('signup-btn');
+      if (a) a.addEventListener('click', showSetupHint);
+      if (s) s.addEventListener('click', showSetupHint);
+      return;
+    }
 
     // Lazy-load Clerk JS from a public CDN. Simpler than the
     // account-specific subdomain pattern; works for any Clerk app.
@@ -113,6 +131,20 @@ window.__gsAuth = (() => {
           clerk.openUserProfile();
         } else {
           clerk.openSignIn({ redirectUrl: window.location.href });
+        }
+      });
+    }
+
+    // Wire the Sign Up button: opens Clerk's hosted sign-up flow.
+    // Once signed in, button hides (Clerk UserButton takes over).
+    const signupBtn = document.getElementById('signup-btn');
+    if (signupBtn) {
+      signupBtn.style.display = '';
+      signupBtn.addEventListener('click', () => {
+        if (clerk.user) {
+          clerk.openUserProfile();
+        } else {
+          clerk.openSignUp({ redirectUrl: window.location.href });
         }
       });
     }
@@ -1905,9 +1937,17 @@ if (customSourceSubmit) {
   });
 }
 
-// Collapsible filters
+// The filters-toggle button used to expand an inline filter panel;
+// now it opens the consolidated settings drawer (same target as the
+// floating sidebar-toggle).
 filtersToggle.addEventListener('click', () => {
-  filtersContainer.classList.toggle('expanded');
+  const sb = document.getElementById('app-sidebar');
+  const ov = document.getElementById('sidebar-overlay');
+  if (sb) {
+    sb.classList.add('open');
+    sb.setAttribute('aria-hidden', 'false');
+  }
+  if (ov) ov.classList.add('visible');
 });
 
 // ── Filter state: applied vs pending ──────────────────────────
@@ -2135,40 +2175,36 @@ handleFiltersChanged();
   const sidebarApplyBtn = document.getElementById('sidebar-apply-btn');
   const sidebarClearBtn = document.getElementById('sidebar-clear-btn');
 
-  // Restore collapsed state from localStorage
-  const SIDEBAR_COLLAPSED_KEY = 'geosignal_sidebar_collapsed';
-  if (localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true' && sidebar) {
-    sidebar.classList.add('collapsed');
-    if (expandBtn) expandBtn.classList.add('visible');
-  }
-
-  // Collapse / expand handlers
-  if (collapseBtn && sidebar) {
-    collapseBtn.addEventListener('click', () => {
-      sidebar.classList.add('collapsed');
-      if (expandBtn) expandBtn.classList.add('visible');
-      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, 'true');
-    });
-  }
-  if (expandBtn && sidebar) {
-    expandBtn.addEventListener('click', () => {
-      sidebar.classList.remove('collapsed');
-      expandBtn.classList.remove('visible');
-      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, 'false');
-    });
-  }
+  // Drawer-pattern sidebar — open/close via the floating toggle
+  // button. The old "always-visible + collapsed" state machine is
+  // gone; ignore any legacy localStorage flag.
 
   const closeSidebar = () => {
-    if (sidebar) sidebar.classList.remove('open');
+    if (sidebar) {
+      sidebar.classList.remove('open');
+      sidebar.setAttribute('aria-hidden', 'true');
+    }
     if (overlay) overlay.classList.remove('visible');
+  };
+  const openSidebar = () => {
+    if (sidebar) {
+      sidebar.classList.add('open');
+      sidebar.setAttribute('aria-hidden', 'false');
+    }
+    if (overlay) overlay.classList.add('visible');
   };
   if (toggle) {
     toggle.addEventListener('click', () => {
-      sidebar.classList.add('open');
-      overlay.classList.add('visible');
+      if (sidebar && sidebar.classList.contains('open')) closeSidebar();
+      else openSidebar();
     });
   }
+  if (collapseBtn) collapseBtn.addEventListener('click', closeSidebar);
   if (overlay) overlay.addEventListener('click', closeSidebar);
+  // Esc closes the drawer too.
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && sidebar && sidebar.classList.contains('open')) closeSidebar();
+  });
 
   // ── Sidebar pills → sync with main filter pills ──
   // Clicking a sidebar pill toggles its active state AND mirrors
@@ -3777,6 +3813,21 @@ function renderFeed(articles, options) {
         ? article.sourceTier.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
         : '';
 
+      // ── Bias / orientation label ──
+      // Comes from the server via article.bias (looked up in the
+      // registry server-side, with a sourceTier-derived fallback).
+      // Rendered as a small muted chip next to the source name.
+      const rawBias = (article.bias || '').trim();
+      const biasSlug = rawBias
+        ? 'bias-' + rawBias.toLowerCase().replace(/\s+/g, '-').replace(/center/g, 'centre')
+        : '';
+      const biasLabel = rawBias
+        ? rawBias.replace(/\b\w/g, c => c.toUpperCase()).replace(/Center/g, 'Centre')
+        : '';
+      const biasChip = biasLabel
+        ? '<span class="card-dot card-bias-dot"></span><span class="card-bias-meta ' + biasSlug + '" title="Editorial orientation">' + escapeHtml(biasLabel) + '</span>'
+        : '';
+
       // Build the hover tooltip text shown when the user hovers the source
       // name or tier label. Includes: source name, one-line description
       // (if known), and the tier badge in plain English. Missing description
@@ -3882,6 +3933,7 @@ function renderFeed(articles, options) {
           '<div class="card-meta">' +
             typeBadge +
             '<span class="card-source"' + sourceAttr + '>' + escapeHtml(article.source) + '</span>' +
+            biasChip +
             '<span class="card-dot"></span>' +
             '<span class="card-time">' + escapeHtml(timeAgo(article.publishedAt)) + '</span>' +
             (tierLabel ? '<span class="card-dot card-tier-meta"></span><span class="card-tier-meta"' + sourceAttr + '>' + escapeHtml(tierLabel) + '</span>' : '') +
@@ -3898,6 +3950,7 @@ function renderFeed(articles, options) {
             '</div>' +
             '<div class="card-meta">' +
               '<span class="card-source">' + escapeHtml(article.source) + '</span>' +
+              biasChip +
               '<span class="card-dot"></span>' +
               '<span>' + timeAgo(article.publishedAt) + '</span>' +
               (tierLabel ? '<span class="card-dot card-tier-meta"></span><span class="card-tier-meta">' + escapeHtml(tierLabel) + '</span>' : '') +

@@ -10,27 +10,20 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <button class="sidebar-toggle" id="sidebar-toggle" type="button" aria-label="Open navigation">
+  <!-- Settings / filters toggle — opens the consolidated drawer with
+       location chips, regions, sectors, sources, keywords, date range,
+       source-type pills. Always visible, floating top-left. -->
+  <button class="sidebar-toggle" id="sidebar-toggle" type="button" aria-label="Open settings & filters" title="Settings & filters">
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round">
-      <path d="M3 5h14M3 10h14M3 15h14"/>
+      <path d="M3 6h14M5 10h10M7 14h6"/>
     </svg>
+    <span class="sidebar-toggle-label">Filters</span>
   </button>
 
-  <aside class="app-sidebar" id="app-sidebar" aria-label="Filters and navigation">
-    <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" type="button" title="Collapse sidebar" aria-label="Toggle sidebar">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M10 3l-5 5 5 5"/>
-      </svg>
-    </button>
-    <div class="app-sidebar-brand">
-      <svg width="28" height="28" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="22" cy="22" r="18"/>
-        <ellipse cx="22" cy="22" rx="18" ry="7.5"/>
-        <path d="M22 4c5 5 5 31 0 36"/>
-        <path d="M22 4c-5 5-5 31 0 36"/>
-        <line x1="4" y1="22" x2="40" y2="22"/>
-      </svg>
-      <span class="app-sidebar-brand-text">GeoSignal</span>
+  <aside class="app-sidebar" id="app-sidebar" aria-label="Settings and filters" aria-hidden="true">
+    <div class="app-sidebar-header">
+      <h2 class="app-sidebar-heading">Settings &amp; filters</h2>
+      <button class="sidebar-close-btn" id="sidebar-collapse-btn" type="button" title="Close" aria-label="Close settings">&times;</button>
     </div>
 
     <!-- Search right in the sidebar so it's always accessible -->
@@ -227,10 +220,16 @@
           </span>
           <span id="profile-btn-text" class="icon-btn-label">My profile</span>
         </button>
-        <!-- Sign-in / sign-up button. Hidden until /api/auth/config
-             reports Clerk is enabled. When signed in, replaced by
-             Clerk's <UserButton> avatar mount. -->
-        <button id="auth-btn" class="icon-btn" type="button" style="display:none" title="Sign in to sync across devices">
+        <!-- Sign-up CTA: shown to anonymous visitors. Opens Clerk's
+             hosted modal in sign-up mode by default. When signed in,
+             replaced by Clerk's <UserButton> avatar (afterSignOutUrl). -->
+        <button id="signup-btn" class="icon-btn icon-btn-primary" type="button" title="Create an account">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 3v10M3 8h10"/>
+          </svg>
+          <span class="icon-btn-label">Sign up</span>
+        </button>
+        <button id="auth-btn" class="icon-btn" type="button" title="Sign in">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M6 2v2M10 2v2M3 4h10v9H3z"/>
             <path d="M3 7h10"/>
