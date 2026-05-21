@@ -253,7 +253,9 @@ app.post('/api/ext/perplexity', extCors, llmRateLimit, async (req, res) => {
 
 // NewsAPI passthrough — sanitises the input + caps page size. The
 // server's NEWSAPI_KEY is used; extension never sees it.
-const NEWSAPI_KEY_SERVER = process.env.NEWSAPI_KEY || '';
+// NEWSAPI_KEY_1 is the slot configured on Render today; NEWSAPI_KEY is
+// the canonical name. Accept either so this works for any project setup.
+const NEWSAPI_KEY_SERVER = process.env.NEWSAPI_KEY_1 || process.env.NEWSAPI_KEY || '';
 app.post('/api/ext/news', extCors, llmRateLimit, async (req, res) => {
   if (!requireExtAuth(req, res)) return;
   if (!NEWSAPI_KEY_SERVER) {
