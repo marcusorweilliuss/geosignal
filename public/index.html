@@ -220,21 +220,16 @@
           </span>
           <span id="profile-btn-text" class="icon-btn-label">My profile</span>
         </button>
-        <!-- Sign-up CTA: shown to anonymous visitors. Opens Clerk's
-             hosted modal in sign-up mode by default. When signed in,
-             replaced by Clerk's <UserButton> avatar (afterSignOutUrl). -->
-        <button id="signup-btn" class="icon-btn icon-btn-primary" type="button" title="Create an account">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M8 3v10M3 8h10"/>
-          </svg>
-          <span class="icon-btn-label">Sign up</span>
-        </button>
-        <button id="auth-btn" class="icon-btn" type="button" title="Sign in">
+        <!-- Single auth CTA: opens Clerk's sign-up flow. The Clerk
+             modal itself includes a "Already have an account? Sign in"
+             link, so existing users aren't blocked. When signed in,
+             this button hides and Clerk's <UserButton> avatar mounts. -->
+        <button id="signup-btn" class="icon-btn icon-btn-primary" type="button" title="Sign up or sign in">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M6 2v2M10 2v2M3 4h10v9H3z"/>
             <path d="M3 7h10"/>
           </svg>
-          <span class="icon-btn-label">Sign in</span>
+          <span class="icon-btn-label">Sign up</span>
         </button>
         <div id="user-button-mount"></div>
         <!-- Briefings are always rendered in full (detailed) — no toggle. -->
