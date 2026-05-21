@@ -92,42 +92,38 @@ window.__gsAuth = (() => {
       return;
     }
 
-    // Lazy-load Clerk JS from the account-specific Clerk frontend
-    // host. v5 of clerk-js auto-initialises using the
-    // `data-clerk-publishable-key` attribute on its own script tag —
-    // the previous "load + new Clerk(key)" pattern doesn't work in v5
-    // because the SDK throws synchronously on init before our
-    // constructor runs.
-    //
-    // The frontend API host is derived from the publishable key
-    // itself: pk_test_<base64(domain)> decodes back to the
-    // *.clerk.accounts.dev domain Clerk creates per app. We resolve
-    // it from the key and load from there so requests are
-    // pre-authenticated to the right Clerk instance.
-    const pk = config.publishableKey;
+    // Clerk-js v5 auto-init: derive the Clerk-hosted frontend API
+    // domain from the publishable key, then load clerk.browser.js
+    // FROM THAT DOMAIN with the data-clerk-publishable-key attribute.
+    // Loading from jsdelivr doesn't work — clerk-js v5 only auto-inits
+    // when served from the account-specific frontend host.
+    const pk = (config.publishableKey || '').trim();
     let frontendHost = '';
     try {
-      // pk_test_<base64-url(domain)$> — strip the "pk_test_" / "pk_live_"
-      // prefix and the trailing "$", base64-decode to get the domain.
-      const stripped = pk.replace(/^pk_(?:test|live)_/, '').replace(/\$$/, '');
-      // Standard base64url decode
+      const stripped = pk.replace(/^pk_(?:test|live)_/, '');
       const padded = stripped + '='.repeat((4 - stripped.length % 4) % 4);
       const b64 = padded.replace(/-/g, '+').replace(/_/g, '/');
-      frontendHost = atob(b64).replace(/\$$/, '');
-    } catch { /* fall through to jsdelivr below */ }
+      frontendHost = atob(b64).replace(/\$$/, '').trim();
+    } catch (err) {
+      console.warn('Clerk publishable-key decode failed:', err.message, 'pk prefix:', pk.slice(0, 12));
+    }
+    console.log('Clerk init — pk prefix:', pk.slice(0, 12), 'frontend host:', frontendHost || '(none)');
+    if (!frontendHost) {
+      console.error('Cannot derive Clerk frontend host from publishable key. Sign-up disabled. Check that CLERK_PUBLISHABLE_KEY on Render is a valid pk_test_... or pk_live_... key with no extra whitespace.');
+      return;
+    }
     await new Promise((resolve, reject) => {
       if (window.Clerk) return resolve();
       const s = document.createElement('script');
       s.async = true;
       s.crossOrigin = 'anonymous';
-      // Auto-init: clerk-js v5 reads this attribute on its own script
-      // tag and initialises with it.
       s.setAttribute('data-clerk-publishable-key', pk);
-      s.src = frontendHost
-        ? `https://${frontendHost}/npm/@clerk/clerk-js@5/dist/clerk.browser.js`
-        : 'https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js';
+      s.src = `https://${frontendHost}/npm/@clerk/clerk-js@5/dist/clerk.browser.js`;
       s.onload = resolve;
-      s.onerror = reject;
+      s.onerror = (e) => {
+        console.error('Clerk script load failed from', s.src);
+        reject(e);
+      };
       document.head.appendChild(s);
     });
 
