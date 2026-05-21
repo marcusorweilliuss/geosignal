@@ -166,6 +166,130 @@ app.put('/api/profile', (req, res) => {
   res.json({ ok: true });
 });
 
+// ─── Extension proxy endpoints ────────────────────────────────
+// The Chrome extension cannot ship its own API keys safely, so these
+// endpoints sit in front of Groq / Perplexity / NewsAPI and use the
+// server's keys. All require a valid Clerk session — the extension
+// reads __session from this domain's cookie and sends it as
+// Authorization: Bearer. Per-IP rate limited via llmRateLimit.
+
+// Allow the chrome-extension:// origin to talk to these routes only.
+function extCors(req, res, next) {
+  const origin = req.headers.origin || '';
+  // chrome-extension://<id> is a stable per-install origin. Echo it back
+  // (Access-Control-Allow-Origin: * doesn't work with credentialed reqs).
+  if (origin.startsWith('chrome-extension://')) {
+    res.set('Access-Control-Allow-Origin', origin);
+    res.set('Vary', 'Origin');
+    res.set('Access-Control-Allow-Credentials', 'true');
+    res.set('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+    res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.set('Access-Control-Max-Age', '600');
+  }
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+}
+
+function requireExtAuth(req, res) {
+  if (!req.userId) {
+    res.status(401).json({ ok: false, error: 'Not signed in' });
+    return false;
+  }
+  return true;
+}
+
+// Groq passthrough — single-shot prompt, returns plain text.
+app.post('/api/ext/groq', extCors, llmRateLimit, async (req, res) => {
+  if (!requireExtAuth(req, res)) return;
+  const { prompt, temperature, max_tokens } = req.body || {};
+  if (typeof prompt !== 'string' || prompt.length === 0) {
+    return res.status(400).json({ ok: false, error: 'Missing prompt' });
+  }
+  if (prompt.length > 12000) {
+    return res.status(413).json({ ok: false, error: 'Prompt too large' });
+  }
+  try {
+    const completion = await groqChat(
+      [{ role: 'user', content: prompt }],
+      {
+        temperature: typeof temperature === 'number' ? temperature : 0.4,
+        max_tokens: Math.min(Number(max_tokens) || 600, 1200)
+      }
+    );
+    const text = completion?.choices?.[0]?.message?.content || '';
+    res.json({ ok: true, text });
+  } catch (err) {
+    console.error('[/api/ext/groq]', err.message);
+    res.status(502).json({ ok: false, error: err.message || 'Upstream failure' });
+  }
+});
+
+// Perplexity passthrough — caller supplies the messages[] array.
+app.post('/api/ext/perplexity', extCors, llmRateLimit, async (req, res) => {
+  if (!requireExtAuth(req, res)) return;
+  const { messages, temperature, max_tokens } = req.body || {};
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return res.status(400).json({ ok: false, error: 'Missing messages[]' });
+  }
+  const totalLen = messages.reduce((n, m) => n + (m?.content?.length || 0), 0);
+  if (totalLen > 16000) {
+    return res.status(413).json({ ok: false, error: 'Messages too large' });
+  }
+  try {
+    const data = await perplexityChat(messages, {
+      temperature: typeof temperature === 'number' ? temperature : 0.3,
+      max_tokens: Math.min(Number(max_tokens) || 600, 1200)
+    });
+    res.json({
+      ok: true,
+      content: data?.choices?.[0]?.message?.content || '',
+      citations: data?.citations || []
+    });
+  } catch (err) {
+    console.error('[/api/ext/perplexity]', err.message);
+    res.status(502).json({ ok: false, error: err.message || 'Upstream failure' });
+  }
+});
+
+// NewsAPI passthrough — sanitises the input + caps page size. The
+// server's NEWSAPI_KEY is used; extension never sees it.
+const NEWSAPI_KEY_SERVER = process.env.NEWSAPI_KEY || '';
+app.post('/api/ext/news', extCors, llmRateLimit, async (req, res) => {
+  if (!requireExtAuth(req, res)) return;
+  if (!NEWSAPI_KEY_SERVER) {
+    return res.status(500).json({ ok: false, error: 'NEWSAPI_KEY not configured' });
+  }
+  const { q, domains, language, sortBy, pageSize } = req.body || {};
+  if (typeof q !== 'string' || q.length === 0 || q.length > 400) {
+    return res.status(400).json({ ok: false, error: 'Invalid q' });
+  }
+  try {
+    const params = new URLSearchParams({
+      q,
+      language: typeof language === 'string' ? language : 'en',
+      sortBy: typeof sortBy === 'string' ? sortBy : 'relevancy',
+      pageSize: String(Math.min(Number(pageSize) || 10, 30)),
+      apiKey: NEWSAPI_KEY_SERVER
+    });
+    if (typeof domains === 'string' && domains.length > 0 && domains.length < 800) {
+      params.set('domains', domains);
+    }
+    const upstream = await fetch('https://newsapi.org/v2/everything?' + params);
+    if (!upstream.ok) {
+      const body = await upstream.text().catch(() => '');
+      return res.status(502).json({
+        ok: false,
+        error: `NewsAPI ${upstream.status}: ${body.slice(0, 200)}`
+      });
+    }
+    const data = await upstream.json();
+    res.json({ ok: true, articles: Array.isArray(data.articles) ? data.articles : [] });
+  } catch (err) {
+    console.error('[/api/ext/news]', err.message);
+    res.status(502).json({ ok: false, error: err.message || 'Upstream failure' });
+  }
+});
+
 const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
 const GROQ_FALLBACK_MODEL = process.env.GROQ_FALLBACK_MODEL || 'llama-3.1-8b-instant';
 
