@@ -92,14 +92,40 @@ window.__gsAuth = (() => {
       return;
     }
 
-    // Lazy-load Clerk JS from a public CDN. Simpler than the
-    // account-specific subdomain pattern; works for any Clerk app.
+    // Lazy-load Clerk JS from the account-specific Clerk frontend
+    // host. v5 of clerk-js auto-initialises using the
+    // `data-clerk-publishable-key` attribute on its own script tag —
+    // the previous "load + new Clerk(key)" pattern doesn't work in v5
+    // because the SDK throws synchronously on init before our
+    // constructor runs.
+    //
+    // The frontend API host is derived from the publishable key
+    // itself: pk_test_<base64(domain)> decodes back to the
+    // *.clerk.accounts.dev domain Clerk creates per app. We resolve
+    // it from the key and load from there so requests are
+    // pre-authenticated to the right Clerk instance.
+    const pk = config.publishableKey;
+    let frontendHost = '';
+    try {
+      // pk_test_<base64-url(domain)$> — strip the "pk_test_" / "pk_live_"
+      // prefix and the trailing "$", base64-decode to get the domain.
+      const stripped = pk.replace(/^pk_(?:test|live)_/, '').replace(/\$$/, '');
+      // Standard base64url decode
+      const padded = stripped + '='.repeat((4 - stripped.length % 4) % 4);
+      const b64 = padded.replace(/-/g, '+').replace(/_/g, '/');
+      frontendHost = atob(b64).replace(/\$$/, '');
+    } catch { /* fall through to jsdelivr below */ }
     await new Promise((resolve, reject) => {
       if (window.Clerk) return resolve();
       const s = document.createElement('script');
       s.async = true;
       s.crossOrigin = 'anonymous';
-      s.src = 'https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js';
+      // Auto-init: clerk-js v5 reads this attribute on its own script
+      // tag and initialises with it.
+      s.setAttribute('data-clerk-publishable-key', pk);
+      s.src = frontendHost
+        ? `https://${frontendHost}/npm/@clerk/clerk-js@5/dist/clerk.browser.js`
+        : 'https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js';
       s.onload = resolve;
       s.onerror = reject;
       document.head.appendChild(s);
