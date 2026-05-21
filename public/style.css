@@ -1612,6 +1612,14 @@ header.app-header {
 }
 .icon-btn.icon-btn-primary svg { stroke: #fff; }
 
+/* Primary CTA must show its text label — otherwise it looks like a
+   mystery icon. Overrides the default .icon-btn-label { display: none }. */
+.icon-btn.icon-btn-primary .icon-btn-label {
+  display: inline;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
 .icon-btn-label {
   display: none;
   white-space: nowrap;
