@@ -150,13 +150,16 @@ app.get('/api/auth/config', (_req, res) => {
 // User profile API — backs cross-device profile sync when the user
 // is signed in. Anonymous requests return 401 and the client falls
 // back to localStorage.
-app.get('/api/profile', (req, res) => {
+// Reuse the same chrome-extension://* CORS handler so the extension can
+// read/write the same profile the web app does. extCors is defined just
+// below — JS hoists function declarations, so referencing it here is OK.
+app.get('/api/profile', (req, res, next) => extCors(req, res, next), (req, res) => {
   if (!req.userId) return res.status(401).json({ error: 'Not signed in' });
   const profile = getUserProfile(req.userId);
   res.json({ profile: profile || null });
 });
 
-app.put('/api/profile', (req, res) => {
+app.put('/api/profile', (req, res, next) => extCors(req, res, next), (req, res) => {
   if (!req.userId) return res.status(401).json({ error: 'Not signed in' });
   const profile = (req.body && req.body.profile) || null;
   if (!profile || typeof profile !== 'object') {
