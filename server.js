@@ -4063,23 +4063,26 @@ app.listen(PORT, () => {
   console.log(`Groq keys loaded: ${groqClients.length} (models: ${GROQ_MODEL}, ${GROQ_FALLBACK_MODEL})`);
 
   // ── Self-ping keep-alive ────────────────────────────────────────
-  // Render's free tier puts the dyno to sleep after 15 min of zero
+  // Render's free tier puts the dyno to sleep after ~15 min of zero
   // *external* HTTP traffic — internal timers don't count. Hit our
-  // own public URL every ~12 min so Render sees continuous activity
-  // and never marks the process idle. First-request cold-start goes
-  // away entirely. Only runs on Render (RENDER_EXTERNAL_URL is
-  // automatically injected there); locally this is a no-op.
+  // own public URL on a schedule so Render always sees traffic and
+  // never marks the process idle. 8-minute cadence gives a safe
+  // margin below the 15-min timeout even if a single ping is delayed
+  // or fails. Only runs on Render (RENDER_EXTERNAL_URL is injected
+  // there); locally this is a no-op.
   const publicUrl = process.env.RENDER_EXTERNAL_URL;
   if (publicUrl) {
-    const KEEP_ALIVE_MS = 12 * 60 * 1000;
+    const KEEP_ALIVE_MS = 8 * 60 * 1000;
     const pingUrl = `${publicUrl.replace(/\/$/, '')}/api/auth/config`;
-    setInterval(() => {
-      fetch(pingUrl)
-        .then(r => console.log(`[keep-alive] ${r.status} ${pingUrl}`))
-        .catch(err => console.warn(`[keep-alive] failed: ${err.message}`));
-    }, KEEP_ALIVE_MS);
-    // Fire one immediately so the interval is anchored to boot time.
-    fetch(pingUrl).catch(() => {});
+    const ping = () => fetch(pingUrl)
+      .then(r => console.log(`[keep-alive] ${r.status}`))
+      .catch(err => console.warn(`[keep-alive] failed: ${err.message}`));
+    setInterval(ping, KEEP_ALIVE_MS);
+    // Warmup phase — 3 pings 90s apart right after boot to guarantee
+    // Render sees us as active before its idle timer starts.
+    ping();
+    setTimeout(ping, 90 * 1000);
+    setTimeout(ping, 180 * 1000);
     console.log(`[keep-alive] enabled — pinging ${pingUrl} every ${KEEP_ALIVE_MS / 60000} min`);
   } else {
     console.log(`[keep-alive] disabled — RENDER_EXTERNAL_URL not set (fine for local dev)`);
