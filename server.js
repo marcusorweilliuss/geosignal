@@ -4061,4 +4061,27 @@ app.listen(PORT, () => {
   console.log(`GeoSignal running at http://localhost:${PORT}`);
   console.log(`Source registry: ${totalSources} sources across ${Object.keys(SOURCES).length} regions`);
   console.log(`Groq keys loaded: ${groqClients.length} (models: ${GROQ_MODEL}, ${GROQ_FALLBACK_MODEL})`);
+
+  // ── Self-ping keep-alive ────────────────────────────────────────
+  // Render's free tier puts the dyno to sleep after 15 min of zero
+  // *external* HTTP traffic — internal timers don't count. Hit our
+  // own public URL every ~12 min so Render sees continuous activity
+  // and never marks the process idle. First-request cold-start goes
+  // away entirely. Only runs on Render (RENDER_EXTERNAL_URL is
+  // automatically injected there); locally this is a no-op.
+  const publicUrl = process.env.RENDER_EXTERNAL_URL;
+  if (publicUrl) {
+    const KEEP_ALIVE_MS = 12 * 60 * 1000;
+    const pingUrl = `${publicUrl.replace(/\/$/, '')}/api/auth/config`;
+    setInterval(() => {
+      fetch(pingUrl)
+        .then(r => console.log(`[keep-alive] ${r.status} ${pingUrl}`))
+        .catch(err => console.warn(`[keep-alive] failed: ${err.message}`));
+    }, KEEP_ALIVE_MS);
+    // Fire one immediately so the interval is anchored to boot time.
+    fetch(pingUrl).catch(() => {});
+    console.log(`[keep-alive] enabled — pinging ${pingUrl} every ${KEEP_ALIVE_MS / 60000} min`);
+  } else {
+    console.log(`[keep-alive] disabled — RENDER_EXTERNAL_URL not set (fine for local dev)`);
+  }
 });
