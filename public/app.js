@@ -52,18 +52,36 @@ window.__gsAuth = (() => {
     const signupBtn = document.getElementById('signup-btn');
     if (authBtn) authBtn.style.display = isSignedIn ? 'none' : '';
     if (signupBtn) signupBtn.style.display = isSignedIn ? 'none' : '';
-    if (isSignedIn) {
-      // First sign-in: pull server profile if present, otherwise
-      // push the user's local profile up so it lives on the server.
-      const serverProfile = await pullProfileFromServer();
-      if (serverProfile) {
-        localStorage.setItem('geosignal-profile', JSON.stringify(serverProfile));
-        if (typeof location !== 'undefined') location.reload();
-      } else {
-        const local = localStorage.getItem('geosignal-profile');
-        if (local) {
-          try { await pushProfileToServer(JSON.parse(local)); } catch {}
-        }
+    if (!isSignedIn) return;
+
+    // Skip if we've already synced profile once during this page load.
+    // Clerk fires this listener multiple times as it rehydrates the
+    // session; without this guard we'd repeatedly pull-and-reload.
+    if (window.__gsAuth._profileSynced) return;
+    window.__gsAuth._profileSynced = true;
+
+    const serverProfile = await pullProfileFromServer();
+    if (serverProfile) {
+      const localRaw = localStorage.getItem('geosignal-profile') || '';
+      const serverRaw = JSON.stringify(serverProfile);
+      if (localRaw === serverRaw) {
+        // Server and local already agree — nothing to do. No reload.
+        return;
+      }
+      localStorage.setItem('geosignal-profile', serverRaw);
+      // Only reload if we haven't already reloaded this session for
+      // this exact server profile. Prevents an infinite reload loop
+      // when the page re-serializes the profile slightly differently
+      // (key order, whitespace) than the server does.
+      const reloadKey = 'gs-profile-reload-hash';
+      const hash = String(serverRaw.length) + ':' + serverRaw.slice(0, 40);
+      if (sessionStorage.getItem(reloadKey) === hash) return;
+      sessionStorage.setItem(reloadKey, hash);
+      if (typeof location !== 'undefined') location.reload();
+    } else {
+      const local = localStorage.getItem('geosignal-profile');
+      if (local) {
+        try { await pushProfileToServer(JSON.parse(local)); } catch {}
       }
     }
   }
