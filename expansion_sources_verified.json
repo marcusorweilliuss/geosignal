@@ -1,0 +1,2599 @@
+{
+  "cambodia_ministry_of_foreign_affairs": {
+    "name": "Cambodia Ministry of Foreign Affairs",
+    "feed_url": "https://www.mfaic.gov.kh/rss",
+    "regions": [
+      "SOUTHEAST-ASIA"
+    ],
+    "countries": [
+      "Cambodia"
+    ],
+    "category": "government-official",
+    "source_type": "government-official",
+    "weight": 4,
+    "tier": 3
+  },
+  "laos_ministry_of_foreign_affairs": {
+    "name": "Laos Ministry of Foreign Affairs",
+    "feed_url": "https://www.mofa.gov.la/rss",
+    "regions": [
+      "SOUTHEAST-ASIA"
+    ],
+    "countries": [
+      "Laos"
+    ],
+    "category": "government-official",
+    "source_type": "government-official",
+    "weight": 4,
+    "tier": 3
+  },
+  "brunei_prime_minister_s_office": {
+    "name": "Brunei Prime Minister's Office",
+    "feed_url": "https://www.pmo.gov.bn/rss",
+    "regions": [
+      "SOUTHEAST-ASIA"
+    ],
+    "countries": [
+      "Brunei"
+    ],
+    "category": "government-official",
+    "source_type": "government-official",
+    "weight": 4,
+    "tier": 3
+  },
+  "philippine_star": {
+    "name": "Philippine Star",
+    "feed_url": "https://www.philstar.com/rss/headlines",
+    "regions": [
+      "SOUTHEAST-ASIA"
+    ],
+    "countries": [
+      "Philippines"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 6,
+    "tier": 2
+  },
+  "businessworld_philippines": {
+    "name": "BusinessWorld Philippines",
+    "feed_url": "https://www.bworldonline.com/feed",
+    "regions": [
+      "SOUTHEAST-ASIA"
+    ],
+    "countries": [
+      "Philippines"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 6,
+    "tier": 2
+  },
+  "sun_star_philippines": {
+    "name": "Sun Star Philippines",
+    "feed_url": "https://www.sunstar.com.ph/feed",
+    "regions": [
+      "SOUTHEAST-ASIA"
+    ],
+    "countries": [
+      "Philippines"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "coconuts_bangkok": {
+    "name": "Coconuts Bangkok",
+    "feed_url": "https://coconuts.co/bangkok/feed",
+    "regions": [
+      "SOUTHEAST-ASIA"
+    ],
+    "countries": [
+      "Thailand"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "khaosod_english": {
+    "name": "Khaosod English",
+    "feed_url": "https://www.khaosodenglish.com/feed",
+    "regions": [
+      "SOUTHEAST-ASIA"
+    ],
+    "countries": [
+      "Thailand"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "the_thaiger": {
+    "name": "The Thaiger",
+    "feed_url": "https://thethaiger.com/feed",
+    "regions": [
+      "SOUTHEAST-ASIA"
+    ],
+    "countries": [
+      "Thailand"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "detik_finance": {
+    "name": "Detik Finance",
+    "feed_url": "https://finance.detik.com/rss",
+    "regions": [
+      "SOUTHEAST-ASIA"
+    ],
+    "countries": [
+      "Indonesia"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "timor_leste_tatoli": {
+    "name": "Timor-Leste TATOLI",
+    "feed_url": "https://tatoli.tl/feed",
+    "regions": [
+      "SOUTHEAST-ASIA"
+    ],
+    "countries": [
+      "Timor-Leste"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 3,
+    "tier": 3
+  },
+  "prachatai_thai": {
+    "name": "Prachatai Thai",
+    "feed_url": "https://prachatai.com/feed",
+    "regions": [
+      "SOUTHEAST-ASIA"
+    ],
+    "countries": [
+      "Thailand"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 6,
+    "tier": 2
+  },
+  "the_mekong_eye": {
+    "name": "The Mekong Eye",
+    "feed_url": "https://www.mekongeye.com/feed",
+    "regions": [
+      "SOUTHEAST-ASIA"
+    ],
+    "countries": [
+      "Mekong Region"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 5,
+    "tier": 2
+  },
+  "fortify_rights": {
+    "name": "Fortify Rights",
+    "feed_url": "https://www.fortifyrights.org/feed",
+    "regions": [
+      "SOUTHEAST-ASIA"
+    ],
+    "countries": [
+      "Southeast Asia"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 5,
+    "tier": 2
+  },
+  "asean_studies_centre": {
+    "name": "ASEAN Studies Centre",
+    "feed_url": "https://www.iseas.edu.sg/asean-studies-centre/feed",
+    "regions": [
+      "SOUTHEAST-ASIA"
+    ],
+    "countries": [
+      "Southeast Asia"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "weight": 7,
+    "tier": 2
+  },
+  "fulcrum_iseas": {
+    "name": "Fulcrum ISEAS",
+    "feed_url": "https://fulcrum.sg/feed",
+    "regions": [
+      "SOUTHEAST-ASIA"
+    ],
+    "countries": [
+      "Southeast Asia"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "weight": 8,
+    "tier": 1
+  },
+  "tech_in_asia": {
+    "name": "Tech in Asia",
+    "feed_url": "https://www.techinasia.com/feed",
+    "regions": [
+      "SOUTHEAST-ASIA"
+    ],
+    "countries": [
+      "Southeast Asia"
+    ],
+    "category": "business",
+    "source_type": "business",
+    "weight": 7,
+    "tier": 2
+  },
+  "krasia": {
+    "name": "KrASIA",
+    "feed_url": "https://kr-asia.com/feed",
+    "regions": [
+      "SOUTHEAST-ASIA"
+    ],
+    "countries": [
+      "Southeast Asia"
+    ],
+    "category": "business",
+    "source_type": "business",
+    "weight": 6,
+    "tier": 2
+  },
+  "bangkok_post_business": {
+    "name": "Bangkok Post Business",
+    "feed_url": "https://www.bangkokpost.com/rss/data/business.xml",
+    "regions": [
+      "SOUTHEAST-ASIA"
+    ],
+    "countries": [
+      "Thailand"
+    ],
+    "category": "business",
+    "source_type": "business",
+    "weight": 6,
+    "tier": 2
+  },
+  "business_mirror_philippines": {
+    "name": "Business Mirror Philippines",
+    "feed_url": "https://businessmirror.com.ph/feed",
+    "regions": [
+      "SOUTHEAST-ASIA"
+    ],
+    "countries": [
+      "Philippines"
+    ],
+    "category": "business",
+    "source_type": "business",
+    "weight": 5,
+    "tier": 2
+  },
+  "der_standard": {
+    "name": "Der Standard",
+    "feed_url": "https://derstandard.at/rss",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "Austria"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 6,
+    "tier": 2
+  },
+  "dutchnews": {
+    "name": "DutchNews",
+    "feed_url": "https://www.dutchnews.nl/feed",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "Netherlands"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "brussels_times": {
+    "name": "Brussels Times",
+    "feed_url": "https://www.brusselstimes.com/feed",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "Belgium"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 6,
+    "tier": 2
+  },
+  "emerging_europe": {
+    "name": "Emerging Europe",
+    "feed_url": "https://emerging-europe.com/feed",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "Eastern Europe"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 6,
+    "tier": 2
+  },
+  "prague_morning": {
+    "name": "Prague Morning",
+    "feed_url": "https://praguemorning.cz/feed",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "Czech Republic"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "romania_insider": {
+    "name": "Romania Insider",
+    "feed_url": "https://www.romania-insider.com/feed",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "Romania"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "eu_reporter": {
+    "name": "EU Reporter",
+    "feed_url": "https://eureporter.co/feed",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "Belgium",
+      "EU"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 6,
+    "tier": 2
+  },
+  "euronews_russian": {
+    "name": "Euronews Russian",
+    "feed_url": "https://ru.euronews.com/rss",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "Russia"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "yle_finland": {
+    "name": "Yle Finland",
+    "feed_url": "https://feeds.yle.fi/uutiset/v1/majorHeadlines/YLE_UUTISET.rss",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "Finland"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 7,
+    "tier": 2
+  },
+  "obc_transeuropa": {
+    "name": "OBC Transeuropa",
+    "feed_url": "https://www.balcanicaucaso.org/en/rss",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "Balkans"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "total_croatia_news": {
+    "name": "Total Croatia News",
+    "feed_url": "https://www.total-croatia-news.com/feed",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "Croatia"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "slovenia_times": {
+    "name": "Slovenia Times",
+    "feed_url": "https://sloveniatimes.com/feed",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "Slovenia"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "serbian_monitor": {
+    "name": "Serbian Monitor",
+    "feed_url": "https://www.serbianmonitor.com/feed",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "Serbia"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "birn_balkan": {
+    "name": "BIRN Balkan",
+    "feed_url": "https://balkaninsight.com/feed",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "Balkans"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 7,
+    "tier": 2
+  },
+  "jacobin_europe": {
+    "name": "Jacobin Europe",
+    "feed_url": "https://jacobin.com/feed/?q=europe",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "UK",
+      "Germany",
+      "France"
+    ],
+    "category": "independent-left",
+    "source_type": "independent-left",
+    "weight": 5,
+    "tier": 2
+  },
+  "tribune_uk": {
+    "name": "Tribune UK",
+    "feed_url": "https://tribunemag.co.uk/feed",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "UK"
+    ],
+    "category": "independent-left",
+    "source_type": "independent-left",
+    "weight": 5,
+    "tier": 2
+  },
+  "new_european": {
+    "name": "New European",
+    "feed_url": "https://www.theneweuropean.co.uk/feed",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "UK",
+      "EU"
+    ],
+    "category": "independent-left",
+    "source_type": "independent-left",
+    "weight": 6,
+    "tier": 2
+  },
+  "follow_the_money": {
+    "name": "Follow the Money",
+    "feed_url": "https://www.ftm.eu/feed",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "Netherlands"
+    ],
+    "category": "independent-left",
+    "source_type": "independent-left",
+    "weight": 6,
+    "tier": 2
+  },
+  "capx": {
+    "name": "CapX",
+    "feed_url": "https://capx.co/feed",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "UK"
+    ],
+    "category": "independent-right",
+    "source_type": "independent-right",
+    "weight": 5,
+    "tier": 2
+  },
+  "unherd": {
+    "name": "Unherd",
+    "feed_url": "https://unherd.com/feed",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "UK"
+    ],
+    "category": "independent-right",
+    "source_type": "independent-right",
+    "weight": 6,
+    "tier": 2
+  },
+  "tichys_einblick": {
+    "name": "Tichys Einblick",
+    "feed_url": "https://www.tichyseinblick.de/feed",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "Germany"
+    ],
+    "category": "independent-right",
+    "source_type": "independent-right",
+    "weight": 4,
+    "tier": 3
+  },
+  "valeurs_actuelles": {
+    "name": "Valeurs Actuelles",
+    "feed_url": "https://www.valeursactuelles.com/feed",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "France"
+    ],
+    "category": "independent-right",
+    "source_type": "independent-right",
+    "weight": 4,
+    "tier": 3
+  },
+  "the_canary": {
+    "name": "The Canary",
+    "feed_url": "https://www.thecanary.co/feed",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "UK"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 4,
+    "tier": 3
+  },
+  "byline_times": {
+    "name": "Byline Times",
+    "feed_url": "https://bylinetimes.com/feed",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "UK"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 5,
+    "tier": 2
+  },
+  "inews": {
+    "name": "iNews",
+    "feed_url": "https://inews.co.uk/feed",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "UK"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 6,
+    "tier": 2
+  },
+  "vsquare": {
+    "name": "VSquare",
+    "feed_url": "https://vsquare.org/feed",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "Eastern Europe"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 5,
+    "tier": 2
+  },
+  "forbidden_stories": {
+    "name": "Forbidden Stories",
+    "feed_url": "https://forbiddenstories.org/feed",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "Global",
+      "Europe"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 6,
+    "tier": 2
+  },
+  "city_am": {
+    "name": "City AM",
+    "feed_url": "https://www.cityam.com/feed",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "UK"
+    ],
+    "category": "business",
+    "source_type": "business",
+    "weight": 6,
+    "tier": 2
+  },
+  "the_business_post_ireland": {
+    "name": "The Business Post Ireland",
+    "feed_url": "https://www.businesspost.ie/feed",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "Ireland"
+    ],
+    "category": "business",
+    "source_type": "business",
+    "weight": 5,
+    "tier": 2
+  },
+  "sole_24_ore": {
+    "name": "Sole 24 Ore",
+    "feed_url": "https://www.ilsole24ore.com/rss",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "Italy"
+    ],
+    "category": "business",
+    "source_type": "business",
+    "weight": 6,
+    "tier": 2
+  },
+  "real_instituto_elcano": {
+    "name": "Real Instituto Elcano",
+    "feed_url": "https://www.realinstitutoelcano.org/en/rss",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "Spain"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "weight": 7,
+    "tier": 2
+  },
+  "finnish_institute_of_international_affairs": {
+    "name": "Finnish Institute of International Affairs",
+    "feed_url": "https://www.fiia.fi/en/feed",
+    "regions": [
+      "EUROPE"
+    ],
+    "countries": [
+      "Finland"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "weight": 7,
+    "tier": 2
+  },
+  "daily_trust_nigeria": {
+    "name": "Daily Trust Nigeria",
+    "feed_url": "https://dailytrust.com/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Nigeria"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 6,
+    "tier": 2
+  },
+  "channels_tv_nigeria": {
+    "name": "Channels TV Nigeria",
+    "feed_url": "https://channelstv.com/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Nigeria"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 7,
+    "tier": 2
+  },
+  "the_witness_south_africa": {
+    "name": "The Witness South Africa",
+    "feed_url": "https://www.thewitness.co.za/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "South Africa"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "zambia_daily_mail": {
+    "name": "Zambia Daily Mail",
+    "feed_url": "https://www.daily-mail.co.zm/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Zambia"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "malawi_nyasa_times": {
+    "name": "Malawi Nyasa Times",
+    "feed_url": "https://www.nyasatimes.com/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Malawi"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "tanzania_daily_news": {
+    "name": "Tanzania Daily News",
+    "feed_url": "https://www.dailynews.co.tz/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Tanzania"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "rwanda_dispatch": {
+    "name": "Rwanda Dispatch",
+    "feed_url": "https://rwandadispatch.com/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Rwanda"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "the_independent_uganda": {
+    "name": "The Independent Uganda",
+    "feed_url": "https://www.independent.co.ug/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Uganda"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "capital_fm_kenya": {
+    "name": "Capital FM Kenya",
+    "feed_url": "https://www.capitalfm.co.ke/news/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Kenya"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "ethiopia_insight": {
+    "name": "Ethiopia Insight",
+    "feed_url": "https://www.ethiopia-insight.com/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Ethiopia"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 6,
+    "tier": 2
+  },
+  "ethiopian_herald": {
+    "name": "Ethiopian Herald",
+    "feed_url": "https://www.ethiopianherald.com/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Ethiopia"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "addis_ababa_tribune": {
+    "name": "Addis Ababa Tribune",
+    "feed_url": "https://addistribune.com/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Ethiopia"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "somali_current": {
+    "name": "Somali Current",
+    "feed_url": "https://somalicurrent.com/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Somalia"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "south_sudan_eye_radio": {
+    "name": "South Sudan Eye Radio",
+    "feed_url": "https://eyeradio.org/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "South Sudan"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "3news_ghana": {
+    "name": "3News Ghana",
+    "feed_url": "https://3news.com/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Ghana"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "joy_online_ghana": {
+    "name": "Joy Online Ghana",
+    "feed_url": "https://www.myjoyonline.com/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Ghana"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 6,
+    "tier": 2
+  },
+  "ivory_coast_aip": {
+    "name": "Ivory Coast AIP",
+    "feed_url": "https://www.aip.ci/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Cote d'Ivoire"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "le_monde_afrique": {
+    "name": "Le Monde Afrique",
+    "feed_url": "https://www.lemonde.fr/afrique/rss_full.xml",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "French Africa"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 7,
+    "tier": 2
+  },
+  "benin_web_tv": {
+    "name": "Benin Web TV",
+    "feed_url": "https://beninwebtv.com/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Benin"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 3,
+    "tier": 3
+  },
+  "radio_okapi_drc": {
+    "name": "Radio Okapi DRC",
+    "feed_url": "https://www.radiookapi.net/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "DRC"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "le_mauricien": {
+    "name": "Le Mauricien",
+    "feed_url": "https://www.lemauricien.com/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Mauritius"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "comoros_ortc": {
+    "name": "Comoros ORTC",
+    "feed_url": "https://www.ortc.km/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Comoros"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 2,
+    "tier": 3
+  },
+  "mozambique_wire": {
+    "name": "Mozambique Wire",
+    "feed_url": "https://www.mozambiquewire.com/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Mozambique"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "namibian": {
+    "name": "Namibian",
+    "feed_url": "https://www.namibian.com.na/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Namibia"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "lesotho_times": {
+    "name": "Lesotho Times",
+    "feed_url": "https://lestimes.com/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Lesotho"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 3,
+    "tier": 3
+  },
+  "rwanda_news_agency": {
+    "name": "Rwanda News Agency",
+    "feed_url": "https://rnanews.com/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Rwanda"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "amabhungane_south_africa": {
+    "name": "Amabhungane South Africa",
+    "feed_url": "https://amabhungane.co.za/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "South Africa"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 7,
+    "tier": 2
+  },
+  "icij_africa": {
+    "name": "ICIJ Africa",
+    "feed_url": "https://www.icij.org/tag/africa/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Pan-Africa"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 7,
+    "tier": 2
+  },
+  "africa_monitor": {
+    "name": "Africa Monitor",
+    "feed_url": "https://africamonitor.net/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Pan-Africa"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 5,
+    "tier": 2
+  },
+  "oxpeckers_environmental": {
+    "name": "Oxpeckers Environmental",
+    "feed_url": "https://oxpeckers.org/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "South Africa"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 5,
+    "tier": 2
+  },
+  "the_elephant_kenya": {
+    "name": "The Elephant Kenya",
+    "feed_url": "https://www.theelephant.info/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Kenya"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 6,
+    "tier": 2
+  },
+  "the_conversation_kenya": {
+    "name": "The Conversation Kenya",
+    "feed_url": "https://theconversation.com/africa/articles.atom",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Kenya"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 6,
+    "tier": 2
+  },
+  "desert_eye_sahel": {
+    "name": "Desert Eye Sahel",
+    "feed_url": "https://deserteye.net/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Sahel"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 4,
+    "tier": 3
+  },
+  "african_centre_for_strategic_studies": {
+    "name": "African Centre for Strategic Studies",
+    "feed_url": "https://africacenter.org/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "Pan-Africa"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "weight": 7,
+    "tier": 2
+  },
+  "good_governance_africa": {
+    "name": "Good Governance Africa",
+    "feed_url": "https://gga.org/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "South Africa"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "weight": 6,
+    "tier": 2
+  },
+  "rift_valley_institute": {
+    "name": "Rift Valley Institute",
+    "feed_url": "https://riftvalley.net/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "East Africa"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "weight": 7,
+    "tier": 2
+  },
+  "west_africa_civil_society_institute": {
+    "name": "West Africa Civil Society Institute",
+    "feed_url": "https://www.wacsi.org/feed",
+    "regions": [
+      "AFRICA"
+    ],
+    "countries": [
+      "West Africa"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "weight": 5,
+    "tier": 2
+  },
+  "uol_noticias": {
+    "name": "UOL Noticias",
+    "feed_url": "https://rss.uol.com.br/feed/noticias.xml",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Brazil"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 6,
+    "tier": 2
+  },
+  "el_tiempo_colombia": {
+    "name": "El Tiempo Colombia",
+    "feed_url": "https://www.eltiempo.com/rss",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Colombia"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 7,
+    "tier": 2
+  },
+  "clarin_argentina": {
+    "name": "Clarin Argentina",
+    "feed_url": "https://www.clarin.com/rss",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Argentina"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 7,
+    "tier": 2
+  },
+  "pagina_12_argentina": {
+    "name": "Pagina 12 Argentina",
+    "feed_url": "https://www.pagina12.com.ar/rss",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Argentina"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 6,
+    "tier": 2
+  },
+  "la_jornada_mexico": {
+    "name": "La Jornada Mexico",
+    "feed_url": "https://www.jornada.com.mx/rss/edicion.xml",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Mexico"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 7,
+    "tier": 2
+  },
+  "el_nacional_venezuela": {
+    "name": "El Nacional Venezuela",
+    "feed_url": "https://elnacional.com/feed",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Venezuela"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "primicias_ecuador": {
+    "name": "Primicias Ecuador",
+    "feed_url": "https://www.primicias.ec/feed",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Ecuador"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "la_prensa_panama": {
+    "name": "La Prensa Panama",
+    "feed_url": "https://www.prensa.com/feed",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Panama"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "la_prensa_guatemala": {
+    "name": "La Prensa Guatemala",
+    "feed_url": "https://www.prensalibre.com/feed",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Guatemala"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 6,
+    "tier": 2
+  },
+  "la_nacion_costa_rica": {
+    "name": "La Nacion Costa Rica",
+    "feed_url": "https://www.nacion.com/rss",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Costa Rica"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 6,
+    "tier": 2
+  },
+  "barbados_nation": {
+    "name": "Barbados Nation",
+    "feed_url": "https://www.nationnews.com/feed",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Barbados"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "guyana_chronicle": {
+    "name": "Guyana Chronicle",
+    "feed_url": "https://guyanachronicle.com/feed",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Guyana"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "kaieteur_news_guyana": {
+    "name": "Kaieteur News Guyana",
+    "feed_url": "https://www.kaieteurnewsonline.com/feed",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Guyana"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "de_ware_tijd_suriname": {
+    "name": "de Ware Tijd Suriname",
+    "feed_url": "https://www.dwtonline.com/feed",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Suriname"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 3,
+    "tier": 3
+  },
+  "nacla_report": {
+    "name": "NACLA Report",
+    "feed_url": "https://nacla.org/feed",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Latin America"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 6,
+    "tier": 2
+  },
+  "nodal": {
+    "name": "NODAL",
+    "feed_url": "https://www.nodal.am/feed",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Latin America"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 5,
+    "tier": 2
+  },
+  "agencia_publica_brazil": {
+    "name": "Agencia Publica Brazil",
+    "feed_url": "https://apublica.org/feed",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Brazil"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 7,
+    "tier": 2
+  },
+  "plaza_publica_guatemala": {
+    "name": "Plaza Publica Guatemala",
+    "feed_url": "https://www.plazapublica.com.gt/feed",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Guatemala"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 6,
+    "tier": 2
+  },
+  "desinformemonos_mexico": {
+    "name": "Desinformemonos Mexico",
+    "feed_url": "https://desinformemonos.org/feed",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Mexico"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 5,
+    "tier": 2
+  },
+  "periodistas_de_a_pie_mexico": {
+    "name": "Periodistas de a Pie Mexico",
+    "feed_url": "https://periodistasdeapie.org.mx/feed",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Mexico"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 5,
+    "tier": 2
+  },
+  "nacla": {
+    "name": "NACLA",
+    "feed_url": "https://nacla.org/feed",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Latin America"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "weight": 6,
+    "tier": 2
+  },
+  "clacso": {
+    "name": "CLACSO",
+    "feed_url": "https://www.clacso.org/feed",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Latin America"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "weight": 6,
+    "tier": 2
+  },
+  "flacso": {
+    "name": "FLACSO",
+    "feed_url": "https://www.flacso.org/feed",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Latin America"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "weight": 6,
+    "tier": 2
+  },
+  "mexico_cide": {
+    "name": "Mexico CIDE",
+    "feed_url": "https://www.cide.edu/feed",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Mexico"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "weight": 6,
+    "tier": 2
+  },
+  "argentina_cippec": {
+    "name": "Argentina CIPPEC",
+    "feed_url": "https://www.cippec.org/feed",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Argentina"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "weight": 6,
+    "tier": 2
+  },
+  "chile_cep": {
+    "name": "Chile CEP",
+    "feed_url": "https://cepchile.cl/feed",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Chile"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "weight": 6,
+    "tier": 2
+  },
+  "colombia_dejusticia": {
+    "name": "Colombia Dejusticia",
+    "feed_url": "https://www.dejusticia.org/feed",
+    "regions": [
+      "LATIN-AMERICA"
+    ],
+    "countries": [
+      "Colombia"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "weight": 6,
+    "tier": 2
+  },
+  "the_hill": {
+    "name": "The Hill",
+    "feed_url": "https://thehill.com/feed",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 7,
+    "tier": 2
+  },
+  "axios": {
+    "name": "Axios",
+    "feed_url": "https://api.axios.com/feed",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 8,
+    "tier": 1
+  },
+  "associated_press": {
+    "name": "Associated Press",
+    "feed_url": "https://apnews.com/apf-topnews",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 10,
+    "tier": 1
+  },
+  "huffpost": {
+    "name": "HuffPost",
+    "feed_url": "https://www.huffpost.com/section/politics/feed",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 6,
+    "tier": 2
+  },
+  "slate": {
+    "name": "Slate",
+    "feed_url": "https://feeds.feedburner.com/Slate",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 6,
+    "tier": 2
+  },
+  "los_angeles_times": {
+    "name": "Los Angeles Times",
+    "feed_url": "https://www.latimes.com/rss2.0.xml",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 8,
+    "tier": 1
+  },
+  "chicago_tribune": {
+    "name": "Chicago Tribune",
+    "feed_url": "https://www.chicagotribune.com/arcio/rss/category/news",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 7,
+    "tier": 2
+  },
+  "time_magazine": {
+    "name": "Time Magazine",
+    "feed_url": "https://time.com/feed",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 7,
+    "tier": 2
+  },
+  "the_atlantic": {
+    "name": "The Atlantic",
+    "feed_url": "https://www.theatlantic.com/feed/all",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 8,
+    "tier": 1
+  },
+  "bloomberg_politics": {
+    "name": "Bloomberg Politics",
+    "feed_url": "https://feeds.bloomberg.com/politics/news.rss",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 8,
+    "tier": 1
+  },
+  "seattle_times": {
+    "name": "Seattle Times",
+    "feed_url": "https://www.seattletimes.com/feed",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 6,
+    "tier": 2
+  },
+  "ottawa_citizen": {
+    "name": "Ottawa Citizen",
+    "feed_url": "https://ottawacitizen.com/feed",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "Canada"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "montreal_gazette": {
+    "name": "Montreal Gazette",
+    "feed_url": "https://montrealgazette.com/feed",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "Canada"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "edmonton_journal": {
+    "name": "Edmonton Journal",
+    "feed_url": "https://edmontonjournal.com/feed",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "Canada"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "vancouver_sun": {
+    "name": "Vancouver Sun",
+    "feed_url": "https://vancouversun.com/feed",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "Canada"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "policy_options_canada": {
+    "name": "Policy Options Canada",
+    "feed_url": "https://policyoptions.irpp.org/feed",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "Canada"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 6,
+    "tier": 2
+  },
+  "narwhal_canada": {
+    "name": "Narwhal Canada",
+    "feed_url": "https://thenarwhal.ca/feed",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "Canada"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "rabble_ca_canada": {
+    "name": "Rabble.ca Canada",
+    "feed_url": "https://rabble.ca/feed",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "Canada"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "fair_media_watch": {
+    "name": "FAIR Media Watch",
+    "feed_url": "https://fair.org/feed",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 5,
+    "tier": 2
+  },
+  "vice_news": {
+    "name": "VICE News",
+    "feed_url": "https://www.vice.com/en/rss",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "United States",
+      "Canada"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 6,
+    "tier": 2
+  },
+  "reveal_news": {
+    "name": "Reveal News",
+    "feed_url": "https://revealnews.org/feed",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 6,
+    "tier": 2
+  },
+  "documented_ny": {
+    "name": "Documented NY",
+    "feed_url": "https://documentedny.com/feed",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 5,
+    "tier": 2
+  },
+  "new_america_foundation": {
+    "name": "New America Foundation",
+    "feed_url": "https://www.newamerica.org/feed",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "weight": 7,
+    "tier": 2
+  },
+  "bipartisan_policy_center": {
+    "name": "Bipartisan Policy Center",
+    "feed_url": "https://bipartisanpolicy.org/feed",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "weight": 7,
+    "tier": 2
+  },
+  "pew_research_center": {
+    "name": "Pew Research Center",
+    "feed_url": "https://www.pewresearch.org/feed",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "United States"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "weight": 9,
+    "tier": 1
+  },
+  "c_d_howe_institute_canada": {
+    "name": "C.D. Howe Institute Canada",
+    "feed_url": "https://cdhowe.org/feed",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "Canada"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "weight": 6,
+    "tier": 2
+  },
+  "irpp_canada": {
+    "name": "IRPP Canada",
+    "feed_url": "https://irpp.org/feed",
+    "regions": [
+      "NORTH-AMERICA"
+    ],
+    "countries": [
+      "Canada"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "weight": 6,
+    "tier": 2
+  },
+  "asharq_al_awsat": {
+    "name": "Asharq Al-Awsat",
+    "feed_url": "https://english.aawsat.com/feed",
+    "regions": [
+      "MIDDLE-EAST"
+    ],
+    "countries": [
+      "Saudi Arabia",
+      "UAE"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 7,
+    "tier": 2
+  },
+  "i24_news": {
+    "name": "i24 News",
+    "feed_url": "https://www.i24news.tv/en/rss",
+    "regions": [
+      "MIDDLE-EAST"
+    ],
+    "countries": [
+      "Israel"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 6,
+    "tier": 2
+  },
+  "arab_times_kuwait": {
+    "name": "Arab Times Kuwait",
+    "feed_url": "https://www.arabtimesonline.com/feed",
+    "regions": [
+      "MIDDLE-EAST"
+    ],
+    "countries": [
+      "Kuwait"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "times_of_oman": {
+    "name": "Times of Oman",
+    "feed_url": "https://www.timesofoman.com/feed",
+    "regions": [
+      "MIDDLE-EAST"
+    ],
+    "countries": [
+      "Oman"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "iraq_news_agency_ina": {
+    "name": "Iraq News Agency INA",
+    "feed_url": "https://ina.iq/eng/rss",
+    "regions": [
+      "MIDDLE-EAST"
+    ],
+    "countries": [
+      "Iraq"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "daily_star_lebanon": {
+    "name": "Daily Star Lebanon",
+    "feed_url": "https://www.thedailystarnews.com/feed",
+    "regions": [
+      "MIDDLE-EAST"
+    ],
+    "countries": [
+      "Lebanon"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 6,
+    "tier": 2
+  },
+  "syrian_arab_news_agency_sana": {
+    "name": "Syrian Arab News Agency SANA",
+    "feed_url": "https://sana.sy/en/?feed=rss2",
+    "regions": [
+      "MIDDLE-EAST"
+    ],
+    "countries": [
+      "Syria"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 3,
+    "tier": 3
+  },
+  "syria_direct": {
+    "name": "Syria Direct",
+    "feed_url": "https://syriadirect.org/feed",
+    "regions": [
+      "MIDDLE-EAST"
+    ],
+    "countries": [
+      "Syria"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 6,
+    "tier": 2
+  },
+  "north_press_agency_syria": {
+    "name": "North Press Agency Syria",
+    "feed_url": "https://npasyria.com/en/feed",
+    "regions": [
+      "MIDDLE-EAST"
+    ],
+    "countries": [
+      "Syria"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "saba_yemen_state_agency": {
+    "name": "Saba Yemen State Agency",
+    "feed_url": "https://www.sabanews.net/en/rss",
+    "regions": [
+      "MIDDLE-EAST"
+    ],
+    "countries": [
+      "Yemen"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 3,
+    "tier": 3
+  },
+  "palinfo": {
+    "name": "Palinfo",
+    "feed_url": "https://www.palinfo.com/en/rss",
+    "regions": [
+      "MIDDLE-EAST"
+    ],
+    "countries": [
+      "Palestine"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "petra_jordanian_agency": {
+    "name": "Petra Jordanian Agency",
+    "feed_url": "https://petra.gov.jo/en/rss",
+    "regions": [
+      "MIDDLE-EAST"
+    ],
+    "countries": [
+      "Jordan"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "hespress_english": {
+    "name": "Hespress English",
+    "feed_url": "https://en.hespress.com/feed",
+    "regions": [
+      "MIDDLE-EAST"
+    ],
+    "countries": [
+      "Morocco"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "libya_herald": {
+    "name": "Libya Herald",
+    "feed_url": "https://libyaherald.com/feed",
+    "regions": [
+      "MIDDLE-EAST"
+    ],
+    "countries": [
+      "Libya"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "tunisie_numerique": {
+    "name": "Tunisie Numerique",
+    "feed_url": "https://www.tunisienumerique.com/en/feed",
+    "regions": [
+      "MIDDLE-EAST"
+    ],
+    "countries": [
+      "Tunisia"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "la_presse_tunisie": {
+    "name": "La Presse Tunisie",
+    "feed_url": "https://www.lapresse.tn/feed",
+    "regions": [
+      "MIDDLE-EAST"
+    ],
+    "countries": [
+      "Tunisia"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "arabi21": {
+    "name": "Arabi21",
+    "feed_url": "https://arabi21.com/rss",
+    "regions": [
+      "MIDDLE-EAST"
+    ],
+    "countries": [
+      "Arab World"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 5,
+    "tier": 2
+  },
+  "new_lines_magazine": {
+    "name": "New Lines Magazine",
+    "feed_url": "https://newlinesmag.com/feed",
+    "regions": [
+      "MIDDLE-EAST"
+    ],
+    "countries": [
+      "MENA"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 7,
+    "tier": 2
+  },
+  "the_new_arab_opinion": {
+    "name": "The New Arab Opinion",
+    "feed_url": "https://www.newarab.com/rss/opinion",
+    "regions": [
+      "MIDDLE-EAST"
+    ],
+    "countries": [
+      "MENA"
+    ],
+    "category": "independent-critical",
+    "source_type": "independent-critical",
+    "weight": 6,
+    "tier": 2
+  },
+  "global_times_china": {
+    "name": "Global Times China",
+    "feed_url": "https://www.globaltimes.cn/rss/outbrain.xml",
+    "regions": [
+      "EAST-ASIA"
+    ],
+    "countries": [
+      "China"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "japan_today": {
+    "name": "Japan Today",
+    "feed_url": "https://japantoday.com/feed",
+    "regions": [
+      "EAST-ASIA"
+    ],
+    "countries": [
+      "Japan"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 6,
+    "tier": 2
+  },
+  "newsis_korea": {
+    "name": "Newsis Korea",
+    "feed_url": "https://www.newsis.com/rss",
+    "regions": [
+      "EAST-ASIA"
+    ],
+    "countries": [
+      "South Korea"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "asia_pacific_daily": {
+    "name": "Asia Pacific Daily",
+    "feed_url": "https://www.asiapacificdaily.com/feed",
+    "regions": [
+      "EAST-ASIA"
+    ],
+    "countries": [
+      "East Asia"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "the_ub_post_mongolia": {
+    "name": "The UB Post Mongolia",
+    "feed_url": "https://theubpost.mn/feed",
+    "regions": [
+      "EAST-ASIA"
+    ],
+    "countries": [
+      "Mongolia"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "macau_daily_times": {
+    "name": "Macau Daily Times",
+    "feed_url": "https://macaudailytimes.com.mo/feed",
+    "regions": [
+      "EAST-ASIA"
+    ],
+    "countries": [
+      "Macau"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 4,
+    "tier": 3
+  },
+  "stimson_china": {
+    "name": "Stimson China",
+    "feed_url": "https://www.stimson.org/feed",
+    "regions": [
+      "EAST-ASIA"
+    ],
+    "countries": [
+      "China"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "weight": 7,
+    "tier": 2
+  },
+  "sipri_east_asia": {
+    "name": "SIPRI East Asia",
+    "feed_url": "https://www.sipri.org/rss",
+    "regions": [
+      "EAST-ASIA"
+    ],
+    "countries": [
+      "East Asia"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "weight": 8,
+    "tier": 1
+  },
+  "asia_society_east_asia": {
+    "name": "Asia Society East Asia",
+    "feed_url": "https://asiasociety.org/feed",
+    "regions": [
+      "EAST-ASIA"
+    ],
+    "countries": [
+      "East Asia"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "weight": 7,
+    "tier": 2
+  },
+  "australian_broadcasting_corp_factcheck": {
+    "name": "Australian Broadcasting Corp Factcheck",
+    "feed_url": "https://www.abc.net.au/news/feed/51892/rss.xml",
+    "regions": [
+      "OCEANIA"
+    ],
+    "countries": [
+      "Australia"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 7,
+    "tier": 2
+  },
+  "the_conversation_australia_academic": {
+    "name": "The Conversation Australia Academic",
+    "feed_url": "https://theconversation.com/au/articles.atom",
+    "regions": [
+      "OCEANIA"
+    ],
+    "countries": [
+      "Australia"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 7,
+    "tier": 2
+  },
+  "radionz_international": {
+    "name": "RadioNZ International",
+    "feed_url": "https://www.rnz.co.nz/rss/international.xml",
+    "regions": [
+      "OCEANIA"
+    ],
+    "countries": [
+      "Pacific"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 7,
+    "tier": 2
+  },
+  "devpolicy_blog": {
+    "name": "Devpolicy Blog",
+    "feed_url": "https://devpolicy.org/feed",
+    "regions": [
+      "OCEANIA"
+    ],
+    "countries": [
+      "Pacific"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 7,
+    "tier": 2
+  },
+  "samoa_global_news": {
+    "name": "Samoa Global News",
+    "feed_url": "https://www.samoaglobalnews.com/feed",
+    "regions": [
+      "OCEANIA"
+    ],
+    "countries": [
+      "Samoa"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 3,
+    "tier": 3
+  },
+  "papua_new_guinea_post_courier": {
+    "name": "Papua New Guinea Post Courier",
+    "feed_url": "https://www.postcourier.com.pg/feed",
+    "regions": [
+      "OCEANIA"
+    ],
+    "countries": [
+      "Papua New Guinea"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 5,
+    "tier": 2
+  },
+  "palau_pacific_news": {
+    "name": "Palau Pacific News",
+    "feed_url": "https://palaugov.pw/feed",
+    "regions": [
+      "OCEANIA"
+    ],
+    "countries": [
+      "Palau"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 3,
+    "tier": 3
+  },
+  "micronesia_fsm": {
+    "name": "Micronesia FSM",
+    "feed_url": "https://www.fsmgov.org/feed",
+    "regions": [
+      "OCEANIA"
+    ],
+    "countries": [
+      "Micronesia"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 3,
+    "tier": 3
+  },
+  "marshall_islands_journal": {
+    "name": "Marshall Islands Journal",
+    "feed_url": "https://marshallislandsjournal.com/feed",
+    "regions": [
+      "OCEANIA"
+    ],
+    "countries": [
+      "Marshall Islands"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 3,
+    "tier": 3
+  },
+  "cook_islands_news": {
+    "name": "Cook Islands News",
+    "feed_url": "https://www.cookislandsnews.com/feed",
+    "regions": [
+      "OCEANIA"
+    ],
+    "countries": [
+      "Cook Islands"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 3,
+    "tier": 3
+  },
+  "tokelau_government": {
+    "name": "Tokelau Government",
+    "feed_url": "https://www.tokelau.org.nz/feed",
+    "regions": [
+      "OCEANIA"
+    ],
+    "countries": [
+      "Tokelau"
+    ],
+    "category": "mainstream",
+    "source_type": "mainstream",
+    "weight": 2,
+    "tier": 3
+  },
+  "australian_national_university_sdsc": {
+    "name": "Australian National University SDSC",
+    "feed_url": "https://sdsc.bellschool.anu.edu.au/feed",
+    "regions": [
+      "OCEANIA"
+    ],
+    "countries": [
+      "Australia"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "weight": 7,
+    "tier": 2
+  },
+  "university_of_auckland_nz": {
+    "name": "University of Auckland NZ",
+    "feed_url": "https://www.auckland.ac.nz/en/news.rss",
+    "regions": [
+      "OCEANIA"
+    ],
+    "countries": [
+      "New Zealand"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "weight": 6,
+    "tier": 2
+  },
+  "pacific_forum_csis_pacific": {
+    "name": "Pacific Forum CSIS Pacific",
+    "feed_url": "https://pacforum.org/feed",
+    "regions": [
+      "OCEANIA"
+    ],
+    "countries": [
+      "Pacific"
+    ],
+    "category": "think-tank-academic",
+    "source_type": "think-tank-academic",
+    "weight": 7,
+    "tier": 2
+  }
+}

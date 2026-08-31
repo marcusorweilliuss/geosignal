@@ -1,0 +1,186 @@
+Discovery pass
+==============
+Gaps queried: 30
+Total candidates: 244
+After dedupe + probe: 89
+Registry: 790 -> 879
+
+=== Survivors ===
+  [AFRICA/business] African Business Magazine (UK)
+    https://www.african.business/feed/
+  [AFRICA/business] Moneyweb (South Africa)
+    https://www.moneyweb.co.za/feed/
+  [AFRICA/business] Ventureburn (South Africa)
+    https://ventureburn.com/feed/
+  [AFRICA/government-official] Africa CDC (Pan-Africa)
+    https://africacdc.org/feed/
+  [AFRICA/government-official] Kenya Government (Kenya)
+    https://www.president.go.ke/feed/
+  [AFRICA/government-official] United Nations Economic Commission for Africa (Pan-Africa)
+    https://www.uneca.org/rss.xml
+  [CENTRAL-ASIA-CAUCASUS/mainstream] Caspian Post (Kazakhstan)
+    https://caspianpost.com/feed/
+  [CENTRAL-ASIA-CAUCASUS/mainstream] The Bulletin (United Kingdom)
+    https://thebulletin.news/feed/
+  [CENTRAL-ASIA-CAUCASUS/mainstream] Times of Central Asia (Alt) (Kazakhstan)
+    https://timesca.com/feed/podcast/
+  [EAST-ASIA/business] Asian Banking & Finance (Singapore)
+    https://asianbankingandfinance.net/rss.xml
+  [EAST-ASIA/mainstream] The Diplomat (Regional)
+    https://thediplomat.com/feed/
+  [EAST-ASIA/mainstream] The Korea Herald (South Korea)
+    https://www.koreaherald.com/rss/feed/
+  [EAST-ASIA/mainstream] The Korea Times (South Korea)
+    https://www.koreatimes.co.kr/www2/_xml/rss/rss_portal.xml
+  [EAST-ASIA/mainstream] The Mainichi (Japan)
+    https://mainichi.jp/english/rss/
+  [EAST-ASIA/mainstream] The Straits Times (Singapore)
+    https://www.straitstimes.com/news/singapore/rss.xml
+  [EUROPE/business] EU-Startups (EU)
+    https://eu-startups.com/feed/
+  [EUROPE/business] Sifted (UK)
+    https://sifted.eu/feed/
+  [EUROPE/business] The European Business Review (UK)
+    https://www.europeanbusinessreview.com/feed/
+  [EUROPE/government-official] European Commission (European Union)
+    https://commission.europa.eu/
+  [EUROPE/government-official] European Parliament (European Union)
+    https://www.europarl.europa.eu/at-your-service/en/stay-informed/rss-feeds
+  [EUROPE/government-official] U.S. Department of State (United States)
+    https://2021-2025.state.gov/rss-feeds/
+  [EUROPE/independent-critical] Brussels Morning (Belgium)
+    https://www.brusselsmorning.com/feed
+  [EUROPE/independent-critical] DW News (Germany)
+    https://www.dw.com/en/top-stories/s-9097
+  [EUROPE/independent-critical] EUobserver (Belgium)
+    https://euobserver.com/feed
+  [EUROPE/independent-critical] Euractiv (Belgium)
+    https://www.euractiv.com/?feed=mcfeed
+  [EUROPE/independent-critical] France24 Europe (France)
+    https://france24.com/en/europe/rss
+  [EUROPE/independent-critical] RFE/RL (Pan-European)
+    https://www.rferl.org/rssfeeds
+  [EUROPE/mainstream] BBC News (UK)
+    https://feeds.bbci.co.uk/news/world/europe/rss.xml
+  [EUROPE/mainstream] Brussels Morning (Belgium)
+    https://brusselsmorning.com/feed
+  [EUROPE/mainstream] DW (Germany)
+    https://rss.dw.com/xml/rss_en_europe
+  [EUROPE/mainstream] EU Reporter (UK)
+    https://www.eureporter.co/feed
+  [EUROPE/mainstream] Euro Weekly News (Spain)
+    https://euroweeklynews.com/feed/
+  [EUROPE/mainstream] France 24 (France)
+    https://www.france24.com/en/europe/rss
+  [EUROPE/think-tank-academic] LSE European Politics and Policy Blog (UK)
+    https://blogs.lse.ac.uk/europpb/feed/
+  [EUROPE/think-tank-academic] Open Europe (UK)
+    https://openeurope.org/feed/
+  [GLOBAL/business] The Diplomat (Singapore/Asia-Pacific)
+    https://thediplomat.com/tag/rss/
+  [GLOBAL/business] The Telegraph (United Kingdom)
+    https://www.telegraph.co.uk/rss.xml
+  [GLOBAL/independent-critical] Truthout (USA)
+    https://truthout.org/feed
+  [GLOBAL/mainstream] BBC News (United Kingdom)
+    http://feeds.bbci.co.uk/news/world/rss.xml
+  [GLOBAL/mainstream] RT (Russia)
+    https://www.rt.com/rss-feeds/
+  [GLOBAL/mainstream] The Moscow Times (Russia)
+    https://www.themoscowtimes.com/page/rss
+  [GLOBAL/mainstream] The Washington Times (United States)
+    https://www.washingtontimes.com/feeds/
+  [GLOBAL/think-tank-academic] Global Voices (International)
+    https://globalvoices.org/feeds
+  [GLOBAL/think-tank-academic] The Guardian (United Kingdom)
+    https://www.theguardian.com/help/feeds
+  [LATIN-AMERICA/business] Americas Quarterly (USA)
+    https://americasquarterly.org/feed/
+  [LATIN-AMERICA/business] Brazil Journal (Brazil)
+    https://www.braziljournal.com/feed/
+  [LATIN-AMERICA/business] Inter-American Dialogue Econ Feeds (USA)
+    https://www.thedialogue.org/rss/economic
+  [LATIN-AMERICA/business] LatinFinance (USA)
+    https://latinfinance.com/feed
+  [LATIN-AMERICA/government-official] MercoPress (Uruguay)
+    https://en.mercopress.com/rss/latin-america
+  [LATIN-AMERICA/government-official] Migration Policy Institute - Latin America and Caribbean (United States)
+    https://www.migrationpolicy.org/rss/taxonomy-term/169
+  [LATIN-AMERICA/government-official] U.S. Embassy Argentina - Press Releases (United States)
+    https://ar.usembassy.gov/feed/
+  [LATIN-AMERICA/government-official] U.S. Embassy Brazil - Press Releases (United States)
+    https://br.usembassy.gov/feed/
+  [LATIN-AMERICA/government-official] U.S. Embassy Colombia - Press Releases (United States)
+    https://co.usembassy.gov/feed/
+  [LATIN-AMERICA/government-official] U.S. Embassy Mexico - Press Releases (United States)
+    https://mx.usembassy.gov/feed/
+  [LATIN-AMERICA/mainstream] Latinvex (USA)
+    https://latinvex.com/feed/
+  [LATIN-AMERICA/mainstream] MercoPress (Uruguay)
+    https://en.mercopress.com/feeds
+  [LATIN-AMERICA/mainstream] NPR (USA)
+    https://feeds.npr.org/1004/rss.xml
+  [LATIN-AMERICA/mainstream] Rio Times (Brazil)
+    https://www.riotimesonline.com/feed/
+  [MIDDLE-EAST/business] Business Today Middle East (UAE)
+    https://businesstoday.me/feed
+  [MIDDLE-EAST/business] MEED (UAE)
+    https://www.meed.com/sector/banking-finance/rss
+  [MIDDLE-EAST/business] MEED Egypt (Egypt)
+    https://www.meed.com/countries/north-africa/egypt/rss/feed
+  [MIDDLE-EAST/business] MEED Qatar (Qatar)
+    https://www.meed.com/countries/gcc/qatar/rss/feed
+  [MIDDLE-EAST/business] MEED Saudi Arabia (Saudi Arabia)
+    https://www.meed.com/countries/gcc/saudi-arabia/rss/feed
+  [MIDDLE-EAST/business] MEED UAE (UAE)
+    https://www.meed.com/countries/gcc/uae/rss/feed
+  [MIDDLE-EAST/think-tank-academic] International Crisis Group (Belgium)
+    https://www.crisisgroup.org/rss-0
+  [NORTH-AMERICA/business] Federal Reserve Board (United States)
+    https://www.federalreserve.gov/feeds/feeds.htm
+  [NORTH-AMERICA/business] Fox Business (United States)
+    https://moxie.foxbusiness.com/google-publisher/latest.xml
+  [NORTH-AMERICA/government-official] Department of Labor News Releases (USA)
+    https://www.dol.gov/rss/releases.xml
+  [NORTH-AMERICA/government-official] Department of State (USA)
+    https://www.state.gov/feed/
+  [NORTH-AMERICA/government-official] Federal Register (USA)
+    https://www.govinfo.gov/feeds/fr.xml
+  [NORTH-AMERICA/independent-critical] Daily Yonder (USA)
+    https://dailyyonder.com/feed/
+  [NORTH-AMERICA/independent-critical] Mongabay (USA)
+    https://news.mongabay.com/feed/
+  [NORTH-AMERICA/independent-critical] New Haven Independent (USA)
+    https://newhavenindependent.org/feed/
+  [NORTH-AMERICA/independent-critical] ProPublica (USA)
+    https://www.propublica.org/feed/
+  [NORTH-AMERICA/independent-critical] Quanta Magazine (USA)
+    https://www.quantamagazine.org/feed/
+  [NORTH-AMERICA/independent-critical] The 19th News (USA)
+    https://19thnews.org/feed/
+  [NORTH-AMERICA/independent-critical] The Intercept (USA)
+    https://theintercept.com/feed/
+  [NORTH-AMERICA/independent-critical] The Real News Network (USA)
+    https://therealnews.com/feed
+  [NORTH-AMERICA/mainstream] ABC News (United States)
+    https://abcnews.go.com/abcnews/topstories
+  [NORTH-AMERICA/mainstream] BBC News (United Kingdom)
+    https://feeds.bbci.co.uk/news/rss.xml
+  [NORTH-AMERICA/mainstream] CNN (United States)
+    http://rss.cnn.com/rss/cnn_topstories.rss
+  [NORTH-AMERICA/mainstream] Fox News (United States)
+    https://moxie.foxnews.com/feedburner/latest.xml
+  [NORTH-AMERICA/mainstream] The Wall Street Journal (United States)
+    https://feeds.a.dj.com/rss/RSSWSJD.xml
+  [NORTH-AMERICA/mainstream] USA Today (United States)
+    http://rssfeeds.usatoday.com/usatoday-NationTopStories
+  [OCEANIA/independent-critical] Asia Pacific Report (Regional)
+    https://asiapacificreport.nz/feed/
+  [OCEANIA/independent-critical] Island Times (Palau)
+    https://islandtimes.org/feed/
+  [OCEANIA/independent-critical] The Age (Australia)
+    https://www.theage.com.au/rssheadlines/top.xml
+  [SOUTHEAST-ASIA/independent-critical] Channel News Asia (Singapore)
+    https://www.channelnewsasia.com/rssfeeds/8395986
+  [SOUTHEAST-ASIA/mainstream] Bangkok Post (Thailand)
+    https://www.bangkokpost.com/rss

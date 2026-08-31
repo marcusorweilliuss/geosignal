@@ -1,0 +1,196 @@
+/* Styling for the static pages (About / Privacy / How to navigate).
+   Reads from the same CSS variables as the main app, so the look
+   stays cohesive. */
+
+body.static-page {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--sans);
+  margin: 0;
+  padding: 0;
+}
+
+/* Top nav — same look as a feed header strip. */
+.static-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(8px);
+}
+.static-nav-brand {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+.static-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  font-family: var(--sans);
+  font-size: 14px;
+}
+.static-nav-links a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+.static-nav-links a:hover,
+.static-nav-links a.active {
+  color: var(--accent);
+}
+.static-nav-cta {
+  padding: 8px 14px;
+  background: var(--accent);
+  color: #fff !important;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+.static-nav-cta:hover { background: var(--accent-hover); }
+
+/* Main column */
+.static-main {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 48px 28px 80px;
+}
+
+.static-hero {
+  margin-bottom: 40px;
+}
+.static-hero h1 {
+  font-family: var(--serif);
+  font-size: 44px;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+  font-weight: 700;
+  margin: 0 0 16px;
+  color: var(--text-primary);
+}
+.static-lede {
+  font-family: var(--serif);
+  font-size: 19px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin: 0;
+}
+
+.static-section {
+  margin: 40px 0;
+}
+.static-section h2 {
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  margin: 0 0 14px;
+  color: var(--text-primary);
+}
+.static-section h3 {
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin: 24px 0 8px;
+}
+.static-section p,
+.static-section ul,
+.static-section ol {
+  font-family: var(--sans);
+  font-size: 16.5px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin: 0 0 14px;
+}
+.static-section ul,
+.static-section ol {
+  padding-left: 24px;
+}
+.static-section li {
+  margin-bottom: 10px;
+}
+.static-section li strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+.static-section a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.static-section a:hover { text-decoration: underline; }
+
+/* Screenshot placeholder — replace these blocks with actual <img>
+   tags whenever the user has screenshots to drop in. */
+.static-screenshot {
+  margin: 22px 0;
+  padding: 0;
+}
+.static-screenshot-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  padding: 40px 20px;
+  background: var(--accent-dim);
+  border: 2px dashed var(--accent-soft);
+  border-radius: 12px;
+  color: var(--accent);
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+.static-screenshot img {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  display: block;
+}
+.static-screenshot figcaption {
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--text-tertiary);
+  margin-top: 10px;
+  text-align: center;
+  font-style: italic;
+}
+
+.static-footer {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 28px 28px 48px;
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--text-tertiary);
+  text-align: center;
+}
+.static-footer a {
+  color: var(--text-tertiary);
+  text-decoration: none;
+}
+.static-footer a:hover { color: var(--accent); }
+
+@media (max-width: 720px) {
+  .static-nav { padding: 12px 16px; }
+  .static-nav-links { gap: 14px; font-size: 13px; }
+  .static-nav-links a { display: none; }
+  .static-nav-cta { display: inline-block !important; }
+  .static-main { padding: 28px 16px 64px; }
+  .static-hero h1 { font-size: 32px; }
+  .static-section h2 { font-size: 22px; }
+  .static-section p, .static-section ul, .static-section ol { font-size: 16px; }
+}

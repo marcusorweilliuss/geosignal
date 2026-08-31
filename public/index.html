@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GeoSignal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Settings / filters toggle — opens the consolidated drawer with
+       location chips, regions, sectors, sources, keywords, date range,
+       source-type pills. Always visible, floating top-left. -->
+  <button class="sidebar-toggle" id="sidebar-toggle" type="button" aria-label="Open settings & filters" title="Settings & filters">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round">
+      <path d="M3 6h14M5 10h10M7 14h6"/>
+    </svg>
+    <span class="sidebar-toggle-label">Filters</span>
+  </button>
+
+  <aside class="app-sidebar" id="app-sidebar" aria-label="Settings and filters" aria-hidden="true">
+    <div class="app-sidebar-header">
+      <h2 class="app-sidebar-heading">Settings &amp; filters</h2>
+      <button class="sidebar-close-btn" id="sidebar-collapse-btn" type="button" title="Close" aria-label="Close settings">&times;</button>
+    </div>
+
+    <!-- Search right in the sidebar so it's always accessible -->
+    <div class="sidebar-search">
+      <svg class="sidebar-search-icon" width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="6" cy="6" r="4.5"/>
+        <path d="M9.5 9.5L13 13"/>
+      </svg>
+      <input type="text" id="sidebar-search-input" class="sidebar-search-input"
+             placeholder="Search..." autocomplete="off" />
+    </div>
+
+    <!-- 1. Country / city — first thing the user sees.
+         Chips input: add multiple countries with Enter or comma. -->
+    <div class="sidebar-section sidebar-section-primary">
+      <div class="sidebar-section-label">Where are you based?</div>
+      <input type="text" id="sidebar-locations-input" class="sidebar-search-input" style="padding-left:12px;"
+             placeholder="Add country (Enter to add)..." autocomplete="off" />
+      <div class="sidebar-keyword-chips" id="sidebar-location-chips"></div>
+    </div>
+
+    <!-- 2. Choose your news sources — primary, prominent -->
+    <div class="sidebar-section sidebar-section-sources">
+      <button type="button" class="sidebar-choose-sources-btn" id="sidebar-manage-sources-btn">
+        <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="8" cy="8" r="6.5"/>
+          <path d="M8 5v6M5 8h6"/>
+        </svg>
+        <div>
+          <strong>Choose your news sources</strong>
+          <small>Pick outlets to include or exclude</small>
+        </div>
+      </button>
+      <details class="sidebar-details">
+        <summary>Source types</summary>
+        <div class="sidebar-pills">
+          <button class="sidebar-pill active" data-source-type="Mainstream news">Mainstream</button>
+          <button class="sidebar-pill active" data-source-type="Think tanks &amp; academic">Think Tanks</button>
+          <button class="sidebar-pill active" data-source-type="Independent journalism">Independent</button>
+          <button class="sidebar-pill" data-source-type="Official statements">Official</button>
+        </div>
+      </details>
+    </div>
+
+    <!-- 3. Identity — role + company, edited inline (no separate panel) -->
+    <details class="sidebar-section sidebar-details">
+      <summary class="sidebar-section-label">About you</summary>
+      <input type="text" id="sidebar-role-input" class="sidebar-search-input" style="padding-left:12px;margin-top:6px;"
+             placeholder="Your role (e.g. Founder, Analyst)" autocomplete="off" />
+      <input type="text" id="sidebar-company-input" class="sidebar-search-input" style="padding-left:12px;margin-top:6px;"
+             placeholder="Company (optional)" autocomplete="organization" />
+      <input type="text" id="sidebar-focus-input" class="sidebar-search-input" style="padding-left:12px;margin-top:6px;"
+             placeholder="Focus areas (optional, e.g. ESG, supply chain)" autocomplete="off" />
+    </details>
+
+    <!-- 4. Keywords — compact chip input, collapsed by default -->
+    <details class="sidebar-section sidebar-details" open>
+      <summary class="sidebar-section-label">Keywords</summary>
+      <input type="text" id="sidebar-keywords-input" class="sidebar-search-input" style="padding-left:12px;margin-top:6px;"
+             placeholder="Add keyword..." autocomplete="off" />
+      <div class="sidebar-keyword-chips" id="sidebar-keyword-chips"></div>
+    </details>
+
+    <!-- 5. Regions — collapsible -->
+    <details class="sidebar-section sidebar-details">
+      <summary class="sidebar-section-label">Regions</summary>
+      <div class="sidebar-pills" id="sidebar-region-pills">
+        <button class="sidebar-pill active" data-value="Global">Global</button>
+        <button class="sidebar-pill active" data-value="North America">N. America</button>
+        <button class="sidebar-pill active" data-value="Latin America">LatAm</button>
+        <button class="sidebar-pill active" data-value="Europe">Europe</button>
+        <button class="sidebar-pill active" data-value="Middle East">Middle East</button>
+        <button class="sidebar-pill active" data-value="Africa">Africa</button>
+        <button class="sidebar-pill active" data-value="South Asia">S. Asia</button>
+        <button class="sidebar-pill active" data-value="East Asia">E. Asia</button>
+        <button class="sidebar-pill active" data-value="Southeast Asia">SE Asia</button>
+        <button class="sidebar-pill active" data-value="Central Asia &amp; Caucasus">C. Asia</button>
+        <button class="sidebar-pill active" data-value="Oceania">Oceania</button>
+      </div>
+    </details>
+
+    <!-- 6. Sectors — collapsible -->
+    <details class="sidebar-section sidebar-details">
+      <summary class="sidebar-section-label">Sectors</summary>
+      <div class="sidebar-pills sidebar-sector-pills" id="sidebar-sector-pills">
+        <button class="sidebar-pill active" data-value="Geopolitics &amp; International Relations">Geopolitics</button>
+        <button class="sidebar-pill active" data-value="Economics &amp; Trade">Economics</button>
+        <button class="sidebar-pill active" data-value="Technology &amp; AI">Tech &amp; AI</button>
+        <button class="sidebar-pill active" data-value="Climate &amp; Environment">Climate</button>
+        <button class="sidebar-pill active" data-value="Energy &amp; Resources">Energy</button>
+        <button class="sidebar-pill active" data-value="Defence &amp; Security">Defence</button>
+        <button class="sidebar-pill active" data-value="Finance &amp; Markets">Finance</button>
+        <button class="sidebar-pill active" data-value="Public Policy &amp; Governance">Policy</button>
+        <button class="sidebar-pill active" data-value="Society &amp; Culture">Society</button>
+        <button class="sidebar-pill active" data-value="Health &amp; Pandemic">Health</button>
+        <button class="sidebar-pill active" data-value="Space &amp; Frontier Tech">Space</button>
+        <button class="sidebar-pill active" data-value="Media &amp; Disinformation">Media</button>
+        <button class="sidebar-pill active" data-value="Human Rights &amp; Migration">Rights</button>
+        <button class="sidebar-pill active" data-value="Legal &amp; Regulatory">Legal</button>
+        <button class="sidebar-pill active" data-value="Food &amp; Agriculture">Food</button>
+      </div>
+      <input type="text" id="sidebar-sector-other" class="sidebar-search-input" style="margin-top:6px;padding-left:12px;"
+             placeholder="Other (type + Enter)..." autocomplete="off" />
+      <div class="sidebar-keyword-chips" id="sidebar-sector-other-chips"></div>
+    </details>
+
+    <!-- 7. Date range — soft filter. Default is "All time" so older
+         high-relevance articles can surface; user picks an explicit
+         window only when they want to narrow to fresh news. The feed
+         always sorts by recency regardless of this setting. -->
+    <details class="sidebar-section sidebar-details">
+      <summary class="sidebar-section-label">Date range</summary>
+      <div class="sidebar-pills" id="sidebar-date-range">
+        <button class="sidebar-pill active" data-value="all">All time</button>
+        <button class="sidebar-pill" data-value="24">Past 24h</button>
+        <button class="sidebar-pill" data-value="168">Past week</button>
+        <button class="sidebar-pill" data-value="336">Past 2 weeks</button>
+      </div>
+    </details>
+
+    <!-- Apply + Clear -->
+    <div class="sidebar-actions">
+      <button class="sidebar-apply-btn" id="sidebar-apply-btn" type="button">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M2 8.5a6 6 0 1 1 1.3 3.8"/>
+          <path d="M1.5 4v3.5H5"/>
+        </svg>
+        Apply
+      </button>
+      <button class="sidebar-clear-btn" id="sidebar-clear-btn" type="button">Clear</button>
+    </div>
+  </aside>
+
+  <button class="sidebar-expand-btn" id="sidebar-expand-btn" type="button" title="Open sidebar" aria-label="Open sidebar">
+    <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 3l5 5-5 5"/>
+    </svg>
+  </button>
+
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <div class="app-shell">
+    <div class="profile-banner" id="profile-banner" role="status" aria-live="polite">
+      <span class="profile-banner-text">Your feed isn&rsquo;t personalised yet.</span>
+      <button class="profile-banner-cta" id="profile-banner-cta" type="button">Set up your profile &rarr;</button>
+      <button class="profile-banner-dismiss" id="profile-banner-dismiss" type="button" title="Dismiss" aria-label="Dismiss">&times;</button>
+    </div>
+
+    <header class="app-header">
+      <div class="app-header-brand">
+        <div class="app-header-logo" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="22" cy="22" r="18" />
+            <ellipse cx="22" cy="22" rx="18" ry="7.5" />
+            <path d="M22 4c5 5 5 31 0 36" />
+            <path d="M22 4c-5 5-5 31 0 36" />
+            <line x1="4" y1="22" x2="40" y2="22" />
+          </svg>
+        </div>
+        <span class="app-header-wordmark">GeoSignal</span>
+        <span class="app-header-tagline">A Global Intelligence Dispatch</span>
+      </div>
+      <nav class="app-header-nav" aria-label="Site">
+        <a href="/about.html">About</a>
+        <a href="/navigate.html">How to navigate</a>
+        <a href="/privacy.html">Privacy</a>
+      </nav>
+      <div class="header-utility">
+        <button id="text-size-btn" class="icon-btn" title="Change text size">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 12L5.5 3l3.5 9" />
+            <path d="M3 9h5" />
+            <path d="M10 12h4" />
+            <path d="M12 12V7" />
+          </svg>
+        </button>
+        <button id="saved-btn" class="icon-btn" title="Saved articles">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
+            <path d="M3.5 2h9v12l-4.5-3-4.5 3v-12z"/>
+          </svg>
+          <span id="saved-btn-count" class="icon-btn-label"></span>
+        </button>
+        <button id="profile-btn" class="icon-btn profile-not-set" title="Set up your profile">
+          <span class="profile-btn-icon">
+            <svg class="profile-icon-outline" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="8" cy="5.5" r="2.6"/>
+              <path d="M2.7 13.8c0-2.7 2.2-4.3 5.3-4.3s5.3 1.6 5.3 4.3"/>
+            </svg>
+            <svg class="profile-icon-filled" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+              <circle cx="8" cy="5.5" r="2.8"/>
+              <path d="M2.7 13.8c0-2.7 2.2-4.3 5.3-4.3s5.3 1.6 5.3 4.3v.5H2.7z"/>
+            </svg>
+            <span class="profile-notification-dot" aria-hidden="true"></span>
+          </span>
+          <span id="profile-btn-text" class="icon-btn-label">My profile</span>
+        </button>
+        <!-- Single auth CTA: opens Clerk's sign-up flow. The Clerk
+             modal itself includes a "Already have an account? Sign in"
+             link, so existing users aren't blocked. When signed in,
+             this button hides and Clerk's <UserButton> avatar mounts. -->
+        <button id="signup-btn" class="icon-btn icon-btn-primary" type="button" title="Sign up or sign in">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 2v2M10 2v2M3 4h10v9H3z"/>
+            <path d="M3 7h10"/>
+          </svg>
+          <span class="icon-btn-label">Sign up</span>
+        </button>
+        <div id="user-button-mount"></div>
+        <!-- Briefings are always rendered in full (detailed) — no toggle. -->
+
+        <!-- Annotate is always on — no toggle needed -->
+        <input type="checkbox" id="annotate-toggle" checked style="display:none">
+      </div>
+
+    </header>
+
+    <div class="control-bar">
+      <div class="search-bar">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="6" cy="6" r="4.5"/>
+          <path d="M9.5 9.5L13 13"/>
+        </svg>
+        <input type="text" id="search-input" placeholder="Search topics, people, sources..." />
+        <button id="search-clear" class="search-clear" style="display:none">&times;</button>
+      </div>
+
+      <button class="filters-toggle" id="filters-toggle" type="button">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M1 3h12M3 7h8M5 11h4"/>
+        </svg>
+        <span id="filters-summary">Global</span>
+      </button>
+
+      <span class="refresh-confirmation" id="refresh-confirmation" aria-live="polite">Results updated</span>
+    </div>
+
+    <div class="filters" id="filters-container">
+      <div class="filters-body" id="filters-body">
+      <div class="filters-nudge" id="filters-nudge" aria-hidden="true">
+        <span>One more step &mdash; choose your regions, sources and keywords to refine your feed.</span>
+      </div>
+      <div class="filter-group">
+        <label>Regions <span class="filter-hint">(pick one or more)</span></label>
+        <div class="pill-group" id="region-pills">
+          <button class="pill active" data-value="Global">Global</button>
+          <button class="pill" data-value="North America">North America</button>
+          <button class="pill" data-value="Latin America">Latin America</button>
+          <button class="pill" data-value="Europe">Europe</button>
+          <button class="pill" data-value="Middle East">Middle East</button>
+          <button class="pill" data-value="Africa">Africa</button>
+          <button class="pill" data-value="South Asia">South Asia</button>
+          <button class="pill" data-value="East Asia">East Asia</button>
+          <button class="pill" data-value="Southeast Asia">Southeast Asia</button>
+          <button class="pill" data-value="Central Asia & Caucasus">Central Asia &amp; Caucasus</button>
+          <button class="pill" data-value="Oceania">Oceania</button>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label for="locations-input">Countries / cities <span class="filter-hint">(optional)</span></label>
+        <input type="text" id="locations-input" class="locations-input"
+               placeholder="e.g., India, Singapore, Lagos, Seoul — comma-separated"
+               autocomplete="off"
+               title="Only show articles that mention one of these countries or cities. Leave empty for no location filter." />
+      </div>
+
+      <div class="filter-group">
+        <label>Sectors</label>
+        <div class="pill-group" id="sector-pills">
+          <button class="pill active" data-value="Geopolitics & International Relations">Geopolitics &amp; International Relations</button>
+          <button class="pill active" data-value="Economics & Trade">Economics &amp; Trade</button>
+          <button class="pill active" data-value="Technology & AI">Technology &amp; AI</button>
+          <button class="pill active" data-value="Climate & Environment">Climate &amp; Environment</button>
+          <button class="pill active" data-value="Energy & Resources">Energy &amp; Resources</button>
+          <button class="pill active" data-value="Defence & Security">Defence &amp; Security</button>
+          <button class="pill active" data-value="Finance & Markets">Finance &amp; Markets</button>
+          <button class="pill active" data-value="Public Policy & Governance">Public Policy &amp; Governance</button>
+          <button class="pill" data-value="Society & Culture">Society &amp; Culture</button>
+          <button class="pill" data-value="Health & Pandemic">Health &amp; Pandemic</button>
+          <button class="pill" data-value="Space & Frontier Tech">Space &amp; Frontier Tech</button>
+          <button class="pill" data-value="Media & Disinformation">Media &amp; Disinformation</button>
+          <button class="pill" data-value="Human Rights & Migration">Human Rights &amp; Migration</button>
+          <button class="pill" data-value="Legal & Regulatory">Legal &amp; Regulatory</button>
+          <button class="pill" data-value="Food & Agriculture">Food &amp; Agriculture</button>
+        </div>
+        <div class="sector-other-row">
+          <input type="text" id="sector-other-input" class="sector-other-input"
+                 placeholder="Other (type a custom sector and press Enter)..."
+                 autocomplete="off" />
+          <div class="sector-other-chips" id="sector-other-chips"></div>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label>Sources</label>
+        <div class="pill-group" id="source-pills">
+          <button class="pill active" data-value="Mainstream news" title="Mainstream news — major international and national outlets covering the day's reporting (e.g. Reuters, BBC, The Guardian).">Mainstream</button>
+          <button class="pill active" data-value="Think tanks & academic" title="Think tanks &amp; academic — research-driven analysis from institutions like Brookings, Carnegie, Chatham House, and university centres.">Think Tanks</button>
+          <button class="pill active" data-value="Independent journalism" title="Independent journalism — outlets outside the mainstream commercial press, including investigative, non-profit, and critical-left / critical-right publications.">Independent</button>
+          <button class="pill pill-official" data-value="Official statements" title="Official statements — direct releases from governments, ministries, and state agencies. Treat as claims rather than verified facts.">Official</button>
+        </div>
+        <button type="button" class="manage-sources-btn" id="manage-sources-btn"
+                title="Pick specific outlets to include or exclude from your feed.">
+          Manage individual sources &rarr;
+        </button>
+      </div>
+
+      <div class="filter-group">
+        <label>Article type</label>
+        <div class="pill-group" id="article-type-pills">
+          <button class="pill active" data-value="News" title="News — straight reporting from newswires and mainstream desks (Reuters, AP, Bloomberg, AFP, etc.).">News</button>
+          <button class="pill active" data-value="Analysis" title="Analysis — explainers, features, and think-tank research that interpret events rather than just report them.">Analysis</button>
+          <button class="pill" data-value="Opinion" title="Opinion &amp; op-ed — editorials and columns. Arguments and personal viewpoints, not reporting. Off by default.">Opinion / Op-ed</button>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label>Date range <span class="filter-hint">(default: all time, sorted by recency)</span></label>
+        <div class="pill-group" id="date-range-pills">
+          <button class="pill active" data-value="all" title="Show all available articles, sorted with the newest first.">All time</button>
+          <button class="pill" data-value="24" title="Restrict to articles published in the last 24 hours.">Past 24h</button>
+          <button class="pill" data-value="168" title="Restrict to articles published in the last 7 days.">Past week</button>
+          <button class="pill" data-value="336" title="Restrict to articles published in the last 14 days.">Past 2 weeks</button>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label>Keywords &amp; topics</label>
+        <input type="text" id="keywords-input" class="keyword-input"
+               placeholder="Type a keyword and press Enter or comma..." autocomplete="off" />
+        <div class="keyword-chips" id="keyword-chips"></div>
+        <button type="button" class="keyword-clear-all" id="keyword-clear-all">Clear all keywords</button>
+      </div>
+
+      <div class="filter-footer">
+        <button class="clear-all-filters" id="clear-all-filters" type="button" title="Reset every filter to an empty state. You'll still need to press Apply to fetch.">
+          Clear all
+        </button>
+        <button id="refresh-btn" class="refresh-btn" type="button" title="Click to load articles based on your current filter selections. Do not use your browser's refresh button — that will reset your filters.">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2 8.5a6 6 0 1 1 1.3 3.8"/>
+            <path d="M1.5 4v3.5H5"/>
+          </svg>
+          <span class="refresh-btn-label" id="refresh-btn-label">Apply filters</span>
+        </button>
+      </div>
+      </div>
+    </div>
+
+    <div class="dispatch-header" id="dispatch-header">
+      <div class="dispatch-date" id="dispatch-date"></div>
+      <div class="dispatch-ornament">&#x25C6;</div>
+      <div class="dispatch-title">Today&rsquo;s Dispatch</div>
+    </div>
+
+    <div class="stats-strip" id="stats-strip"></div>
+
+    <!-- Always-visible "how to use Annotate" banner. Closeable; stays
+         dismissed via localStorage. Designed to draw attention to the
+         feature so users discover the green-term explanations. -->
+    <main id="feed">
+      <div class="loading-feed">
+        <div class="loading-pulse"></div>
+        <span>Gathering today&rsquo;s stories&hellip;</span>
+      </div>
+    </main>
+
+    <footer>
+      <span id="feed-count"></span>
+      <span id="feed-timestamp"></span>
+      <span class="footer-links">
+        <a href="/about.html">About</a>
+        <span class="footer-dot">·</span>
+        <a href="/navigate.html">How to navigate</a>
+        <span class="footer-dot">·</span>
+        <a href="/privacy.html">Privacy</a>
+      </span>
+    </footer>
+  </div>
+
+  <!-- Welcome Wizard — 4-step Apple-clean onboarding -->
+  <div class="wizard-overlay" id="welcome-overlay" role="dialog" aria-modal="true" aria-labelledby="wizard-heading">
+    <div class="wizard">
+      <div class="wizard-progress" id="wizard-progress">
+        <div class="wizard-dot active"></div>
+        <div class="wizard-dot"></div>
+        <div class="wizard-dot"></div>
+        <div class="wizard-dot"></div>
+      </div>
+
+      <!-- Step 1: About you -->
+      <div class="wizard-step active" data-step="1">
+        <h2 id="wizard-heading">Tell us about yourself</h2>
+        <p class="wizard-subtitle">So we can show you news that actually matters to you.</p>
+        <div class="wizard-fields">
+          <div class="wizard-field">
+            <label for="wiz-role">What do you do?</label>
+            <input type="text" id="wiz-role" placeholder="e.g. Founder, Analyst, Journalist, Student..." autocomplete="off" />
+          </div>
+          <div class="wizard-field">
+            <label for="wiz-company">Company or organisation <span class="wizard-optional">optional</span></label>
+            <input type="text" id="wiz-company" placeholder="e.g. Morgan Stanley, University of Singapore..." autocomplete="organization" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Interests -->
+      <div class="wizard-step" data-step="2">
+        <h2>What interests you?</h2>
+        <p class="wizard-subtitle">Tap as many as you like. Work and personal — we'll cover both.</p>
+        <div class="wizard-cards" id="wiz-sectors"></div>
+      </div>
+
+      <!-- Step 3: Geography -->
+      <div class="wizard-step" data-step="3">
+        <h2>Where in the world?</h2>
+        <p class="wizard-subtitle">Pick regions you follow, or leave it on Global for everything.</p>
+        <div class="wizard-field">
+          <label for="wiz-location">Where are you based?</label>
+          <input type="text" id="wiz-location" placeholder="e.g. Singapore, London, New York..." autocomplete="off" />
+        </div>
+        <div class="wizard-cards wizard-regions" id="wiz-regions"></div>
+      </div>
+
+      <!-- Step 4: Fine-tune -->
+      <div class="wizard-step" data-step="4">
+        <h2>Track specific topics</h2>
+        <p class="wizard-subtitle">Add keywords that matter to you. These help us find exactly the right stories.</p>
+        <div class="wizard-field">
+          <label for="wiz-keywords">Keywords &amp; topics</label>
+          <input type="text" id="wiz-keywords" placeholder="Type a keyword and press Enter..." autocomplete="off" />
+          <div class="wizard-chips" id="wiz-keyword-chips"></div>
+        </div>
+        <div class="wizard-field">
+          <label>Source preferences</label>
+          <div class="wizard-source-toggles">
+            <label class="wizard-source-pill active" data-value="Mainstream news"><span class="wizard-check"></span>Mainstream</label>
+            <label class="wizard-source-pill active" data-value="Think tanks & academic"><span class="wizard-check"></span>Think Tanks</label>
+            <label class="wizard-source-pill active" data-value="Independent journalism"><span class="wizard-check"></span>Independent</label>
+            <label class="wizard-source-pill" data-value="Official statements"><span class="wizard-check"></span>Official</label>
+          </div>
+        </div>
+        <p class="wizard-changeable">You can change all of this anytime from your profile &rarr;</p>
+      </div>
+
+      <!-- Footer (shared) -->
+      <div class="wizard-footer">
+        <button class="wizard-back" id="wizard-back" type="button">&larr; Back</button>
+        <button class="wizard-next btn-primary" id="wizard-next" type="button">Next</button>
+        <button class="wizard-finish btn-primary" id="wizard-finish" type="button" style="display:none">Start reading &rarr;</button>
+      </div>
+      <button class="wizard-skip" id="welcome-skip" type="button">Skip for now</button>
+    </div>
+  </div>
+
+  <!-- Profile slide-in side panel -->
+  <div class="profile-panel-overlay" id="profile-panel-overlay" aria-hidden="true"></div>
+  <aside class="profile-panel" id="profile-panel" role="dialog" aria-modal="true" aria-labelledby="profile-panel-heading" aria-hidden="true">
+    <div class="profile-panel-header">
+      <div>
+        <h2 id="profile-panel-heading">Your profile</h2>
+        <p class="profile-panel-subtitle">Tailor how stories are analysed for you.</p>
+      </div>
+      <button class="profile-panel-close" id="profile-panel-close" type="button" aria-label="Close">&times;</button>
+    </div>
+
+    <div class="profile-panel-body" id="profile-form-mount"></div>
+
+    <div class="profile-panel-inline-success" id="profile-panel-success" aria-live="polite"></div>
+
+    <details class="reading-patterns-card" id="reading-patterns-card">
+      <summary class="reading-patterns-toggle">Your reading patterns</summary>
+      <div class="reading-patterns-body" id="reading-patterns-body">
+        <div class="reading-patterns-hint">After 10 interactions we'll show you what we've learned about your interests.</div>
+      </div>
+    </details>
+
+    <div class="profile-panel-footer">
+      <div class="profile-panel-footer-row">
+        <button class="btn-secondary" id="profile-clear" type="button">Clear profile</button>
+        <button class="btn-primary" id="profile-save" type="button">Save profile</button>
+      </div>
+      <button class="profile-skip-link" id="profile-panel-skip" type="button" title="Close without saving">Skip for now</button>
+    </div>
+  </aside>
+
+  <!-- Source browser modal — pick specific sources to include/exclude -->
+  <div class="source-browser-overlay" id="source-browser-overlay" aria-hidden="true"></div>
+  <aside class="source-browser" id="source-browser" role="dialog" aria-modal="true" aria-labelledby="source-browser-heading" aria-hidden="true">
+    <div class="source-browser-header">
+      <div>
+        <h2 id="source-browser-heading">Manage sources</h2>
+        <p class="source-browser-subtitle">Include specific outlets (whitelist) or exclude ones you never want to see. Leave both empty to use every source.</p>
+      </div>
+      <button class="profile-panel-close" id="source-browser-close" type="button" aria-label="Close">&times;</button>
+    </div>
+
+    <div class="source-browser-toolbar">
+      <input type="text" id="source-browser-search" class="source-browser-search"
+             placeholder="Search by name, country, or outlet..." autocomplete="off" />
+      <button type="button" class="source-browser-add-custom" id="source-browser-add-custom">+ Add custom source</button>
+    </div>
+
+    <div class="source-browser-legend" id="source-browser-legend">
+      <span class="source-include-count">0 included</span>
+      <span class="source-exclude-count">0 excluded</span>
+    </div>
+
+    <div class="source-browser-body" id="source-browser-body">
+      <div class="source-browser-loading">Loading sources&hellip;</div>
+    </div>
+
+    <div class="source-browser-footer">
+      <button class="btn-secondary" id="source-browser-reset" type="button">Reset</button>
+      <button class="btn-primary" id="source-browser-save" type="button">Save</button>
+    </div>
+  </aside>
+
+  <!-- Add Custom Source mini-modal -->
+  <div class="custom-source-overlay" id="custom-source-overlay" aria-hidden="true">
+    <div class="custom-source-modal" role="dialog" aria-modal="true" aria-labelledby="custom-source-heading">
+      <div class="custom-source-header">
+        <h3 id="custom-source-heading">Add a custom source</h3>
+        <button class="modal-close" id="custom-source-close" type="button" aria-label="Close">&times;</button>
+      </div>
+      <div class="custom-source-body">
+        <div class="form-group">
+          <label for="custom-source-url">Publication URL <span class="optional">(or name)</span></label>
+          <input type="text" id="custom-source-url" placeholder="https://example-news.com OR Publication Name" autocomplete="off" />
+          <div class="custom-source-hint">We'll fetch public info and classify the outlet for you.</div>
+        </div>
+        <div class="custom-source-status" id="custom-source-status"></div>
+      </div>
+      <div class="custom-source-footer">
+        <button class="btn-secondary" id="custom-source-cancel" type="button">Cancel</button>
+        <button class="btn-primary" id="custom-source-submit" type="button">Add source</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast container (success messages + nudges) -->
+  <div class="toast-container" id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Sticky Apply bar — appears when filters are dirty so users don't
+       have to scroll back up to hit Apply. Hides after results load. -->
+  <div class="sticky-apply-bar" id="sticky-apply-bar" aria-live="polite">
+    <div class="sticky-apply-bar-inner">
+      <span class="sticky-apply-bar-hint">You have unapplied filter changes</span>
+      <div class="sticky-apply-bar-actions">
+        <button class="sticky-apply-clear" id="sticky-apply-clear" type="button">Clear all</button>
+        <button class="sticky-apply-btn" id="sticky-apply-btn" type="button">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2 8.5a6 6 0 1 1 1.3 3.8"/>
+            <path d="M1.5 4v3.5H5"/>
+          </svg>
+          <span>Apply filters</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="annotate-popup" id="annotate-popup">
+    <button class="annotate-popup-close" id="annotate-popup-close">&times;</button>
+    <div class="annotate-popup-body" id="annotate-popup-body"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
